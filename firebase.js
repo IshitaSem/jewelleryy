@@ -5,7 +5,7 @@ import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyD1TE5dzElHpTOebGV-r2tgYIyFjubL7g",
+  apiKey: "AIzaSyDFwNH7tU993SE2FwCykgHO4USYH_wgGbk",
   authDomain: "jewellyy-99408.firebaseapp.com",
   projectId: "jewellyy-99408",
   storageBucket: "jewellyy-99408.firebasestorage.app",
