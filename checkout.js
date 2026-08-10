@@ -1,0 +1,168 @@
+import { db, serverTimestamp } from './firebase.js';
+import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+// ==========================================
+// ⚠️ IMPORTANT CLOUDINARY CONFIGURATION ⚠️
+// ==========================================
+// REPLACE THESE WITH YOUR ACTUAL DETAILS:
+const CLOUDINARY_CLOUD_NAME = "yoegaasc"; 
+const CLOUDINARY_UPLOAD_PRESET = "payment_screenshots"; // Must be an Unsigned preset!
+// ==========================================
+
+let cart = JSON.parse(localStorage.getItem('glamaura_cart')) || [];
+let totalValue = 0;
+
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Validate Cart
+    if (cart.length === 0) {
+        alert("Your cart is empty! Redirecting to catalogue...");
+        window.location.href = 'index.html';
+        return;
+    }
+
+    // 2. Render Order Summary
+    const checkoutItemsDiv = document.getElementById('checkoutItems');
+    const checkoutSubtotal = document.getElementById('checkoutSubtotal');
+    const checkoutTotal = document.getElementById('checkoutTotal');
+    const paymentAmount = document.getElementById('paymentAmount');
+
+    cart.forEach(item => {
+        const itemTotal = item.price * item.quantity;
+        totalValue += itemTotal;
+        
+        checkoutItemsDiv.innerHTML += `
+            <div class="order-summary-item">
+                <img src="${item.image}" alt="${item.name}">
+                <div class="order-summary-details">
+                    <h4>${item.name}</h4>
+                    <p>Qty: ${item.quantity} x ₹${item.price}</p>
+                </div>
+                <div style="font-weight: bold; color: #ff1493;">₹${itemTotal}</div>
+            </div>
+        `;
+    });
+
+    checkoutSubtotal.textContent = `₹${totalValue}`;
+    checkoutTotal.textContent = `₹${totalValue}`;
+    paymentAmount.textContent = `₹${totalValue}`;
+
+    // 3. Handle Form Submission
+    const checkoutForm = document.getElementById('checkoutForm');
+    checkoutForm.addEventListener('submit', handleOrderSubmission);
+});
+
+async function handleOrderSubmission(e) {
+    e.preventDefault();
+
+    const placeOrderBtn = document.getElementById('placeOrderBtn');
+    const uploadStatus = document.getElementById('uploadStatus');
+    const fileInput = document.getElementById('paymentScreenshot');
+    
+    // Get form data
+    const customer = {
+        name: document.getElementById('customerName').value.trim(),
+        phone: document.getElementById('customerPhone').value.trim(),
+        address: document.getElementById('customerAddress').value.trim(),
+    };
+
+    // Validate file
+    const file = fileInput.files[0];
+    if (!file) {
+        alert("Please upload a payment screenshot.");
+        return;
+    }
+    
+    // File size validation (Max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+        alert("File is too large. Please upload an image smaller than 5MB.");
+        return;
+    }
+
+    // Valid formats
+    const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+        alert("Invalid file format. Only JPG, PNG, and WEBP are allowed.");
+        return;
+    }
+
+    // Prevent double submission
+    placeOrderBtn.disabled = true;
+    placeOrderBtn.style.display = 'none';
+    uploadStatus.style.display = 'block';
+
+    try {
+        // STEP 1: Upload to Cloudinary
+        uploadStatus.textContent = "Uploading payment screenshot... 🐾";
+        const cloudinaryUrl = await uploadToCloudinary(file);
+        
+        if (!cloudinaryUrl) {
+            throw new Error("Failed to get image URL from Cloudinary.");
+        }
+
+        // STEP 2: Create Order in Firestore
+        uploadStatus.textContent = "Securing your order... ✨";
+        
+        // Generate a human-readable order number: JEW-[DATE]-[RANDOM]
+        const dateStr = new Date().toISOString().split('T')[0].replace(/-/g, '');
+        const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase();
+        const orderNumber = `JEW-${dateStr}-${randomStr}`;
+
+        const orderData = {
+            orderNumber: orderNumber,
+            customer: customer,
+            items: cart,
+            subtotal: totalValue,
+            total: totalValue,
+            paymentMethod: "UPI",
+            paymentScreenshot: cloudinaryUrl,
+            status: "pending",
+            createdAt: serverTimestamp()
+        };
+
+        const docRef = await addDoc(collection(db, "orders"), orderData);
+
+        // STEP 3: Success!
+        // Clear the cart
+        localStorage.removeItem('glamaura_cart');
+        
+        // Update UI
+        document.getElementById('checkoutFlow').style.display = 'none';
+        document.getElementById('successMessage').style.display = 'block';
+        document.getElementById('orderNumberDisplay').textContent = orderNumber;
+
+    } catch (error) {
+        console.error("Order submission failed:", error);
+        alert("Something went wrong while submitting your order. Your cart is saved. Please try again or contact us on Instagram.\n\nError: " + error.message);
+        
+        // Restore button state (DO NOT clear cart)
+        placeOrderBtn.disabled = false;
+        placeOrderBtn.style.display = 'block';
+        uploadStatus.style.display = 'none';
+    }
+}
+
+async function uploadToCloudinary(file) {
+    // Cloudinary Unsigned Upload API
+    const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+    
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+    
+    // Add an explicit folder if configured in the preset, otherwise it uses preset default
+    // formData.append("folder", "payments");
+
+    const response = await fetch(url, {
+        method: "POST",
+        body: formData
+    });
+
+    if (!response.ok) {
+        const err = await response.json();
+        console.error("Cloudinary Error:", err);
+        throw new Error(err.error?.message || "Failed to upload image to Cloudinary.");
+    }
+
+    const data = await response.json();
+    return data.secure_url;
+}

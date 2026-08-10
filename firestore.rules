@@ -10,6 +10,7 @@ service cloud.firestore {
       // from assigning privileged/admin fields.
       allow create: if
         request.resource.data.keys().hasOnly([
+          'orderNumber',
           'customer',
           'items',
           'subtotal',
@@ -19,10 +20,13 @@ service cloud.firestore {
           'status',
           'createdAt'
         ])
+        && request.resource.data.orderNumber is string
         && request.resource.data.customer is map
         && request.resource.data.items is list
         && request.resource.data.total is number
-        && request.resource.data.status == 'pending';
+        && request.resource.data.status == 'pending'
+        && request.resource.data.paymentMethod == 'UPI'
+        && request.resource.data.createdAt == request.time;
 
       // Only authenticated administrators can read orders.
       allow read: if isAdmin();

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Glam Aura – Checkout</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&family=Pacifico&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  /* Checkout specific layout */
+  .checkout-container {
+    max-width: 1000px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+  }
+  .checkout-section {
+    background: #ffe4e1;
+    border-radius: 20px;
+    padding: 2rem;
+    flex: 1;
+    min-width: 300px;
+    box-shadow: 0 4px 15px rgba(255,105,180,0.2);
+  }
+  .checkout-section h2 {
+    font-family: 'Pacifico', cursive;
+    color: #ff1493;
+    margin-bottom: 1.5rem;
+    font-size: 1.8rem;
+    text-align: center;
+  }
+  .form-group {
+    margin-bottom: 1.2rem;
+  }
+  .form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #ff1493;
+  }
+  .form-group input, .form-group textarea {
+    width: 100%;
+    padding: 0.8rem;
+    border: 2px solid #ffb6c1;
+    border-radius: 10px;
+    font-family: 'Quicksand', sans-serif;
+    font-size: 1rem;
+    background: white;
+  }
+  .form-group input:focus, .form-group textarea:focus {
+    outline: none;
+    border-color: #ff1493;
+    box-shadow: 0 0 5px rgba(255,20,147,0.3);
+  }
+  
+  .order-summary-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    background: white;
+    padding: 0.5rem;
+    border-radius: 10px;
+  }
+  .order-summary-item img {
+    width: 60px;
+    height: 60px;
+    border-radius: 10px;
+    object-fit: cover;
+    border: 2px solid #ffb6c1;
+  }
+  .order-summary-details {
+    flex: 1;
+  }
+  .order-summary-details h4 {
+    margin-bottom: 0.2rem;
+    color: #333;
+  }
+  .order-summary-details p {
+    font-size: 0.9rem;
+    color: #666;
+  }
+  .summary-totals {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 2px dashed #ffb6c1;
+  }
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+  }
+  .summary-row.total {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #ff1493;
+  }
+  
+  .payment-instructions {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 15px;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    border: 2px solid #ffb6c1;
+  }
+  .upi-id {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #ff1493;
+    background: #fff0f5;
+    padding: 0.5rem 1rem;
+    border-radius: 10px;
+    display: inline-block;
+    margin: 1rem 0;
+  }
+  
+  .btn-submit {
+    width: 100%;
+    background: #ff69b4;
+    color: white;
+    border: none;
+    padding: 1rem;
+    font-size: 1.2rem;
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    font-family: 'Quicksand', sans-serif;
+  }
+  .btn-submit:hover {
+    background: #ff1493;
+    transform: scale(1.02);
+  }
+  .btn-submit:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* Success Message */
+  #successMessage {
+    display: none;
+    text-align: center;
+    padding: 3rem;
+  }
+  #successMessage h2 {
+    font-family: 'Pacifico', cursive;
+    color: #ff1493;
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+  }
+  #orderNumberDisplay {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #ff69b4;
+    background: #ffe4e1;
+    padding: 1rem;
+    border-radius: 10px;
+    display: inline-block;
+    margin: 1rem 0;
+  }
+</style>
+</head>
+<body>
+
+<nav style="background:#ffe4e1; padding:1rem; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+  <a href="index.html" style="text-decoration:none; color:#ff1493; font-weight:bold; font-size:1.2rem;">← Back to Catalogue</a>
+</nav>
+
+<div class="checkout-container" id="checkoutFlow">
+  <!-- Left Column: Delivery Details -->
+  <div class="checkout-section">
+    <h2>Delivery Details 🐾</h2>
+    <form id="checkoutForm">
+      <div class="form-group">
+        <label for="customerName">Full Name *</label>
+        <input type="text" id="customerName" required placeholder="Jane Doe">
+      </div>
+      <div class="form-group">
+        <label for="customerPhone">Phone Number (Optional)</label>
+        <input type="tel" id="customerPhone" placeholder="+91 9876543210">
+      </div>
+      <div class="form-group">
+        <label for="customerAddress">Complete Address *</label>
+        <textarea id="customerAddress" required rows="4" placeholder="House no, Street, City, Pincode"></textarea>
+      </div>
+    </form>
+  </div>
+
+  <!-- Right Column: Order Summary & Payment -->
+  <div class="checkout-section">
+    <h2>Order Summary ✨</h2>
+    
+    <div id="checkoutItems">
+      <!-- Items injected via JS -->
+    </div>
+    
+    <div class="summary-totals">
+      <div class="summary-row">
+        <span>Subtotal</span>
+        <span id="checkoutSubtotal">₹0</span>
+      </div>
+      <div class="summary-row total">
+        <span>Total</span>
+        <span id="checkoutTotal">₹0</span>
+      </div>
+    </div>
+
+    <h2 style="margin-top: 2rem;">Payment 💸</h2>
+    <div class="payment-instructions">
+      <p>1. Pay the order amount of <strong id="paymentAmount">₹0</strong> using the UPI ID below.</p>
+      <div class="upi-id">ishsem@ptyes</div><br>
+      <a href="upi://pay?pa=ishsem@ptyes&pn=TheGlamAura" class="btn-submit" style="display:inline-block; margin-bottom:1rem; width:auto; padding:0.5rem 1rem; font-size:1rem; text-decoration:none;">Pay via UPI</a>
+      <p>2. Take a screenshot of the successful payment.</p>
+      <p>3. Upload the screenshot below.</p>
+      <p>4. Submit the order.</p>
+    </div>
+
+    <div class="form-group">
+      <label for="paymentScreenshot">Upload Payment Screenshot *</label>
+      <input type="file" id="paymentScreenshot" accept="image/png, image/jpeg, image/jpg, image/webp" required form="checkoutForm">
+      <small style="color:#666;">Max size: 5MB</small>
+    </div>
+
+    <button type="submit" form="checkoutForm" class="btn-submit" id="placeOrderBtn">Place Order 💖</button>
+    <p id="uploadStatus" style="text-align: center; margin-top: 1rem; font-weight: bold; color: #ff1493; display: none;">Uploading...</p>
+  </div>
+</div>
+
+<div class="checkout-container" id="successMessage">
+  <div class="checkout-section" style="width: 100%;">
+    <h2>Order placed successfully!</h2>
+    <p>Order Number:</p>
+    <div id="orderNumberDisplay">JEW-XXXXXXXX</div>
+    <p style="margin-top: 1rem;">Your payment screenshot has been submitted for verification.</p>
+    <p>Your order will be processed after payment verification.</p>
+    <button onclick="window.location.href='index.html'" class="btn-submit" style="width: auto; margin-top: 2rem;">Continue Shopping</button>
+  </div>
+</div>
+
+<script src="firebase.js" type="module"></script>
+<script src="checkout.js" type="module"></script>
+</body>
+</html>
