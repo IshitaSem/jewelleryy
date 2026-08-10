@@ -1,27 +1,4 @@
-<<<<<<< HEAD
 
-  <!DOCTYPE html>
-  <html lang="en">
-    <head>
-      
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <title>Jewellery Catalogue Page</title>
-      <meta name="description" content="Showcase products with an interactive popup modal featuring an image carousel, product details, and a direct ordering option via Instagram." />
-      <meta name="robots" content="noindex, nofollow" />
-      <style>html, body { height: 100%; margin: 0; } #root { height: 100%; }</style>
-      
-    </head>
-
-    <body>
-      
-      <div id="root"></div>
-      <script type="module" src="/src/main.tsx"></script>
-      
-    </body>
-  </html>
-  
-=======
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -31,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&family=Pacifico&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
 <style>
 /* ===== GLOBAL ===== */
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -599,9 +577,12 @@ footer { text-align:center; padding:1.5rem; background:#ffe4e1; color:#ff1493; f
     <div class="modal-right">
       <h2 class="modal-title" id="modalTitle">Product Name</h2>
       <p class="modal-price" id="modalPrice">₹000</p>
-      <a class="modal-dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank">
-        DM on Instagram to Order
-      </a>
+      <div style="display: flex; flex-direction: column; gap: 10px; margin-top: auto;">
+        <button class="modal-add-cart-btn" onclick="addToCartFromModal()">Add to Cart 🛒</button>
+        <a class="modal-dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" style="margin-top: 0; padding: 0.8rem; background: #ffe4e1; color: #ff1493; border: 2px solid #ffb6c1;">
+          DM on Instagram instead
+        </a>
+      </div>
     </div>
   </div>
 </div>
@@ -691,16 +672,27 @@ document.addEventListener('keydown', (e) => {
 });
 </script>
 
+<!-- CART SIDEBAR -->
+<div id="cartSidebar" class="cart-sidebar">
+  <div class="cart-header">
+    <h2>Your Cart 🛒</h2>
+    <button onclick="toggleCart()" class="cart-close">✕</button>
+  </div>
+  <div id="cartItems" class="cart-items">
+    <!-- Cart items injected here -->
+  </div>
+  <div class="cart-footer">
+    <div class="cart-total">Total: <span id="cartTotalValue">₹0</span></div>
+    <button onclick="window.location.href='checkout.html'" class="checkout-btn" id="checkoutBtn" disabled>Proceed to Checkout</button>
+  </div>
+</div>
+
+<!-- FLOATING CART BUTTON -->
+<button class="floating-cart-btn" onclick="toggleCart()">
+  🛒 <span id="cartCount">0</span>
+</button>
+
+<script src="firebase.js" type="module"></script>
+<script src="cart.js"></script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
->>>>>>> 16a48c6e96e80b9889c55471958ba2a0e7e6e305
