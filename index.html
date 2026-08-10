@@ -274,7 +274,9 @@ footer { text-align:center; padding:1.5rem; background:#ffe4e1; color:#ff1493; f
   <ul>
     <li><a href="#earrings" onclick="scrollToSection('#earrings'); return false;">Earrings 🐾</a></li>
     <li><a href="#necklaces" onclick="scrollToSection('#necklaces'); return false;">Necklaces 😸</a></li>
-    <li><a href="#charms" onclick="scrollToSection('#charms'); return false;">Phone Charms & Keychains 🐾</a></li>
+    <li><a href="#charms" onclick="scrollToSection('#charms'); return false;">Charms & Keychains 🐾</a></li>
+    <li><a href="shopping-guide.html">Shopping Guide 📖</a></li>
+    <li><a href="login.html" id="navAuthLink">Login / Sign Up ✨</a></li>
   </ul>
 </nav>
 
@@ -692,7 +694,8 @@ document.addEventListener('keydown', (e) => {
   🛒 <span id="cartCount">0</span>
 </button>
 
-<script src="firebase.js" type="module"></script>
-<script src="cart.js"></script>
+  <script src="firebase.js" type="module"></script>
+  <script src="customer-auth.js" type="module"></script>
+  <script src="cart.js"></script>
 </body>
 </html>

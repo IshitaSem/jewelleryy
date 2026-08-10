@@ -1,4 +1,4 @@
-import { db, serverTimestamp } from './firebase.js';
+import { db, auth, serverTimestamp } from './firebase.js';
 import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 // ==========================================
@@ -107,6 +107,9 @@ async function handleOrderSubmission(e) {
         const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase();
         const orderNumber = `JEW-${dateStr}-${randomStr}`;
 
+        const initialStatus = "Order Received";
+        const initialPaymentStatus = "Payment Pending";
+
         const orderData = {
             orderNumber: orderNumber,
             customer: customer,
@@ -115,9 +118,22 @@ async function handleOrderSubmission(e) {
             total: totalValue,
             paymentMethod: "UPI",
             paymentScreenshot: cloudinaryUrl,
-            status: "pending",
-            createdAt: serverTimestamp()
+            orderStatus: initialStatus,
+            paymentStatus: initialPaymentStatus,
+            statusMessage: "We have received your order.",
+            statusHistory: [{
+                status: initialStatus,
+                message: "Your order has been received.",
+                timestamp: serverTimestamp()
+            }],
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
         };
+
+        // Attach user ID if logged in
+        if (auth.currentUser) {
+            orderData.userId = auth.currentUser.uid;
+        }
 
         const docRef = await addDoc(collection(db, "orders"), orderData);
 

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - The Glam Aura</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&family=Pacifico&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body { background: #f4f4f4; }
+        .admin-nav {
+            background: #ff1493;
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .admin-nav h1 { font-family: 'Pacifico', cursive; margin: 0; font-size: 1.8rem; }
+        .admin-container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 2rem;
+        }
+        
+        /* Order List Sidebar */
+        .order-list-panel {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            height: calc(100vh - 120px);
+            display: flex;
+            flex-direction: column;
+        }
+        .order-list-header {
+            padding: 1rem;
+            background: #fff0f5;
+            border-bottom: 2px solid #ffb6c1;
+            border-radius: 10px 10px 0 0;
+        }
+        .order-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+        .admin-order-card {
+            padding: 1rem;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .admin-order-card:hover, .admin-order-card.active {
+            border-color: #ff1493;
+            background: #fff0f5;
+        }
+        .admin-order-card h4 { margin-bottom: 0.3rem; color: #333; }
+        
+        /* Detail Panel */
+        .order-detail-panel {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 2rem;
+            display: none;
+            overflow-y: auto;
+            height: calc(100vh - 120px);
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        .info-box {
+            background: #f9f9f9;
+            padding: 1.5rem;
+            border-radius: 10px;
+            border-left: 4px solid #ff1493;
+            margin-bottom: 1.5rem;
+        }
+        .info-box h3 { margin-bottom: 1rem; font-family: 'Pacifico', cursive; color: #ff1493; }
+        
+        /* Screenshot */
+        .screenshot-img {
+            max-width: 100%;
+            border-radius: 10px;
+            border: 2px solid #ddd;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+        
+        /* Form Controls */
+        .admin-form-group { margin-bottom: 1rem; }
+        .admin-form-group label { display: block; font-weight: 600; margin-bottom: 0.5rem; }
+        .admin-form-group select, .admin-form-group input, .admin-form-group textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-family: inherit;
+        }
+        .btn-update {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            font-size: 1.1rem;
+            margin-top: 1rem;
+        }
+        .btn-update:hover { background: #218838; }
+        
+        /* Status msg popup */
+        #adminSaveMsg {
+            position: fixed; top: 20px; right: 20px;
+            background: #28a745; color: white;
+            padding: 1rem 2rem; border-radius: 5px;
+            display: none; font-weight: bold; z-index: 9999;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="admin-nav">
+        <h1>Glam Aura Admin</h1>
+        <div>
+            <span id="adminEmail" style="margin-right: 1rem; font-weight:bold;">Loading...</span>
+            <button id="logoutBtn" style="background:white; color:#ff1493; border:none; padding:0.5rem 1rem; border-radius:20px; cursor:pointer; font-weight:bold;">Logout</button>
+        </div>
+    </nav>
+
+    <div id="adminSaveMsg">Update Saved!</div>
+
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <div class="order-list-panel">
+            <div class="order-list-header">
+                <h3>All Orders</h3>
+            </div>
+            <div class="order-list" id="adminOrderList">
+                <p>Loading orders...</p>
+            </div>
+        </div>
+
+        <!-- Details -->
+        <div class="order-detail-panel" id="adminDetailPanel">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #eee; padding-bottom:1rem; margin-bottom:1.5rem;">
+                <h2 id="admOrderNo" style="font-size: 2rem; color:#ff1493;">Order #...</h2>
+                <span id="admDate" style="color:#666;">Date</span>
+            </div>
+
+            <div class="grid-2">
+                <!-- LEFT COL -->
+                <div>
+                    <div class="info-box">
+                        <h3>Customer Details</h3>
+                        <p><strong>Name:</strong> <span id="admCustName"></span></p>
+                        <p><strong>Phone:</strong> <span id="admCustPhone"></span></p>
+                        <p><strong>Address:</strong> <span id="admCustAddress"></span></p>
+                    </div>
+
+                    <div class="info-box">
+                        <h3>Order Items</h3>
+                        <div id="admItems"></div>
+                        <h3 style="margin-top:1rem;">Total: <span id="admTotal" style="color:#28a745;">₹0</span></h3>
+                    </div>
+                </div>
+
+                <!-- RIGHT COL -->
+                <div>
+                    <div class="info-box" style="border-left-color: #007bff;">
+                        <h3>Payment Verification</h3>
+                        <a id="admPaymentLink" target="_blank">
+                            <img id="admPaymentImg" class="screenshot-img" src="" alt="Payment Screenshot">
+                        </a>
+                        
+                        <div class="admin-form-group" style="margin-top:1rem;">
+                            <label>Payment Status</label>
+                            <select id="inpPaymentStatus">
+                                <option value="Payment Pending">Payment Pending</option>
+                                <option value="Payment Verified">Payment Verified</option>
+                                <option value="Payment Rejected">Payment Rejected</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="info-box" style="border-left-color: #ffc107;">
+                        <h3>Order Management</h3>
+                        
+                        <div class="admin-form-group">
+                            <label>Order Status</label>
+                            <select id="inpOrderStatus">
+                                <option value="Order Received">Order Received</option>
+                                <option value="Order Confirmed">Order Confirmed</option>
+                                <option value="Preparing">Preparing</option>
+                                <option value="Ready for Dispatch">Ready for Dispatch</option>
+                                <option value="Shipped">Shipped</option>
+                                <option value="Out for Delivery">Out for Delivery</option>
+                                <option value="Delivered">Delivered</option>
+                                <option value="Cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                        
+                        <div class="admin-form-group">
+                            <label>Status Message (Customer sees this)</label>
+                            <textarea id="inpMessage" rows="2" placeholder="e.g. Your jewellery is being prepared!"></textarea>
+                        </div>
+
+                        <div class="admin-form-group">
+                            <label>Courier Name</label>
+                            <input type="text" id="inpCourier" placeholder="e.g. BlueDart">
+                        </div>
+
+                        <div class="admin-form-group">
+                            <label>Tracking Number</label>
+                            <input type="text" id="inpTracking" placeholder="AWB Number">
+                        </div>
+
+                        <button id="btnSaveUpdate" class="btn-update">Save & Update Customer</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="admin.js"></script>
+</body>
+</html>

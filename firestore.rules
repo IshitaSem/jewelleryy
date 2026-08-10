@@ -3,13 +3,21 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email == 'ishitasemwal84@gmail.com';
+    }
+
+    match /customers/{userId} {
+      allow create, read, update: if isAdmin() || (request.auth != null && request.auth.uid == userId);
+      allow delete: if false;
+    }
+
     match /orders/{orderId} {
 
-      // Customers can create orders only.
-      // Validate the basic structure and prevent clients
-      // from assigning privileged/admin fields.
       allow create: if
-        request.resource.data.keys().hasOnly([
+        // Must contain base fields
+        request.resource.data.keys().hasAll([
           'orderNumber',
           'customer',
           'items',
@@ -17,19 +25,27 @@ service cloud.firestore {
           'total',
           'paymentMethod',
           'paymentScreenshot',
-          'status',
-          'createdAt'
+          'orderStatus',
+          'paymentStatus',
+          'statusMessage',
+          'statusHistory',
+          'createdAt',
+          'updatedAt'
         ])
         && request.resource.data.orderNumber is string
         && request.resource.data.customer is map
         && request.resource.data.items is list
         && request.resource.data.total is number
-        && request.resource.data.status == 'pending'
+        && request.resource.data.orderStatus == 'Order Received'
+        && request.resource.data.paymentStatus == 'Payment Pending'
         && request.resource.data.paymentMethod == 'UPI'
-        && request.resource.data.createdAt == request.time;
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time
+        // If they provided a userId, it must match their auth
+        && (!('userId' in request.resource.data) || (request.auth != null && request.resource.data.userId == request.auth.uid));
 
-      // Only authenticated administrators can read orders.
-      allow read: if isAdmin();
+      // Customers can read their own orders. Admins can read all.
+      allow read: if isAdmin() || (request.auth != null && resource.data.userId == request.auth.uid);
 
       // Only authenticated administrators can update orders.
       allow update: if isAdmin();
@@ -38,9 +54,5 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    function isAdmin() {
-      return request.auth != null
-        && request.auth.token.email == 'ishitasemwal84@gmail.com';
-    }
   }
 }
