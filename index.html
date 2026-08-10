@@ -1,0 +1,706 @@
+<<<<<<< HEAD
+
+  <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Jewellery Catalogue Page</title>
+      <meta name="description" content="Showcase products with an interactive popup modal featuring an image carousel, product details, and a direct ordering option via Instagram." />
+      <meta name="robots" content="noindex, nofollow" />
+      <style>html, body { height: 100%; margin: 0; } #root { height: 100%; }</style>
+      
+    </head>
+
+    <body>
+      
+      <div id="root"></div>
+      <script type="module" src="/src/main.tsx"></script>
+      
+    </body>
+  </html>
+  
+=======
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Glam Aura – Catalogue</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&family=Pacifico&display=swap" rel="stylesheet">
+<style>
+/* ===== GLOBAL ===== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Quicksand', sans-serif;
+  /* PINK CHECK PATTERN */
+  background:
+      linear-gradient(45deg, #ffe6ef 25%, transparent 25%) -20px 0,
+      linear-gradient(45deg, transparent 75%, #ffe6ef 75%) -20px 0,
+      linear-gradient(45deg, transparent 75%, #ffe6ef 75%),
+      linear-gradient(45deg, #ffe6ef 25%, transparent 25%);
+  background-size: 40px 40px;
+  background-color: #fff0f5;
+  color: #333;
+  overflow-x: hidden;
+}
+/* ===== HERO ===== */
+.hero { text-align: center; padding: 2rem 1rem; background: linear-gradient(135deg, #ffd1dc, #ffb6c1); border-bottom: 5px dashed #ff69b4; }
+.hero-img-wrapper { position: relative; display: inline-block; margin-bottom: 1rem; animation: heroFadeIn 0.8s ease-out; }
+@keyframes heroFadeIn { from { opacity:0; transform:scale(0.5) rotate(-180deg);} to{ opacity:1; transform:scale(1) rotate(0deg);} }
+
+.hero-img { width: 7rem; height: 7rem; border-radius: 50%; border: 4px solid #ff69b4; box-shadow:0 4px 15px rgba(0,0,0,0.1); object-fit: cover; }
+.cat-paw { position:absolute; top:-0.5rem; left:-0.75rem; font-size:1.875rem; opacity:0.7; animation: float 3s ease-in-out infinite; }
+.sparkle { position:absolute; top:-0.5rem; right:-0.5rem; font-size:1.5rem; opacity:0.8; animation: sparkleAnim 2s infinite alternate; }
+
+@keyframes float { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-5px);} }
+@keyframes sparkleAnim { 0%{transform:rotate(0deg) scale(1);opacity:0.8;} 50%{transform:rotate(20deg) scale(1.2);opacity:1;} 100%{transform:rotate(0deg) scale(1);opacity:0.8;} }
+
+.hero h1 { font-family:'Pacifico', cursive; color:#ff1493; font-size:1.125rem; margin-bottom:0.75rem; padding:0 1rem; animation: fadeInUp 0.6s ease-out 0.3s both; }
+@keyframes fadeInUp { from{opacity:0; transform:translateY(20px);} to{opacity:1; transform:translateY(0);} }
+
+.btn-main { background:#ff69b4; color:white; border:none; padding:0.5rem 1.5rem; font-size:0.875rem; border-radius:25px; cursor:pointer; transition:all 0.3s ease; box-shadow:0 2px 8px rgba(0,0,0,0.1); font-weight:600; animation: fadeInUp 0.6s ease-out 0.7s both; }
+.btn-main:hover { background:#ff1493; transform:scale(1.05); }
+.btn-main:active { transform:scale(0.95); }
+
+/* ===== CATEGORY NAV ===== */
+nav.categories { background:#ffe4e1; padding:1rem; text-align:center; position:sticky; top:0; z-index:100; box-shadow:0 2px 8px rgba(0,0,0,0.1); }
+nav.categories ul { list-style:none; display:flex; justify-content:center; flex-wrap:wrap; gap:1.5rem; max-width:64rem; margin:0 auto; }
+nav.categories a { text-decoration:none; color:#ff69b4; font-weight:600; transition: all 0.3s ease; display:inline-block; }
+nav.categories a:hover { color:#ff1493; transform:scale(1.1); }
+
+/* ===== GALLERY ===== */
+.gallery { padding:3rem 1rem; text-align:center; }
+.gallery h2 { font-family:'Pacifico', cursive; color:#ff1493; margin-bottom:2rem; font-size:1.5rem; }
+.gallery-row { display:flex; flex-wrap:wrap; justify-content:center; gap:1rem; max-width:72rem; margin:0 auto; }
+.gallery-row img { width:10rem; height:10rem; object-fit:cover; border-radius:1rem; border:4px solid #ff69b4; transition:transform 0.3s ease; opacity:0; animation: fadeInRotate 0.6s ease-out forwards; }
+.gallery-row img:nth-child(1){animation-delay:0s;} .gallery-row img:nth-child(2){animation-delay:0.1s;} .gallery-row img:nth-child(3){animation-delay:0.2s;} .gallery-row img:nth-child(4){animation-delay:0.3s;}
+@keyframes fadeInRotate { from{opacity:0; transform:scale(0.8) rotate(-10deg);} to{opacity:1; transform:scale(1) rotate(0deg);} }
+.gallery-row img:hover { transform:scale(1.05) rotate(3deg); }
+
+/* ===== PRODUCT SECTIONS ===== */
+.section-title { font-family:'Pacifico', cursive; color:#ff1493; text-align:center; margin:3rem 0 2rem 0; font-size:1.5rem; }
+.product-grid { display:flex; flex-wrap:wrap; justify-content:center; gap:1rem; padding:0 1rem 3rem 1rem; max-width:88rem; margin:0 auto; }
+.product { background:#ffe4e1; border-radius:1.25rem; padding:1rem; width:9rem; text-align:center; box-shadow:0 4px 10px rgba(255,105,180,0.3); transition:all 0.3s ease; cursor:pointer; }
+.product:hover { transform:translateY(-5px) scale(1.02); box-shadow:0 8px 20px rgba(255,105,180,0.4); }
+.product img { width:6rem; height:6rem; border-radius:50%; margin:0 auto 0.75rem; border:2px solid #ff69b4; object-fit:cover; display:block; }
+.product h3 { font-family:'Pacifico', cursive; font-size:0.875rem; color:#ff1493; margin:0.5rem 0; }
+.product p { font-weight:bold; margin-bottom:0.75rem; font-size:0.875rem; }
+.dm-btn { display:inline-block; text-decoration:none; background:#ff69b4; color:white; padding:0.5rem 1rem; border-radius:25px; font-size:0.75rem; font-weight:600; transition:all 0.3s ease; }
+.dm-btn:hover { background:#ff1493; transform:scale(1.05); }
+.dm-btn:active { transform:scale(0.95); }
+
+/* ===== MODAL/POPUP ===== */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+  animation: fadeIn 0.3s ease;
+}
+.modal-overlay.active { display: flex; }
+@keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
+
+.modal-content {
+  background: white;
+  border-radius: 20px;
+  max-width: 900px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  display: flex;
+  position: relative;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+  animation: slideUp 0.3s ease;
+}
+@keyframes slideUp { from{transform:translateY(50px); opacity:0;} to{transform:translateY(0); opacity:1;} }
+
+.modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: white;
+  border: none;
+  font-size: 1.5rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  transition: all 0.3s ease;
+}
+.modal-close:hover { background: #ff69b4; color: white; transform: rotate(90deg); }
+
+.modal-left {
+  flex: 1;
+  background: #f8f8f8;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.modal-image-container {
+  width: 100%;
+  max-width: 400px;
+  aspect-ratio: 1;
+  position: relative;
+  overflow: hidden;
+  border-radius: 15px;
+  margin-bottom: 1rem;
+}
+
+.modal-image-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: none;
+}
+.modal-image-container img.active { display: block; }
+
+.carousel-dots {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-top: 1rem;
+}
+.carousel-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ccc;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.carousel-dot.active { background: #ff69b4; width: 30px; border-radius: 5px; }
+
+.carousel-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.carousel-nav:hover { background: #ff69b4; color: white; }
+.carousel-prev { left: 1rem; }
+.carousel-next { right: 1rem; }
+
+.modal-right {
+  flex: 1;
+  padding: 3rem 2rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-title {
+  font-family: 'Pacifico', cursive;
+  color: #ff1493;
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.modal-price {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 2rem;
+}
+
+.modal-dm-btn {
+  background: #ff69b4;
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  font-size: 1rem;
+  border-radius: 30px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+  margin-top: auto;
+}
+.modal-dm-btn:hover { background: #ff1493; transform: scale(1.05); }
+
+/* ===== FOOTER ===== */
+footer { text-align:center; padding:1.5rem; background:#ffe4e1; color:#ff1493; font-weight:600; border-top:5px dashed #ff69b4; margin-top:2rem; }
+
+/* ===== RESPONSIVE ===== */
+@media screen and (min-width:768px) { 
+.hero-img{width:9rem;height:9rem;}
+.hero h1{font-size:1.25rem;}
+.gallery-row img{width:13rem;height:13rem;}
+.product{width:12rem;}
+.product img{width:8rem;height:8rem;}
+.product h3{font-size:1rem;}
+.product p{font-size:1rem;}
+.dm-btn{font-size:0.875rem;}
+}
+@media screen and (max-width:768px) {
+  .modal-content { flex-direction: column; }
+  .modal-left { padding: 1.5rem; }
+  .modal-right { padding: 2rem 1.5rem; }
+  .modal-title { font-size: 1.5rem; }
+  .modal-price { font-size: 1.2rem; }
+}
+@media screen and (max-width:480px) {
+.hero h1{font-size:1rem;}
+.gallery-row img{width:7.5rem;height:7.5rem;}
+.product{width:7.5rem;}
+.product img{width:5rem;height:5rem;}
+}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-img-wrapper">
+    <img src="images/hero/hero.png" class="hero-img" alt="The Glam Aura Logo">
+    <span class="cat-paw">🐾</span>
+    <span class="sparkle">✨</span>
+  </div>
+  <h1>Cute Lil Sparkles • Handmade Chaos By The Glam Aura 💖</h1>
+  <button class="btn-main" onclick="scrollToSection('#earrings')">Shop Catalogue</button>
+</section>
+
+<!-- CATEGORIES NAV -->
+<nav class="categories">
+  <ul>
+    <li><a href="#earrings" onclick="scrollToSection('#earrings'); return false;">Earrings 🐾</a></li>
+    <li><a href="#necklaces" onclick="scrollToSection('#necklaces'); return false;">Necklaces 😸</a></li>
+    <li><a href="#charms" onclick="scrollToSection('#charms'); return false;">Phone Charms & Keychains 🐾</a></li>
+  </ul>
+</nav>
+
+<!-- GALLERY -->
+<section class="gallery">
+  <h2>Gallery 🐾</h2>
+  <div class="gallery-row">
+    <img src="images/gallery/gallery (1).jpg" alt="Gallery 1">
+    <img src="images/gallery/gallery (2).jpg" alt="Gallery 2">
+    <img src="images/gallery/gallery (3).jpg" alt="Gallery 3">
+    <img src="images/gallery/gallery (4).jpg" alt="Gallery 4">
+  </div>
+</section>
+
+<!-- EARRINGS -->
+<h2 id="earrings" class="section-title">Earrings 🐾</h2>
+<div class="product-grid">
+  <div class="product" onclick="openModal('Earring 1', '₹79', ['images/earrings/earrings (1).jpg', 'images/earrings/earrings (1).jpg', 'images/earrings/earrings (1).jpg'])">
+    <img src="images/earrings/earrings (1).jpg" alt="Earring 1">
+    <h3>Earring 1</h3>
+    <p>₹79</p>
+    <a class="dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" onclick="event.stopPropagation()">DM on Instagram</a>
+  </div>
+  <div class="product" onclick="openModal('Earring 2', '₹69', ['images/earrings/earrings (2).jpg', 'images/earrings/earrings (2).jpg', 'images/earrings/earrings (2).jpg'])">
+    <img src="images/earrings/earrings (2).jpg" alt="Earring 2">
+    <h3>Earring 2</h3>
+    <p>₹69</p>
+    <a class="dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" onclick="event.stopPropagation()">DM on Instagram</a>
+  </div>
+  <div class="product" onclick="openModal('Earring 3', '₹79', ['images/earrings/earrings (3).jpg', 'images/earrings/earrings (3).jpg', 'images/earrings/earrings (3).jpg'])">
+    <img src="images/earrings/earrings (3).jpg" alt="Earring 3">
+    <h3>Earring 3</h3>
+    <p>₹79</p>
+    <a class="dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" onclick="event.stopPropagation()">DM on Instagram</a>
+  </div>
+  <div class="product" onclick="openModal('Earring 4', '₹99', ['images/earrings/earrings (4).jpg', 'images/earrings/earrings (4).jpg', 'images/earrings/earrings (4).jpg'])">
+    <img src="images/earrings/earrings (4).jpg" alt="Earring 4">
+    <h3>Earring 4</h3>
+    <p>₹99</p>
+    <a class="dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" onclick="event.stopPropagation()">DM on Instagram</a>
+  </div>
+  <div class="product" onclick="openModal('Earring 5', '₹99', ['images/earrings/earrings (5).jpg', 'images/earrings/earrings (5).jpg', 'images/earrings/earrings (5).jpg'])">
+    <img src="images/earrings/earrings (5).jpg" alt="Earring 5">
+    <h3>Earring 5</h3>
+    <p>₹99</p>
+    <a class="dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" onclick="event.stopPropagation()">DM on Instagram</a>
+  </div>
+  <div class="product" onclick="openModal('Earring 6', '₹79', ['images/earrings/earrings (6).jpg', 'images/earrings/earrings (6).jpg', 'images/earrings/earrings (6).jpg'])">
+    <img src="images/earrings/earrings (6).jpg" alt="Earring 6">
+    <h3>Earring 6</h3>
+    <p>₹79</p>
+    <a class="dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" onclick="event.stopPropagation()">DM on Instagram</a>
+  </div>
+  <div class="product" onclick="openModal('Earring 7', '₹69', ['images/earrings/earrings (7).jpg', 'images/earrings/earrings (7).jpg', 'images/earrings/earrings (7).jpg'])">
+    <img src="images/earrings/earrings (7).jpg" alt="Earring 7">
+    <h3>Earring 7</h3>
+    <p>₹69</p>
+    <a class="dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" onclick="event.stopPropagation()">DM on Instagram</a>
+  </div>
+  <div class="product" onclick="openModal('Earring 8', '₹69', ['images/earrings/earrings (8).jpg', 'images/earrings/earrings (8).jpg', 'images/earrings/earrings (8).jpg'])">
+    <img src="images/earrings/earrings (8).jpg" alt="Earring 8">
+    <h3>Earring 8</h3>
+    <p>₹69</p>
+    <a class="dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" onclick="event.stopPropagation()">DM on Instagram</a>
+  </div>
+  <div class="product" onclick="openModal('Earring 9', '₹79', ['images/earrings/earrings (9).jpg', 'images/earrings/earrings (9).jpg', 'images/earrings/earrings (9).jpg'])">
+    <img src="images/earrings/earrings (9).jpg" alt="Earring 9">
+    <h3>Earring 9</h3>
+    <p>₹79</p>
+    <a class="dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" onclick="event.stopPropagation()">DM on Instagram</a>
+  </div>
+  <div class="product" onclick="openModal('Earring 10', '₹59', ['images/earrings/earrings (10).jpg', 'images/earrings/earrings (10).jpg', 'images/earrings/earrings (10).jpg'])">
+    <img src="images/earrings/earrings (10).jpg" alt="Earring 10">
+    <h3>Earring 10</h3>
+    <p>₹59</p>
+    <a class="dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" onclick="event.stopPropagation()">DM on Instagram</a>
+  </div>
+   <div class="product" onclick="openModal('Earring 11', '₹59', ['images/earrings/earrings (11).jpg', 'images/earrings/earrings (11).jpg', 'images/earrings/earrings (11).jpg'])">
+    <img src="images/earrings/earrings (11).jpg" alt="Earring 11">
+    <h3>Earring 11</h3>
+    <p>₹59</p>
+    <a class="dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" onclick="event.stopPropagation()">DM on Instagram</a>
+  </div>
+   <div class="product" onclick="openModal('Earring 12', '₹59', ['images/earrings/earrings12.jpg', 'images/earrings/earrings13.jpg', 'images/earrings/earrings12.jpg'])">
+    <img src="images/earrings/earrings12.jpg" alt="Earring 12">
+    <h3>Earring 12</h3>
+    <p>₹180</p>
+    <a class="dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" onclick="event.stopPropagation()">DM on Instagram</a>
+  </div>
+   <div class="product" onclick="openModal('Earring 13', '₹59', ['images/earrings/earrings14.jpg', 'images/earrings/earrings15.jpg', 'images/earrings/earrings16.jpg'])">
+    <img src="images/earrings/earrings14.jpg" alt="Earring 13">
+    <h3>Earring 13</h3>
+    <p>₹199</p>
+    <a class="dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" onclick="event.stopPropagation()">DM on Instagram</a>
+  </div>
+   <div class="product" onclick="openModal('Earring 14', '₹59', ['images/earrings/earrings17.jpg', 'images/earrings/earrings18.jpg', 'images/earrings/earrings17.jpg'])">
+    <img src="images/earrings/earrings17.jpg" alt="Earring 14">
+    <h3>Earring 14</h3>
+    <p>₹119</p>
+    <a class="dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" onclick="event.stopPropagation()">DM on Instagram</a>
+  </div>
+</div>
+
+<!-- NECKLACES -->
+<h2 id="necklaces" class="section-title">Necklaces 😸</h2>
+<div class="product-grid">
+  <div class="product" onclick="openModal('Necklace 1', '₹200', ['images/necklaces/necklace (1).jpg', 'images/necklaces/necklace (2).jpg', 'images/necklaces/necklace (1).jpg'])">
+    <img src="images/necklaces/necklace (1).jpg" alt="Necklace 1">
+    <h3>Necklace 1</h3>
+    <p>₹200</p>
+    <a class="dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" onclick="event.stopPropagation()">DM on Instagram</a>
+  </div>
+<!--  <div class="product" onclick="openModal('Necklace 2', '₹300', ['images/necklaces/necklace (3).jpg', 'images/necklaces/necklace (3).jpg', 'images/necklaces/necklace (3).jpg'])">
+    <img src="images/necklaces/necklace (3).jpg" alt="Necklace 2">
+    <h3>Necklace 2</h3>
+    <p>₹300</p>
+    <a class="dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" onclick="event.stopPropagation()">DM on Instagram</a>
+  </div>-->
+ <div class="product" onclick="openModal('Necklace 3', '₹300', ['images/necklaces/necklace (6).jpg', 'images/necklaces/necklace (6).jpg', 'images/necklaces/necklace (6).jpg'])">
+    <img src="images/necklaces/necklace (6).jpg" alt="Necklace 3">
+    <h3>Necklace 3</h3>
+    <p>₹300</p>
+    <a class="dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" onclick="event.stopPropagation()">DM on Instagram</a>
+  </div>
+    <div class="product" onclick="openModal('Necklace 4', '₹300', ['images/necklaces/necklace (4).jpg', 'images/necklaces/necklace (4).jpg', 'images/necklaces/necklace (4).jpg'])">
+    <img src="images/necklaces/necklace (4).jpg" alt="Necklace 4">
+    <h3>Necklace 4</h3>
+    <p>₹300</p>
+    <a class="dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" onclick="event.stopPropagation()">DM on Instagram</a>
+  </div>
+  <div class="product" onclick="openModal('Necklace 5', '₹300', ['images/necklaces/necklace (5).jpg', 'images/necklaces/necklace (5).jpg', 'images/necklaces/necklace (5).jpg'])">
+    <img src="images/necklaces/necklace (5).jpg" alt="Necklace 5">
+    <h3>Necklace 5</h3>
+    <p>₹300</p>
+    <a class="dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" onclick="event.stopPropagation()">DM on Instagram</a>
+  </div>
+  
+   <div class="product" onclick="openModal('Necklace 6', '₹000', ['images/necklaces/necklace6.jpg', 'images/necklaces/necklace7.jpg', 'images/necklaces/necklace9.jpg'])">
+    <img src="images/necklaces/necklace6.jpg" alt="Necklace 6">
+    <h3>Necklace 6</h3>
+    <p>₹369</p>
+    <a class="dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" onclick="event.stopPropagation()">DM on Instagram</a>
+  </div>
+  
+  <div class="product" onclick="openModal('Necklace 7', '₹000', ['images/necklaces/necklace9.jpg', 'images/necklaces/necklace10.jpg', 'images/necklaces/necklace9.jpg'])">
+    <img src="images/necklaces/necklace9.jpg" alt="Necklace 7">
+    <h3>Necklace 7</h3>
+    <p>₹350</p>
+    <a class="dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" onclick="event.stopPropagation()">DM on Instagram</a>
+  </div>
+  <div class="product" onclick="openModal('Necklace 8', '₹000', ['images/necklaces/necklace11.jpg', 'images/necklaces/necklace12.jpg', 'images/necklaces/necklace11.jpg'])">
+    <img src="images/necklaces/necklace11.jpg" alt="Necklace 8">
+    <h3>Necklace 8</h3>
+    <p>₹250</p>
+    <a class="dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" onclick="event.stopPropagation()">DM on Instagram</a>
+  </div>
+  <div class="product" onclick="openModal('Necklace 9', '₹000', ['images/necklaces/necklace13.jpg', 'images/necklaces/necklace14.jpg', 'images/necklaces/necklace15.jpg'])">
+    <img src="images/necklaces/necklace13.jpg" alt="Necklace 9">
+    <h3>Necklace 9</h3>
+    <p>₹369</p>
+    <a class="dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" onclick="event.stopPropagation()">DM on Instagram</a>
+  </div>
+   <div class="product" onclick="openModal('Necklace 10', '₹000', ['images/necklaces/necklace16.jpg', 'images/necklaces/necklace17.jpg', 'images/necklaces/necklace16.jpg'])">
+    <img src="images/necklaces/necklace16.jpg" alt="Necklace 10">
+    <h3>Necklace 10</h3>
+    <p>₹250</p>
+    <a class="dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" onclick="event.stopPropagation()">DM on Instagram</a>
+  </div>
+  
+
+   <div class="product" onclick="openModal('Necklace 11', '₹000', ['images/necklaces/necklace18.jpg', 'images/necklaces/necklace19.jpg', 'images/necklaces/necklace18.jpg'])">
+    <img src="images/necklaces/necklace18.jpg" alt="Necklace 11">
+    <h3>Necklace 11</h3>
+    <p>₹300</p>
+    <a class="dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" onclick="event.stopPropagation()">DM on Instagram</a>
+  </div>
+  
+   <div class="product" onclick="openModal('Necklace 12', '₹000', ['images/necklaces/necklace20.jpg', 'images/necklaces/necklace21.jpg', 'images/necklaces/necklace20.jpg'])">
+    <img src="images/necklaces/necklace20.jpg" alt="Necklace 12">
+    <h3>Necklace 12</h3>
+    <p>₹300</p>
+    <a class="dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" onclick="event.stopPropagation()">DM on Instagram</a>
+  </div>
+
+   <div class="product" onclick="openModal('Necklace 13', '₹000', ['images/necklaces/necklace22.jpg', 'images/necklaces/necklace23.jpg', 'images/necklaces/necklace22.jpg'])">
+    <img src="images/necklaces/necklace22.jpg" alt="Necklace 13">
+    <h3>Necklace 13</h3>
+    <p>₹200</p>
+    <a class="dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" onclick="event.stopPropagation()">DM on Instagram</a>
+  </div>
+
+   <div class="product" onclick="openModal('Necklace 14', '₹000', ['images/necklaces/necklace24.jpg', 'images/necklaces/necklace25.jpg', 'images/necklaces/necklace24.jpg'])">
+    <img src="images/necklaces/necklace24.jpg" alt="Necklace 14">
+    <h3>Necklace 14</h3>
+    <p>₹250</p>
+    <a class="dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" onclick="event.stopPropagation()">DM on Instagram</a>
+  </div>
+
+   <div class="product" onclick="openModal('Necklace 15', '₹000', ['images/necklaces/necklace26.jpg', 'images/necklaces/necklace26.jpg', 'images/necklaces/necklace26.jpg'])">
+    <img src="images/necklaces/necklace26.jpg" alt="Necklace 15">
+    <h3>Necklace 15</h3>
+    <p>₹200</p>
+    <a class="dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" onclick="event.stopPropagation()">DM on Instagram</a>
+  </div>
+</div>
+
+<!-- BRACELTS -->
+<h2 id="bracelet" class="section-title">Bracelets 😸</h2>
+<div class="product-grid">
+  <div class="product" onclick="openModal('Bracelet 1', '₹200', ['images/Bracelet/Bracelet (1).jpg', 'images/Bracelet/Bracelet (2).jpg', 'images/Bracelet/Bracelet (1).jpg'])">
+    <img src="images\Bracelet\Bracelet.jpg" alt="Bracelet 1">
+    <h3>Bracelet</h3>
+    <p>₹180</p>
+    <a class="dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" onclick="event.stopPropagation()">DM on Instagram</a>
+  </div>
+</div>
+  
+<!-- CHARMS / KEYCHAINS -->
+ 
+<h2 id="charms" class="section-title">Phone Charms & Keychains 🐾</h2>
+<div class="product-grid">
+  <div class="product" onclick="openModal('Charm 1', '₹99', ['images/charms/charm (1).jpg', 'images/charms/charm (7).jpg', 'images/charms/charm (1).jpg'])">
+    <img src="images/charms/charm (1).jpg" alt="Charm 1">
+    <h3>Charm 1</h3>
+    <p>₹99</p>
+    <a class="dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" onclick="event.stopPropagation()">DM on Instagram</a>
+  </div>
+  <div class="product" onclick="openModal('Charm 2', '₹120', ['images/charms/charm (2).jpg', 'images/charms/charm (2).jpg', 'images/charms/charm (2).jpg'])">
+    <img src="images/charms/charm (2).jpg" alt="Charm 2">
+    <h3>Charm 2</h3>
+    <p>₹120</p>
+    <a class="dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" onclick="event.stopPropagation()">DM on Instagram</a>
+  </div>
+  <div class="product" onclick="openModal('Charm 3', '₹120', ['images/charms/charm (3).jpg', 'images/charms/charm (5).jpg', 'images/charms/charm (14).jpg'])">
+    <img src="images/charms/charm (3).jpg" alt="Charm 3">
+    <h3>Charm 3</h3>
+    <p>₹120</p>
+    <a class="dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" onclick="event.stopPropagation()">DM on Instagram</a>
+  </div>
+  <div class="product" onclick="openModal('Charm 4', '₹120', ['images/charms/charm (4).jpg', 'images/charms/charm (4).jpg', 'images/charms/charm (4).jpg'])">
+    <img src="images/charms/charm (4).jpg" alt="Charm 4">
+    <h3>Charm 4</h3>
+    <p>₹120</p>
+    <a class="dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" onclick="event.stopPropagation()">DM on Instagram</a>
+  </div>
+  <div class="product" onclick="openModal('Charm 5', '₹200', ['images/charms/charm (9).jpg', 'images/charms/charm (10).jpg', 'images/charms/charm (8).jpg'])">
+    <img src="images/charms/charm (9).jpg" alt="Charm 5">
+    <h3>Charm 5</h3>
+    <p>₹200</p>
+    <a class="dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" onclick="event.stopPropagation()">DM on Instagram</a>
+  </div>
+ <!-- <div class="product" onclick="openModal('Charm 6', '₹110', ['images/charms/charm (11).jpg', 'images/charms/charm (12).jpg', 'images/charms/charm (11).jpg'])">
+    <img src="images/charms/charm (11).jpg" alt="Charm 6">
+    <h3>Charm 6</h3>
+    <p>₹120</p>
+    <a class="dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" onclick="event.stopPropagation()">DM on Instagram</a>
+  </div>-->
+ <!-- <div class="product" onclick="openModal('Charm 7', '₹000', ['images/charms/charm (7).jpg', 'images/charms/charm (7).jpg', 'images/charms/charm (7).jpg'])">
+    <img src="images/charms/charm (7).jpg" alt="Charm 7">
+    <h3>Charm 7</h3>
+    <p>₹000</p>
+    <a class="dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" onclick="event.stopPropagation()">DM on Instagram</a>
+  </div>
+  <div class="product" onclick="openModal('Charm 8', '₹000', ['images/charms/charm (8).jpg', 'images/charms/charm (8).jpg', 'images/charms/charm (8).jpg'])">
+    <img src="images/charms/charm (8).jpg" alt="Charm 8">
+    <h3>Charm 8</h3>
+    <p>₹000</p>
+    <a class="dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" onclick="event.stopPropagation()">DM on Instagram</a>
+  </div>
+  <div class="product" onclick="openModal('Charm 9', '₹000', ['images/charms/charm (9).jpg', 'images/charms/charm (9).jpg', 'images/charms/charm (9).jpg'])">
+    <img src="images/charms/charm (9).jpg" alt="Charm 9">
+    <h3>Charm 9</h3>
+    <p>₹000</p>
+    <a class="dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" onclick="event.stopPropagation()">DM on Instagram</a>
+  </div>
+  <div class="product" onclick="openModal('Charm 10', '₹000', ['images/charms/charm (10).jpg', 'images/charms/charm (10).jpg', 'images/charms/charm (10).jpg'])">
+    <img src="images/charms/charm (10).jpg" alt="Charm 10">
+    <h3>Charm 10</h3>
+    <p>₹000</p>
+    <a class="dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" onclick="event.stopPropagation()">DM on Instagram</a>
+  </div>
+</div>
+-->
+<!-- PRODUCT MODAL -->
+<div id="productModal" class="modal-overlay" onclick="closeModal(event)">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    
+    <div class="modal-left">
+      <div class="modal-image-container" id="modalImageContainer">
+        <!-- Images will be inserted here dynamically -->
+      </div>
+      <button class="carousel-nav carousel-prev" onclick="changeImage(-1)">‹</button>
+      <button class="carousel-nav carousel-next" onclick="changeImage(1)">›</button>
+      <div class="carousel-dots" id="carouselDots">
+        <!-- Dots will be inserted here dynamically -->
+      </div>
+    </div>
+    
+    <div class="modal-right">
+      <h2 class="modal-title" id="modalTitle">Product Name</h2>
+      <p class="modal-price" id="modalPrice">₹000</p>
+      <a class="modal-dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank">
+        DM on Instagram to Order
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <p>© 2025 The Glam Aura Jewellery</p>
+</footer>
+
+<script>
+let currentImageIndex = 0;
+let currentImages = [];
+
+function scrollToSection(selector){
+  const element = document.querySelector(selector);
+  if(element){ element.scrollIntoView({ behavior: 'smooth' }); }
+}
+
+function openModal(title, price, images) {
+  currentImages = images;
+  currentImageIndex = 0;
+  
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalPrice').textContent = price;
+  
+  // Create image elements
+  const imageContainer = document.getElementById('modalImageContainer');
+  imageContainer.innerHTML = '';
+  images.forEach((img, index) => {
+    const imgEl = document.createElement('img');
+    imgEl.src = img;
+    imgEl.alt = title;
+    if (index === 0) imgEl.classList.add('active');
+    imageContainer.appendChild(imgEl);
+  });
+  
+  // Create dots
+  const dotsContainer = document.getElementById('carouselDots');
+  dotsContainer.innerHTML = '';
+  images.forEach((_, index) => {
+    const dot = document.createElement('button');
+    dot.classList.add('carousel-dot');
+    if (index === 0) dot.classList.add('active');
+    dot.onclick = () => goToImage(index);
+    dotsContainer.appendChild(dot);
+  });
+  
+  document.getElementById('productModal').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(event) {
+  if (!event || event.target.classList.contains('modal-overlay') || event.target.classList.contains('modal-close')) {
+    document.getElementById('productModal').classList.remove('active');
+    document.body.style.overflow = 'auto';
+  }
+}
+
+function changeImage(direction) {
+  currentImageIndex += direction;
+  if (currentImageIndex < 0) currentImageIndex = currentImages.length - 1;
+  if (currentImageIndex >= currentImages.length) currentImageIndex = 0;
+  updateImage();
+}
+
+function goToImage(index) {
+  currentImageIndex = index;
+  updateImage();
+}
+
+function updateImage() {
+  const images = document.querySelectorAll('#modalImageContainer img');
+  const dots = document.querySelectorAll('.carousel-dot');
+  
+  images.forEach((img, index) => {
+    img.classList.toggle('active', index === currentImageIndex);
+  });
+  
+  dots.forEach((dot, index) => {
+    dot.classList.toggle('active', index === currentImageIndex);
+  });
+}
+
+// Close modal on ESC key
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeModal();
+});
+</script>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+>>>>>>> 16a48c6e96e80b9889c55471958ba2a0e7e6e305
