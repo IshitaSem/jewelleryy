@@ -61,8 +61,18 @@ async function handleOrderSubmission(e) {
     // Get form data
     const customer = {
         name: document.getElementById('customerName').value.trim(),
+        email: document.getElementById('customerEmail').value.trim(),
         phone: document.getElementById('customerPhone').value.trim(),
-        address: document.getElementById('customerAddress').value.trim(),
+        recipientPhone: document.getElementById('recipientPhone').value.trim(),
+        house: document.getElementById('customerHouse').value.trim(),
+        street: document.getElementById('customerStreet').value.trim(),
+        landmark: document.getElementById('customerLandmark').value.trim(),
+        city: document.getElementById('customerCity').value.trim(),
+        state: document.getElementById('customerState').value.trim(),
+        pincode: document.getElementById('customerPincode').value.trim(),
+        recipientName: document.getElementById('recipientName').value.trim(),
+        instagram: document.getElementById('customerInsta').value.trim(),
+        orderNote: document.getElementById('customerNote').value.trim(),
     };
 
     // Validate file
@@ -135,7 +145,7 @@ async function handleOrderSubmission(e) {
             statusHistory: [{
                 status: initialStatus,
                 message: "Your order has been received.",
-                timestamp: serverTimestamp()
+                timestamp: new Date() // Fix: Cannot use serverTimestamp() inside arrays
             }],
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp()
@@ -156,7 +166,7 @@ async function handleOrderSubmission(e) {
             statusHistory: [{
                 status: initialStatus,
                 message: "Your order has been received.",
-                timestamp: serverTimestamp()
+                timestamp: new Date()
             }],
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp()

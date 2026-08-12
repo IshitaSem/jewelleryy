@@ -87,10 +87,28 @@ function openOrderDetails(order) {
     document.getElementById('admDate').textContent = order.createdAt ? new Date(order.createdAt.toMillis()).toLocaleString() : '';
     
     // Customer
-    const c = order.customer;
-    document.getElementById('admCustName').textContent = c.name;
-    document.getElementById('admCustPhone').textContent = c.phone;
-    document.getElementById('admCustAddress').textContent = c.address;
+    const c = order.customer || {};
+    document.getElementById('admCustName').textContent = c.name || 'N/A';
+    document.getElementById('admCustEmail').textContent = c.email || 'N/A';
+    document.getElementById('admCustPhone').textContent = c.phone || 'N/A';
+    document.getElementById('admCustInsta').textContent = c.instagram || 'N/A';
+    
+    // Fallback for old orders that just had "address"
+    const fullAddress = c.house ? 
+        `${c.house}, ${c.street}${c.landmark ? ', ' + c.landmark : ''}\n${c.city}, ${c.state} - ${c.pincode}` 
+        : (c.address || 'N/A');
+    document.getElementById('admCustAddress').innerText = fullAddress;
+    
+    document.getElementById('admRecipientName').textContent = c.recipientName || 'Self';
+    document.getElementById('admRecipientPhone').textContent = c.recipientPhone || 'N/A';
+    
+    const orderNoteEl = document.getElementById('admOrderNote');
+    if (c.orderNote) {
+        orderNoteEl.textContent = c.orderNote;
+        orderNoteEl.style.display = 'inline-block';
+    } else {
+        orderNoteEl.style.display = 'none';
+    }
     
     // Items
     const itemsEl = document.getElementById('admItems');

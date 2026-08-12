@@ -176,19 +176,68 @@
 <div class="checkout-container" id="checkoutFlow">
   <!-- Left Column: Delivery Details -->
   <div class="checkout-section">
-    <h2>Delivery Details 🐾</h2>
+    <h2>Enter Your Details 🐾</h2>
     <form id="checkoutForm">
+      <h3 style="color:#ff1493; margin-bottom:1rem; font-size:1.2rem; border-bottom:1px solid #ffb6c1; padding-bottom:0.5rem;">Contact Information</h3>
       <div class="form-group">
-        <label for="customerName">Full Name *</label>
+        <label for="customerName">Your Full Name *</label>
         <input type="text" id="customerName" required placeholder="Jane Doe">
       </div>
       <div class="form-group">
-        <label for="customerPhone">Phone Number (Optional)</label>
+        <label for="customerEmail">Email Address *</label>
+        <input type="email" id="customerEmail" required placeholder="jane@example.com">
+      </div>
+      <div class="form-group">
+        <label for="customerPhone">Phone Number (For WhatsApp Updates)</label>
         <input type="tel" id="customerPhone" placeholder="+91 9876543210">
       </div>
       <div class="form-group">
-        <label for="customerAddress">Complete Address *</label>
-        <textarea id="customerAddress" required rows="4" placeholder="House no, Street, City, Pincode"></textarea>
+        <label for="customerInsta">Instagram Username (Optional for updates)</label>
+        <input type="text" id="customerInsta" placeholder="@yourusername">
+      </div>
+
+      <h3 style="color:#ff1493; margin:1.5rem 0 1rem 0; font-size:1.2rem; border-bottom:1px solid #ffb6c1; padding-bottom:0.5rem;">Delivery Address</h3>
+      <div class="form-group">
+        <label for="customerHouse">House / Flat Number *</label>
+        <input type="text" id="customerHouse" required placeholder="House no., Flat no., Building name">
+      </div>
+      <div class="form-group">
+        <label for="customerStreet">Street / Area *</label>
+        <input type="text" id="customerStreet" required placeholder="Street, Sector, Phase, Locality">
+      </div>
+      <div class="form-group">
+        <label for="customerLandmark">Landmark (optional)</label>
+        <input type="text" id="customerLandmark" placeholder="Near ...">
+      </div>
+      
+      <div style="display:flex; gap:1rem;">
+        <div class="form-group" style="flex:1;">
+          <label for="customerCity">City *</label>
+          <input type="text" id="customerCity" required placeholder="New Delhi">
+        </div>
+        <div class="form-group" style="flex:1;">
+          <label for="customerState">State *</label>
+          <input type="text" id="customerState" required placeholder="Delhi">
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label for="customerPincode">Pincode *</label>
+        <input type="text" id="customerPincode" required pattern="[0-9]{6}" title="6-digit pincode" placeholder="6-digit pincode" maxlength="6">
+      </div>
+
+      <h3 style="color:#ff1493; margin:1.5rem 0 1rem 0; font-size:1.2rem; border-bottom:1px solid #ffb6c1; padding-bottom:0.5rem;">Recipient Details</h3>
+      <div class="form-group">
+        <label for="recipientName">Recipient Name</label>
+        <input type="text" id="recipientName" placeholder="Who is receiving this hamper?">
+      </div>
+      <div class="form-group">
+        <label for="recipientPhone">Phone Number (Person Receiving Hamper) *</label>
+        <input type="tel" id="recipientPhone" required placeholder="+91 9876543210">
+      </div>
+      <div class="form-group">
+        <label for="customerNote">Order note / Message card text</label>
+        <textarea id="customerNote" rows="3" placeholder="Any special instructions or message to include..."></textarea>
       </div>
     </form>
   </div>
