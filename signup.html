@@ -216,6 +216,7 @@
                 window.location.href = 'account.html';
                 
             } catch (error) {
+                console.error("Authentication Error:", error);
                 let msg = "Failed to create account. Please try again.";
                 if (error.code === 'auth/email-already-in-use') {
                     msg = "This email is already in use. Please login instead.";
@@ -223,6 +224,8 @@
                     msg = "Password should be at least 6 characters.";
                 } else if (error.code === 'auth/network-request-failed') {
                     msg = "Network error. Please check your connection.";
+                } else if (error.message) {
+                    msg = "Error: " + error.message; // Show exact firebase error
                 }
                 showError(msg);
             }
