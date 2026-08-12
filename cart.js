@@ -118,3 +118,44 @@ window.toggleCart = toggleCart;
 document.addEventListener('DOMContentLoaded', () => {
     updateCartUI();
 });
+
+// Handle Quick Add to Cart clicks globally
+document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('add-to-cart-quick')) {
+        e.stopPropagation(); // prevent opening the modal
+        const productDiv = e.target.closest('.product');
+        if (productDiv) {
+            const title = productDiv.querySelector('h3').textContent;
+            const priceText = productDiv.querySelector('p').textContent;
+            const price = parseInt(priceText.replace(/[^0-9]/g, ''));
+            const image = productDiv.querySelector('img').src;
+            
+            const existingItem = cart.find(item => item.name === title);
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({
+                    name: title,
+                    price: price,
+                    quantity: 1,
+                    image: image
+                });
+            }
+            saveCart();
+            updateCartUI();
+            
+            // Visual feedback
+            const originalText = e.target.innerHTML;
+            e.target.innerHTML = 'Added! 💖';
+            e.target.style.background = '#ff1493';
+            setTimeout(() => {
+                e.target.innerHTML = originalText;
+                e.target.style.background = '';
+            }, 1500);
+            
+            // Open sidebar
+            const sidebar = document.getElementById('cartSidebar');
+            if (sidebar) sidebar.classList.add('active');
+        }
+    }
+});
