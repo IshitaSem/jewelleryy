@@ -1,5 +1,5 @@
 import { db, auth, serverTimestamp } from './firebase.js';
-import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { collection, addDoc, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 // ==========================================
 // ⚠️ IMPORTANT CLOUDINARY CONFIGURATION ⚠️
@@ -102,16 +102,27 @@ async function handleOrderSubmission(e) {
         // STEP 2: Create Order in Firestore
         uploadStatus.textContent = "Securing your order... ✨";
         
-        // Generate a human-readable order number: JEW-[DATE]-[RANDOM]
+        // Generate a human-readable order number and secure tracking code
         const dateStr = new Date().toISOString().split('T')[0].replace(/-/g, '');
-        const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase();
+        
+        const getSecureRandom = (length) => {
+            const arr = new Uint8Array(length);
+            crypto.getRandomValues(arr);
+            return Array.from(arr).map(b => b.toString(36).padStart(2, '0')).join('').toUpperCase().substring(0, length);
+        };
+        
+        const randomStr = getSecureRandom(6);
         const orderNumber = `JEW-${dateStr}-${randomStr}`;
+        const trackingCode = getSecureRandom(8);
+        const trackingDocId = `${orderNumber}_${trackingCode}`;
 
         const initialStatus = "Order Received";
         const initialPaymentStatus = "Payment Pending";
 
         const orderData = {
             orderNumber: orderNumber,
+            trackingCode: trackingCode,
+            trackingDocId: trackingDocId,
             customer: customer,
             items: cart,
             subtotal: totalValue,
@@ -137,6 +148,21 @@ async function handleOrderSubmission(e) {
 
         const docRef = await addDoc(collection(db, "orders"), orderData);
 
+        // STEP 2b: Create Order Tracking Document
+        const trackingData = {
+            orderNumber: orderNumber,
+            trackingCode: trackingCode,
+            status: initialStatus,
+            statusHistory: [{
+                status: initialStatus,
+                message: "Your order has been received.",
+                timestamp: serverTimestamp()
+            }],
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+        };
+        await setDoc(doc(db, "orderTracking", trackingDocId), trackingData);
+
         // STEP 3: Success!
         // Clear the cart
         localStorage.removeItem('glamaura_cart');
@@ -145,6 +171,7 @@ async function handleOrderSubmission(e) {
         document.getElementById('checkoutFlow').style.display = 'none';
         document.getElementById('successMessage').style.display = 'block';
         document.getElementById('orderNumberDisplay').textContent = orderNumber;
+        document.getElementById('trackingCodeDisplay').textContent = trackingCode;
 
     } catch (error) {
         console.error("Order submission failed:", error);

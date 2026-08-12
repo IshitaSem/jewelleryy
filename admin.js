@@ -156,6 +156,14 @@ document.getElementById('btnSaveUpdate').addEventListener('click', async () => {
             statusHistory: historyArray,
             updatedAt: new Date()
         });
+
+        if (currentOrder.trackingDocId) {
+            await updateDoc(doc(db, "orderTracking", currentOrder.trackingDocId), {
+                status: newOrderStatus,
+                statusHistory: historyArray,
+                updatedAt: new Date()
+            });
+        }
         
         // Show success msg
         const msg = document.getElementById('adminSaveMsg');

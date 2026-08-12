@@ -16,9 +16,10 @@ service cloud.firestore {
     match /orders/{orderId} {
 
       allow create: if
-        // Must contain base fields
         request.resource.data.keys().hasAll([
           'orderNumber',
+          'trackingCode',
+          'trackingDocId',
           'customer',
           'items',
           'subtotal',
@@ -55,4 +56,23 @@ service cloud.firestore {
     }
 
   }
+
+    match /orderTracking/{trackingDocId} {
+      allow get: if true;
+      allow list: if false;
+      allow create: if
+        request.resource.data.keys().hasAll([
+          'orderNumber',
+          'trackingCode',
+          'status',
+          'statusHistory',
+          'createdAt',
+          'updatedAt'
+        ])
+        && trackingDocId == request.resource.data.orderNumber + '_' + request.resource.data.trackingCode
+        && request.resource.data.orderNumber is string
+        && request.resource.data.trackingCode is string;
+      allow update: if isAdmin();
+      allow delete: if false;
+    }
 }

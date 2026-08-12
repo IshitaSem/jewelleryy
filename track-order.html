@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track Your Order - The Glam Aura</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&family=Pacifico&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .track-container {
+            max-width: 600px;
+            margin: 3rem auto;
+            background: white;
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(255, 105, 180, 0.15);
+            border: 4px solid #ffb6c1;
+            text-align: center;
+        }
+        .track-container h2 {
+            font-family: 'Pacifico', cursive;
+            color: #ff1493;
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #ff1493;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #ffe4e1;
+            border-radius: 10px;
+            font-family: 'Quicksand', sans-serif;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #ff69b4;
+            box-shadow: 0 0 8px rgba(255, 105, 180, 0.3);
+        }
+        .btn-track {
+            background: #ff69b4;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            border-radius: 30px;
+            cursor: pointer;
+            font-family: 'Quicksand', sans-serif;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 1rem;
+        }
+        .btn-track:hover {
+            background: #ff1493;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 20, 147, 0.4);
+        }
+        .error-message {
+            color: #dc3545;
+            background: #f8d7da;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-top: 1.5rem;
+            font-weight: bold;
+            display: none;
+        }
+        
+        /* Result Section */
+        #trackingResult {
+            display: none;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 3px dashed #ffe4e1;
+            text-align: left;
+        }
+        .status-badge {
+            display: inline-block;
+            background: #fff0f5;
+            color: #ff1493;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-top: 0.5rem;
+            border: 2px solid #ffb6c1;
+        }
+        
+        .timeline {
+            margin-top: 2rem;
+            padding-left: 1rem;
+        }
+        .timeline-item {
+            position: relative;
+            padding-left: 2rem;
+            padding-bottom: 1.5rem;
+            border-left: 3px solid #ffe4e1;
+        }
+        .timeline-item:last-child {
+            border-left-color: transparent;
+        }
+        .timeline-item::before {
+            content: "";
+            position: absolute;
+            left: -10px;
+            top: 0;
+            width: 17px;
+            height: 17px;
+            border-radius: 50%;
+            background: #ffe4e1;
+            border: 3px solid white;
+        }
+        .timeline-item.completed {
+            border-left-color: #ff69b4;
+        }
+        .timeline-item.completed::before {
+            background: #ff69b4;
+        }
+        .timeline-item.current::before {
+            background: #ff1493;
+            box-shadow: 0 0 0 4px rgba(255, 20, 147, 0.2);
+        }
+        .timeline-date {
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 0.2rem;
+        }
+        .timeline-status {
+            font-weight: bold;
+            color: #333;
+            font-size: 1.1rem;
+        }
+        .timeline-msg {
+            font-size: 0.95rem;
+            color: #555;
+            margin-top: 0.4rem;
+            background: #fff0f5;
+            padding: 0.8rem;
+            border-radius: 10px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <nav class="categories">
+        <ul>
+            <li><a href="index.html">← Back to Catalogue</a></li>
+        </ul>
+    </nav>
+
+    <div class="track-container">
+        <h2>Track Your Order 💖</h2>
+        
+        <form id="trackForm">
+            <div class="form-group">
+                <label for="orderId">Order ID</label>
+                <input type="text" id="orderId" required placeholder="e.g. JEW-20260812-ABC123">
+            </div>
+            <div class="form-group">
+                <label for="trackingCode">Tracking Code</label>
+                <input type="text" id="trackingCode" required placeholder="e.g. 7K9X2P">
+            </div>
+            <button type="submit" class="btn-track" id="btnTrack">Track Order ✨</button>
+        </form>
+
+        <div id="errorMsg" class="error-message">
+            Order not found. Please check your Order ID and Tracking Code.
+        </div>
+
+        <div id="trackingResult">
+            <h3 style="color: #333; font-family: 'Quicksand', sans-serif;">Order: <span id="resOrderId" style="color: #ff69b4;"></span></h3>
+            <div style="margin-top: 1rem;">
+                <strong>Current Status:</strong><br>
+                <div id="resStatusBadge" class="status-badge">Pending</div>
+            </div>
+            
+            <div class="timeline" id="resTimeline">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { db } from './firebase.js';
+        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        const trackForm = document.getElementById('trackForm');
+        const btnTrack = document.getElementById('btnTrack');
+        const errorMsg = document.getElementById('errorMsg');
+        const trackingResult = document.getElementById('trackingResult');
+
+        const formatStatus = (status) => {
+            const map = {
+                'Order Received': '🟣 Order Received',
+                'Payment Pending': '🟡 Payment Pending',
+                'Payment Verified': '🔵 Payment Verified',
+                'Processing': '🟣 Processing',
+                'Shipped': '🚚 Shipped',
+                'Delivered': '🟢 Delivered',
+                'Cancelled': '❌ Cancelled'
+            };
+            return map[status] || status;
+        };
+
+        trackForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const orderId = document.getElementById('orderId').value.trim().toUpperCase();
+            const trackingCode = document.getElementById('trackingCode').value.trim().toUpperCase();
+
+            btnTrack.disabled = true;
+            btnTrack.innerHTML = 'Searching... 🐾';
+            errorMsg.style.display = 'none';
+            trackingResult.style.display = 'none';
+
+            try {
+                const docId = `${orderId}_${trackingCode}`;
+                const docRef = doc(db, "orderTracking", docId);
+                const docSnap = await getDoc(docRef);
+
+                if (!docSnap.exists()) {
+                    throw new Error("Not found");
+                }
+
+                const data = docSnap.data();
+
+                // Update UI
+                document.getElementById('resOrderId').textContent = data.orderNumber;
+                document.getElementById('resStatusBadge').textContent = formatStatus(data.status);
+
+                const timelineEl = document.getElementById('resTimeline');
+                timelineEl.innerHTML = '';
+                
+                const history = data.statusHistory || [];
+                history.forEach((h, i) => {
+                    const isLast = (i === history.length - 1);
+                    const dateStr = h.timestamp ? new Date(h.timestamp.toMillis()).toLocaleString() : '';
+                    
+                    timelineEl.innerHTML += `
+                        <div class="timeline-item completed ${isLast ? 'current' : ''}">
+                            <div class="timeline-date">${dateStr}</div>
+                            <div class="timeline-status">${formatStatus(h.status)}</div>
+                            ${h.message ? `<div class="timeline-msg">💬 ${h.message}</div>` : ''}
+                        </div>
+                    `;
+                });
+
+                trackingResult.style.display = 'block';
+
+            } catch (error) {
+                console.error("Tracking lookup failed", error);
+                // Deliberately generic error to prevent enumeration
+                errorMsg.style.display = 'block';
+            } finally {
+                btnTrack.disabled = false;
+                btnTrack.innerHTML = 'Track Order ✨';
+            }
+        });
+    </script>
+</body>
+</html>
