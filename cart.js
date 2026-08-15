@@ -1,4 +1,5 @@
 import { getItemWeight, calculateShipping, PACKAGING_WEIGHT_GRAMS } from './shipping-config.js';
+import { getProductId, renderStockBadge } from './stock-utils.js';
 
 let cart = JSON.parse(localStorage.getItem('glamaura_cart')) || [];
 
@@ -14,6 +15,14 @@ function getItemTitle(image, fallbackTitle) {
     return fallbackTitle || '';
 }
 
+function getAvailableStock(title, image) {
+    const pId = getProductId(title, image);
+    if (window.liveStockMap && typeof window.liveStockMap[pId] === 'number') {
+        return window.liveStockMap[pId];
+    }
+    return 10; // Default fallback stock
+}
+
 function addToCartFromModal() {
     const activeImg = document.querySelector('#modalImageContainer img.active');
     const image = activeImg ? activeImg.src : '';
@@ -24,7 +33,20 @@ function addToCartFromModal() {
     const price = parseInt(priceText.replace(/[^0-9]/g, '')) || 0;
     const itemWeight = getItemWeight({ name: title, image: image });
 
+    const availableStock = getAvailableStock(title, image);
     const existingItem = cart.find(item => item.name === title || (image && item.image && getItemTitle(item.image, item.name) === title));
+    const currentQty = existingItem ? existingItem.quantity : 0;
+
+    if (availableStock <= 0) {
+        alert("Sorry, this item is out of stock!");
+        return;
+    }
+
+    if (currentQty + 1 > availableStock) {
+        alert(`Sorry, only ${availableStock} unit(s) available in stock!`);
+        return;
+    }
+
     if (existingItem) {
         existingItem.quantity += 1;
         existingItem.name = title;
@@ -62,8 +84,20 @@ function removeFromCart(index) {
 
 function updateQuantity(index, delta) {
     if (cart[index]) {
-        cart[index].quantity += delta;
-        if (cart[index].quantity <= 0) {
+        const item = cart[index];
+        const displayName = getItemTitle(item.image, item.name);
+        const availableStock = getAvailableStock(displayName, item.image);
+
+        if (delta > 0 && item.quantity + delta > availableStock) {
+            alert(`Sorry, maximum available stock for "${displayName}" is ${availableStock} unit(s).`);
+            item.quantity = availableStock;
+            saveCart();
+            updateCartUI();
+            return;
+        }
+
+        item.quantity += delta;
+        if (item.quantity <= 0) {
             removeFromCart(index);
         } else {
             saveCart();
@@ -93,6 +127,7 @@ function updateCartUI() {
     let totalCount = 0;
     let totalSubtotal = 0;
     let totalProdWeight = 0;
+    let hasStockIssue = false;
     
     cartItemsDiv.innerHTML = '';
     
@@ -100,32 +135,48 @@ function updateCartUI() {
         cartItemsDiv.innerHTML = '<p style="text-align:center; padding: 2rem 1rem; color: #ff69b4; font-weight: bold;">Your cart is empty 🐾</p>';
         if (checkoutBtn) checkoutBtn.disabled = true;
     } else {
-        if (checkoutBtn) checkoutBtn.disabled = false;
         cart.forEach((item, index) => {
             const weight = getItemWeight(item);
-            item.weight = weight; // Synchronize weight
+            item.weight = weight;
             
+            const displayName = getItemTitle(item.image, item.name);
+            const availableStock = getAvailableStock(displayName, item.image);
+
+            // Re-validate against latest available stock
+            if (item.quantity > availableStock) {
+                if (availableStock <= 0) {
+                    hasStockIssue = true;
+                } else {
+                    item.quantity = availableStock;
+                }
+            }
+
             totalCount += item.quantity;
             totalSubtotal += item.price * item.quantity;
             totalProdWeight += weight * item.quantity;
             
-            const displayName = getItemTitle(item.image, item.name);
-            
+            const isOutOfStock = availableStock <= 0;
+
             cartItemsDiv.innerHTML += `
-                <div class="cart-item">
+                <div class="cart-item" style="${isOutOfStock ? 'opacity:0.6; border:1px solid #ff4d4f;' : ''}">
                     <img src="${item.image}" alt="${displayName}">
                     <div class="cart-item-details">
                         <h4>${displayName}</h4>
                         <p>₹${item.price} • ${weight}g</p>
+                        <div style="font-size:0.75rem; color:${availableStock <= 2 ? '#d46b08' : '#666'};">
+                            ${isOutOfStock ? '<strong style="color:#ff4d4f;">Out of Stock ❌</strong>' : `Stock: ${availableStock}`}
+                        </div>
                         <div class="cart-quantity">
                             <button onclick="updateQuantity(${index}, -1)">-</button>
                             <span>${item.quantity}</span>
-                            <button onclick="updateQuantity(${index}, 1)">+</button>
+                            <button onclick="updateQuantity(${index}, 1)" ${item.quantity >= availableStock ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>+</button>
                         </div>
                     </div>
                 </div>
             `;
         });
+
+        if (checkoutBtn) checkoutBtn.disabled = hasStockIssue || totalCount <= 0;
     }
     
     const packagingWeight = cart.length > 0 ? PACKAGING_WEIGHT_GRAMS : 0;
@@ -146,6 +197,7 @@ window.addToCartFromModal = addToCartFromModal;
 window.removeFromCart = removeFromCart;
 window.updateQuantity = updateQuantity;
 window.toggleCart = toggleCart;
+window.updateCartUI = updateCartUI;
 
 document.addEventListener('DOMContentLoaded', () => {
     updateCartUI();
@@ -165,7 +217,20 @@ document.addEventListener('click', (e) => {
             const price = parseInt(priceText.replace(/[^0-9]/g, '')) || 0;
             const itemWeight = getItemWeight({ name: title, image: image });
             
+            const availableStock = getAvailableStock(title, image);
             const existingItem = cart.find(item => item.name === title || (image && item.image && getItemTitle(item.image, item.name) === title));
+            const currentQty = existingItem ? existingItem.quantity : 0;
+
+            if (availableStock <= 0) {
+                alert("Sorry, this item is out of stock!");
+                return;
+            }
+
+            if (currentQty + 1 > availableStock) {
+                alert(`Sorry, only ${availableStock} unit(s) available in stock!`);
+                return;
+            }
+
             if (existingItem) {
                 existingItem.quantity += 1;
                 existingItem.name = title;

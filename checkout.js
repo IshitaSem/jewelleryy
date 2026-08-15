@@ -1,6 +1,7 @@
 import { db, auth, serverTimestamp } from './firebase.js';
-import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { collection, doc, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 import { getItemWeight, calculateShipping, PACKAGING_WEIGHT_GRAMS, SHIPPING_SERVICE_NAME } from './shipping-config.js';
+import { getProductId } from './stock-utils.js';
 
 // ==========================================
 // ⚠️ IMPORTANT CLOUDINARY CONFIGURATION ⚠️
@@ -47,14 +48,12 @@ function recalculateTotals() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Validate Cart
     if (cart.length === 0) {
         alert("Your cart is empty! Redirecting to catalogue...");
         window.location.href = 'index.html';
         return;
     }
 
-    // 2. Render Order Summary
     const checkoutItemsDiv = document.getElementById('checkoutItems');
     totalSubtotal = 0;
     totalProdWeight = 0;
@@ -85,13 +84,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     recalculateTotals();
 
-    // Re-calculate shipping if customer updates State or City
     const stateInput = document.getElementById('customerState');
     const cityInput = document.getElementById('customerCity');
     if (stateInput) stateInput.addEventListener('input', recalculateTotals);
     if (cityInput) cityInput.addEventListener('input', recalculateTotals);
 
-    // 3. Handle Form Submission
     const checkoutForm = document.getElementById('checkoutForm');
     if (checkoutForm) {
         checkoutForm.addEventListener('submit', handleOrderSubmission);
@@ -105,7 +102,6 @@ async function handleOrderSubmission(e) {
     const uploadStatus = document.getElementById('uploadStatus');
     const fileInput = document.getElementById('paymentScreenshot');
     
-    // Get form data
     const customer = {
         name: document.getElementById('customerName').value.trim(),
         email: document.getElementById('customerEmail').value.trim(),
@@ -122,27 +118,24 @@ async function handleOrderSubmission(e) {
         orderNote: document.getElementById('customerNote').value.trim(),
     };
 
-    // Validate file
     const file = fileInput ? fileInput.files[0] : null;
     if (!file) {
         alert("Please upload a payment screenshot.");
         return;
     }
     
-    // File size validation (Max 5MB)
     if (file.size > 5 * 1024 * 1024) {
         alert("File is too large. Please upload an image smaller than 5MB.");
         return;
     }
 
-    // Valid formats
     const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
     if (!validTypes.includes(file.type)) {
         alert("Invalid file format. Only JPG, PNG, and WEBP are allowed.");
         return;
     }
 
-    recalculateTotals(); // Ensure final calculation is active
+    recalculateTotals();
 
     placeOrderBtn.disabled = true;
     placeOrderBtn.style.display = 'none';
@@ -157,8 +150,8 @@ async function handleOrderSubmission(e) {
             throw new Error("Failed to get image URL from Cloudinary.");
         }
 
-        // STEP 2: Create Order in Firestore
-        uploadStatus.textContent = "Securing your order... ✨";
+        // STEP 2: Atomic Firestore Transaction (Validate stock + Decrement stock + Create Order)
+        uploadStatus.textContent = "Validating inventory & securing your order... ✨";
         
         const dateStr = new Date().toISOString().split('T')[0].replace(/-/g, '');
         const getSecureRandom = (length) => {
@@ -172,38 +165,91 @@ async function handleOrderSubmission(e) {
         const initialStatus = "Order Received";
         const initialPaymentStatus = "Payment Pending";
 
-        const orderData = {
-            orderNumber: orderNumber,
-            customer: customer,
-            items: cart.map(item => ({
-                ...item,
-                name: getItemTitle(item),
-                weight: getItemWeight(item)
-            })),
-            subtotal: totalSubtotal,
-            shipping: shippingCharge,
-            total: grandTotal,
-            totalWeight: totalParcelWeight,
-            shippingService: SHIPPING_SERVICE_NAME,
-            paymentMethod: "UPI",
-            paymentScreenshot: cloudinaryUrl,
-            orderStatus: initialStatus,
-            paymentStatus: initialPaymentStatus,
-            statusMessage: "We have received your order.",
-            statusHistory: [{
-                status: initialStatus,
-                message: "Your order has been received.",
-                timestamp: new Date()
-            }],
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp()
-        };
+        const newOrderRef = doc(collection(db, "orders"));
 
-        if (auth.currentUser) {
-            orderData.userId = auth.currentUser.uid;
-        }
+        await runTransaction(db, async (transaction) => {
+            const productReads = [];
 
-        const docRef = await addDoc(collection(db, "orders"), orderData);
+            for (const item of cart) {
+                const title = getItemTitle(item);
+                const pId = getProductId(title, item.image);
+                const pRef = doc(db, "products", pId);
+                productReads.push({ item, title, pId, pRef });
+            }
+
+            // 1. Read latest stock for all items
+            const stockSnapshots = [];
+            for (const pr of productReads) {
+                const snap = await transaction.get(pr.pRef);
+                stockSnapshots.push({ ...pr, snap });
+            }
+
+            // 2. Validate sufficient stock for every product
+            for (const ss of stockSnapshots) {
+                const currentStock = ss.snap.exists() ? (typeof ss.snap.data().stock === 'number' ? ss.snap.data().stock : 10) : 10;
+                if (currentStock < ss.item.quantity) {
+                    throw new Error(`Sorry, "${ss.title}" just went out of stock or does not have ${ss.item.quantity} unit(s) available.`);
+                }
+            }
+
+            // 3. Atomically decrement stock
+            for (const ss of stockSnapshots) {
+                const currentStock = ss.snap.exists() ? (typeof ss.snap.data().stock === 'number' ? ss.snap.data().stock : 10) : 10;
+                const newStock = currentStock - ss.item.quantity;
+
+                if (ss.snap.exists()) {
+                    transaction.update(ss.pRef, {
+                        stock: newStock,
+                        updatedAt: serverTimestamp()
+                    });
+                } else {
+                    transaction.set(ss.pRef, {
+                        productId: ss.pId,
+                        name: ss.title,
+                        price: ss.item.price,
+                        stock: newStock,
+                        image: ss.item.image,
+                        updatedAt: serverTimestamp()
+                    });
+                }
+            }
+
+            // 4. Create Order document
+            const orderData = {
+                orderNumber: orderNumber,
+                customer: customer,
+                items: cart.map(item => ({
+                    ...item,
+                    name: getItemTitle(item),
+                    weight: getItemWeight(item)
+                })),
+                subtotal: totalSubtotal,
+                shipping: shippingCharge,
+                total: grandTotal,
+                totalWeight: totalParcelWeight,
+                shippingService: SHIPPING_SERVICE_NAME,
+                paymentMethod: "UPI",
+                paymentScreenshot: cloudinaryUrl,
+                orderStatus: initialStatus,
+                paymentStatus: initialPaymentStatus,
+                statusMessage: "We have received your order.",
+                statusHistory: [{
+                    status: initialStatus,
+                    message: "Your order has been received.",
+                    timestamp: new Date()
+                }],
+                stockDeducted: true,
+                stockRestored: false,
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp()
+            };
+
+            if (auth.currentUser) {
+                orderData.userId = auth.currentUser.uid;
+            }
+
+            transaction.set(newOrderRef, orderData);
+        });
 
         // STEP 3: Success!
         localStorage.removeItem('glamaura_cart');
@@ -214,7 +260,7 @@ async function handleOrderSubmission(e) {
 
     } catch (error) {
         console.error("Order submission failed:", error);
-        alert("Something went wrong while submitting your order. Your cart is saved. Please try again or contact us on Instagram.\n\nError: " + error.message);
+        alert("Transaction Failed: " + error.message);
         
         placeOrderBtn.disabled = false;
         placeOrderBtn.style.display = 'block';

@@ -136,9 +136,14 @@
         </div>
     </nav>
 
+    <div class="admin-tabs" style="max-width:1400px; margin:1.5rem auto 0 auto; padding:0 1rem; display:flex; gap:1rem;">
+        <button id="tabOrdersBtn" class="admin-tab-btn active" style="padding:0.8rem 1.5rem; background:#ff1493; color:white; border:none; border-radius:20px; font-weight:bold; cursor:pointer;">All Orders 📜</button>
+        <button id="tabStockBtn" class="admin-tab-btn" style="padding:0.8rem 1.5rem; background:#fff0f5; color:#ff1493; border:2px solid #ffb6c1; border-radius:20px; font-weight:bold; cursor:pointer;">Stock Management 📦</button>
+    </div>
+
     <div id="adminSaveMsg">Update Saved!</div>
 
-    <div class="admin-container">
+    <div class="admin-container" id="adminOrdersView">
         <!-- Sidebar -->
         <div class="order-list-panel">
             <div class="order-list-header">
@@ -246,6 +251,30 @@
         </div>
     </div>
 
+    <!-- Inventory Stock Management Panel -->
+    <div id="adminStockView" style="display:none; max-width:1400px; margin:2rem auto; padding:0 1rem;">
+        <div style="background:white; border-radius:10px; padding:1.5rem; box-shadow:0 2px 10px rgba(0,0,0,0.1);">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem; border-bottom:2px solid #fff0f5; padding-bottom:1rem;">
+                <h2 style="font-family:'Pacifico', cursive; color:#ff1493; margin:0; font-size:1.8rem;">Inventory Stock Management 📦</h2>
+                <div style="display:flex; gap:1rem; flex-wrap:wrap; align-items:center;">
+                    <input type="text" id="stockSearchInput" placeholder="Search product..." style="padding:0.6rem 1rem; border:1px solid #ccc; border-radius:8px; font-family:inherit;">
+                    <select id="stockCategoryFilter" style="padding:0.6rem 1rem; border:1px solid #ccc; border-radius:8px; font-family:inherit;">
+                        <option value="ALL">All Categories</option>
+                        <option value="Necklaces">Necklaces</option>
+                        <option value="Earrings">Earrings</option>
+                        <option value="Bracelets">Bracelets</option>
+                        <option value="Charms">Charms</option>
+                        <option value="Brooches">Brooches</option>
+                    </select>
+                </div>
+            </div>
+            <div id="stockGrid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap:1.5rem;">
+                <p>Loading inventory...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="stock-utils.js" type="module"></script>
     <script src="product-utils.js" type="module"></script>
     <script src="shipping-config.js" type="module"></script>
     <script type="module" src="admin.js"></script>
