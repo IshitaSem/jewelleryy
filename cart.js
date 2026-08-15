@@ -1,3 +1,5 @@
+import { getItemWeight, calculateShipping, PACKAGING_WEIGHT_GRAMS } from './shipping-config.js';
+
 let cart = JSON.parse(localStorage.getItem('glamaura_cart')) || [];
 
 function saveCart() {
@@ -5,32 +7,33 @@ function saveCart() {
 }
 
 function getItemTitle(image, fallbackTitle) {
-    if (image && typeof getProductNameFromImage === 'function') {
-        const derived = getProductNameFromImage(image);
+    if (image && typeof window.getProductNameFromImage === 'function') {
+        const derived = window.getProductNameFromImage(image);
         if (derived) return derived;
     }
     return fallbackTitle || '';
 }
 
 function addToCartFromModal() {
-    // The active image in the modal
     const activeImg = document.querySelector('#modalImageContainer img.active');
     const image = activeImg ? activeImg.src : '';
     const modalTitleText = document.getElementById('modalTitle') ? document.getElementById('modalTitle').textContent : '';
     const title = getItemTitle(image, modalTitleText);
     
     const priceText = document.getElementById('modalPrice').textContent;
-    // Extract number from "₹79"
     const price = parseInt(priceText.replace(/[^0-9]/g, '')) || 0;
+    const itemWeight = getItemWeight({ name: title, image: image });
 
     const existingItem = cart.find(item => item.name === title || (image && item.image && getItemTitle(item.image, item.name) === title));
     if (existingItem) {
         existingItem.quantity += 1;
-        existingItem.name = title; // Ensure name is synchronized
+        existingItem.name = title;
+        existingItem.weight = itemWeight;
     } else {
         cart.push({
             name: title,
             price: price,
+            weight: itemWeight,
             quantity: 1,
             image: image
         });
@@ -39,7 +42,6 @@ function addToCartFromModal() {
     saveCart();
     updateCartUI();
     
-    // Visual feedback
     const btn = document.querySelector('.modal-add-cart-btn');
     if(btn) {
         const originalText = btn.innerHTML;
@@ -78,24 +80,35 @@ function toggleCart() {
 function updateCartUI() {
     const cartItemsDiv = document.getElementById('cartItems');
     const cartCountSpan = document.getElementById('cartCount');
+    const cartSubtotalValue = document.getElementById('cartSubtotalValue');
+    const cartProdWeightValue = document.getElementById('cartProdWeightValue');
+    const cartPkgWeightValue = document.getElementById('cartPkgWeightValue');
+    const cartWeightValue = document.getElementById('cartWeightValue');
+    const cartShippingValue = document.getElementById('cartShippingValue');
     const cartTotalValue = document.getElementById('cartTotalValue');
     const checkoutBtn = document.getElementById('checkoutBtn');
     
-    if (!cartItemsDiv) return; // Prevent errors if UI is missing
+    if (!cartItemsDiv) return;
     
     let totalCount = 0;
-    let totalValue = 0;
+    let totalSubtotal = 0;
+    let totalProdWeight = 0;
     
     cartItemsDiv.innerHTML = '';
     
     if (cart.length === 0) {
         cartItemsDiv.innerHTML = '<p style="text-align:center; padding: 2rem 1rem; color: #ff69b4; font-weight: bold;">Your cart is empty 🐾</p>';
-        if(checkoutBtn) checkoutBtn.disabled = true;
+        if (checkoutBtn) checkoutBtn.disabled = true;
     } else {
-        if(checkoutBtn) checkoutBtn.disabled = false;
+        if (checkoutBtn) checkoutBtn.disabled = false;
         cart.forEach((item, index) => {
+            const weight = getItemWeight(item);
+            item.weight = weight; // Synchronize weight
+            
             totalCount += item.quantity;
-            totalValue += item.price * item.quantity;
+            totalSubtotal += item.price * item.quantity;
+            totalProdWeight += weight * item.quantity;
+            
             const displayName = getItemTitle(item.image, item.name);
             
             cartItemsDiv.innerHTML += `
@@ -103,7 +116,7 @@ function updateCartUI() {
                     <img src="${item.image}" alt="${displayName}">
                     <div class="cart-item-details">
                         <h4>${displayName}</h4>
-                        <p>₹${item.price}</p>
+                        <p>₹${item.price} • ${weight}g</p>
                         <div class="cart-quantity">
                             <button onclick="updateQuantity(${index}, -1)">-</button>
                             <span>${item.quantity}</span>
@@ -115,25 +128,32 @@ function updateCartUI() {
         });
     }
     
-    if(cartCountSpan) cartCountSpan.textContent = totalCount;
-    if(cartTotalValue) cartTotalValue.textContent = `₹${totalValue}`;
+    const packagingWeight = cart.length > 0 ? PACKAGING_WEIGHT_GRAMS : 0;
+    const totalParcelWeight = totalProdWeight + packagingWeight;
+    const shippingCharge = calculateShipping(totalParcelWeight);
+    const grandTotal = totalSubtotal + shippingCharge;
+    
+    if (cartCountSpan) cartCountSpan.textContent = totalCount;
+    if (cartSubtotalValue) cartSubtotalValue.textContent = `₹${totalSubtotal}`;
+    if (cartProdWeightValue) cartProdWeightValue.textContent = `${totalProdWeight}g`;
+    if (cartPkgWeightValue) cartPkgWeightValue.textContent = `${packagingWeight}g`;
+    if (cartWeightValue) cartWeightValue.textContent = `${totalParcelWeight}g`;
+    if (cartShippingValue) cartShippingValue.textContent = `₹${shippingCharge}`;
+    if (cartTotalValue) cartTotalValue.textContent = `₹${grandTotal}`;
 }
 
-// Make functions globally available for inline event handlers
 window.addToCartFromModal = addToCartFromModal;
 window.removeFromCart = removeFromCart;
 window.updateQuantity = updateQuantity;
 window.toggleCart = toggleCart;
 
-// Initialize UI on load
 document.addEventListener('DOMContentLoaded', () => {
     updateCartUI();
 });
 
-// Handle Quick Add to Cart clicks globally
 document.addEventListener('click', (e) => {
     if (e.target.classList.contains('add-to-cart-quick')) {
-        e.stopPropagation(); // prevent opening the modal
+        e.stopPropagation();
         const productDiv = e.target.closest('.product');
         if (productDiv) {
             const imageEl = productDiv.querySelector('img');
@@ -143,15 +163,18 @@ document.addEventListener('click', (e) => {
             
             const priceText = productDiv.querySelector('p').textContent;
             const price = parseInt(priceText.replace(/[^0-9]/g, '')) || 0;
+            const itemWeight = getItemWeight({ name: title, image: image });
             
             const existingItem = cart.find(item => item.name === title || (image && item.image && getItemTitle(item.image, item.name) === title));
             if (existingItem) {
                 existingItem.quantity += 1;
                 existingItem.name = title;
+                existingItem.weight = itemWeight;
             } else {
                 cart.push({
                     name: title,
                     price: price,
+                    weight: itemWeight,
                     quantity: 1,
                     image: image
                 });
@@ -159,7 +182,6 @@ document.addEventListener('click', (e) => {
             saveCart();
             updateCartUI();
             
-            // Visual feedback
             const originalText = e.target.innerHTML;
             e.target.innerHTML = 'Added! 💖';
             e.target.style.background = '#ff1493';
@@ -168,7 +190,6 @@ document.addEventListener('click', (e) => {
                 e.target.style.background = '';
             }, 1500);
             
-            // Open sidebar
             const sidebar = document.getElementById('cartSidebar');
             if (sidebar) sidebar.classList.add('active');
         }

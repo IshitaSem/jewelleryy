@@ -113,17 +113,33 @@ function openOrderDetails(order) {
     // Items
     const itemsEl = document.getElementById('admItems');
     itemsEl.innerHTML = '';
+    let calculatedSubtotal = 0;
+    let calculatedWeight = 0;
     if(order.items) {
         order.items.forEach(item => {
             const displayName = (item.image && typeof window.getProductNameFromImage === 'function')
                 ? window.getProductNameFromImage(item.image)
                 : (item.name || '');
+            const itemWeight = (typeof window.getItemWeight === 'function') ? window.getItemWeight(item) : (item.weight || 20);
+            calculatedSubtotal += (item.price * item.quantity);
+            calculatedWeight += (itemWeight * item.quantity);
+
             itemsEl.innerHTML += `<div style="padding:0.5rem 0; border-bottom:1px solid #ddd;">
-                ${item.quantity}x <strong>${displayName}</strong> - ₹${item.price * item.quantity}
+                ${item.quantity}x <strong>${displayName}</strong> (${itemWeight}g) - ₹${item.price * item.quantity}
             </div>`;
         });
     }
-    document.getElementById('admTotal').textContent = `₹${order.total}`;
+
+    const subtotal = (typeof order.subtotal === 'number') ? order.subtotal : calculatedSubtotal;
+    const shipping = (typeof order.shipping === 'number') ? order.shipping : Math.max(0, (order.total || 0) - subtotal);
+    const totalWeight = (typeof order.totalWeight === 'number') ? order.totalWeight : (calculatedWeight + 20);
+    const shippingService = order.shippingService || "India Post Parcel Retail";
+
+    if (document.getElementById('admSubtotal')) document.getElementById('admSubtotal').textContent = `₹${subtotal}`;
+    if (document.getElementById('admShipping')) document.getElementById('admShipping').textContent = `₹${shipping}`;
+    if (document.getElementById('admShippingService')) document.getElementById('admShippingService').textContent = shippingService;
+    if (document.getElementById('admTotalWeight')) document.getElementById('admTotalWeight').textContent = `${totalWeight}g`;
+    if (document.getElementById('admTotal')) document.getElementById('admTotal').textContent = `₹${order.total}`;
     
     // Payment screenshot
     const payImg = document.getElementById('admPaymentImg');

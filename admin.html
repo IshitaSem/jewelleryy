@@ -180,7 +180,12 @@
                     <div class="info-box">
                         <h3>Order Items</h3>
                         <div id="admItems"></div>
-                        <h3 style="margin-top:1rem;">Total: <span id="admTotal" style="color:#28a745;">₹0</span></h3>
+                        <div style="margin-top:1rem; padding-top:0.8rem; border-top:1px dashed #ccc; font-size:0.95rem; line-height:1.6;">
+                            <p><strong>Subtotal:</strong> <span id="admSubtotal">₹0</span></p>
+                            <p><strong>Shipping:</strong> <span id="admShipping">₹0</span> (<span id="admShippingService">India Post</span>)</p>
+                            <p><strong>Parcel Weight:</strong> <span id="admTotalWeight">0g</span></p>
+                            <h3 style="margin-top:0.5rem; font-size:1.4rem;">Total: <span id="admTotal" style="color:#28a745;">₹0</span></h3>
+                        </div>
                     </div>
                 </div>
 
@@ -242,6 +247,7 @@
     </div>
 
     <script src="product-utils.js" type="module"></script>
+    <script src="shipping-config.js" type="module"></script>
     <script type="module" src="admin.js"></script>
 </body>
 </html>

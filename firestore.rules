@@ -21,7 +21,10 @@ service cloud.firestore {
           'customer',
           'items',
           'subtotal',
+          'shipping',
           'total',
+          'totalWeight',
+          'shippingService',
           'paymentMethod',
           'paymentScreenshot',
           'orderStatus',
@@ -34,13 +37,17 @@ service cloud.firestore {
         && request.resource.data.orderNumber is string
         && request.resource.data.customer is map
         && request.resource.data.items is list
+        && request.resource.data.subtotal is number
+        && request.resource.data.shipping is number
         && request.resource.data.total is number
+        && request.resource.data.totalWeight is number
+        && request.resource.data.shippingService is string
+        && request.resource.data.total == request.resource.data.subtotal + request.resource.data.shipping
         && request.resource.data.orderStatus == 'Order Received'
         && request.resource.data.paymentStatus == 'Payment Pending'
         && request.resource.data.paymentMethod == 'UPI'
         && (request.resource.data.createdAt is timestamp || request.resource.data.createdAt == request.time)
         && (request.resource.data.updatedAt is timestamp || request.resource.data.updatedAt == request.time)
-        // If they provided a userId, it must match their auth
         && (!('userId' in request.resource.data) || (request.auth != null && request.resource.data.userId == request.auth.uid));
 
       // Customers can read their own orders. Admins can read all.

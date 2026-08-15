@@ -1,15 +1,20 @@
 import { db, auth, serverTimestamp } from './firebase.js';
 import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { getItemWeight, calculateShipping, PACKAGING_WEIGHT_GRAMS, SHIPPING_SERVICE_NAME } from './shipping-config.js';
 
 // ==========================================
 // ⚠️ IMPORTANT CLOUDINARY CONFIGURATION ⚠️
 // ==========================================
 const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || "yoegaasc"; 
-const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || "payment_screenshots"; // Must be an Unsigned preset!
+const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || "payment_screenshots";
 // ==========================================
 
 let cart = JSON.parse(localStorage.getItem('glamaura_cart')) || [];
-let totalValue = 0;
+let totalSubtotal = 0;
+let totalProdWeight = 0;
+let totalParcelWeight = 0;
+let shippingCharge = 0;
+let grandTotal = 0;
 
 function getItemTitle(item) {
     if (item.image && typeof window.getProductNameFromImage === 'function') {
@@ -17,6 +22,28 @@ function getItemTitle(item) {
         if (derived) return derived;
     }
     return item.name || '';
+}
+
+function recalculateTotals() {
+    const customerState = document.getElementById('customerState') ? document.getElementById('customerState').value.trim() : '';
+    const customerCity = document.getElementById('customerCity') ? document.getElementById('customerCity').value.trim() : '';
+
+    const packagingWeight = cart.length > 0 ? PACKAGING_WEIGHT_GRAMS : 0;
+    totalParcelWeight = totalProdWeight + packagingWeight;
+    shippingCharge = calculateShipping(totalParcelWeight, customerState, customerCity);
+    grandTotal = totalSubtotal + shippingCharge;
+
+    const checkoutSubtotal = document.getElementById('checkoutSubtotal');
+    const checkoutWeight = document.getElementById('checkoutWeight');
+    const checkoutShipping = document.getElementById('checkoutShipping');
+    const checkoutTotal = document.getElementById('checkoutTotal');
+    const paymentAmount = document.getElementById('paymentAmount');
+
+    if (checkoutSubtotal) checkoutSubtotal.textContent = `₹${totalSubtotal}`;
+    if (checkoutWeight) checkoutWeight.textContent = `${totalParcelWeight}g (${totalProdWeight}g items + ${packagingWeight}g pkg)`;
+    if (checkoutShipping) checkoutShipping.textContent = `₹${shippingCharge}`;
+    if (checkoutTotal) checkoutTotal.textContent = `₹${grandTotal}`;
+    if (paymentAmount) paymentAmount.textContent = `₹${grandTotal}`;
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -29,34 +56,46 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 2. Render Order Summary
     const checkoutItemsDiv = document.getElementById('checkoutItems');
-    const checkoutSubtotal = document.getElementById('checkoutSubtotal');
-    const checkoutTotal = document.getElementById('checkoutTotal');
-    const paymentAmount = document.getElementById('paymentAmount');
+    totalSubtotal = 0;
+    totalProdWeight = 0;
 
     cart.forEach(item => {
+        const weight = getItemWeight(item);
+        item.weight = weight;
+        
         const itemTotal = item.price * item.quantity;
-        totalValue += itemTotal;
+        totalSubtotal += itemTotal;
+        totalProdWeight += weight * item.quantity;
+        
         const displayName = getItemTitle(item);
         
-        checkoutItemsDiv.innerHTML += `
-            <div class="order-summary-item">
-                <img src="${item.image}" alt="${displayName}">
-                <div class="order-summary-details">
-                    <h4>${displayName}</h4>
-                    <p>Qty: ${item.quantity} x ₹${item.price}</p>
+        if (checkoutItemsDiv) {
+            checkoutItemsDiv.innerHTML += `
+                <div class="order-summary-item">
+                    <img src="${item.image}" alt="${displayName}">
+                    <div class="order-summary-details">
+                        <h4>${displayName}</h4>
+                        <p>Qty: ${item.quantity} x ₹${item.price} • ${weight}g</p>
+                    </div>
+                    <div style="font-weight: bold; color: #ff1493;">₹${itemTotal}</div>
                 </div>
-                <div style="font-weight: bold; color: #ff1493;">₹${itemTotal}</div>
-            </div>
-        `;
+            `;
+        }
     });
 
-    checkoutSubtotal.textContent = `₹${totalValue}`;
-    checkoutTotal.textContent = `₹${totalValue}`;
-    paymentAmount.textContent = `₹${totalValue}`;
+    recalculateTotals();
+
+    // Re-calculate shipping if customer updates State or City
+    const stateInput = document.getElementById('customerState');
+    const cityInput = document.getElementById('customerCity');
+    if (stateInput) stateInput.addEventListener('input', recalculateTotals);
+    if (cityInput) cityInput.addEventListener('input', recalculateTotals);
 
     // 3. Handle Form Submission
     const checkoutForm = document.getElementById('checkoutForm');
-    checkoutForm.addEventListener('submit', handleOrderSubmission);
+    if (checkoutForm) {
+        checkoutForm.addEventListener('submit', handleOrderSubmission);
+    }
 });
 
 async function handleOrderSubmission(e) {
@@ -84,7 +123,7 @@ async function handleOrderSubmission(e) {
     };
 
     // Validate file
-    const file = fileInput.files[0];
+    const file = fileInput ? fileInput.files[0] : null;
     if (!file) {
         alert("Please upload a payment screenshot.");
         return;
@@ -103,7 +142,8 @@ async function handleOrderSubmission(e) {
         return;
     }
 
-    // Prevent double submission
+    recalculateTotals(); // Ensure final calculation is active
+
     placeOrderBtn.disabled = true;
     placeOrderBtn.style.display = 'none';
     uploadStatus.style.display = 'block';
@@ -120,15 +160,12 @@ async function handleOrderSubmission(e) {
         // STEP 2: Create Order in Firestore
         uploadStatus.textContent = "Securing your order... ✨";
         
-        // Generate a human-readable order number
         const dateStr = new Date().toISOString().split('T')[0].replace(/-/g, '');
-        
         const getSecureRandom = (length) => {
             const arr = new Uint8Array(length);
             crypto.getRandomValues(arr);
             return Array.from(arr).map(b => b.toString(36).padStart(2, '0')).join('').toUpperCase().substring(0, length);
         };
-        
         const randomStr = getSecureRandom(6);
         const orderNumber = `JEW-${dateStr}-${randomStr}`;
 
@@ -140,10 +177,14 @@ async function handleOrderSubmission(e) {
             customer: customer,
             items: cart.map(item => ({
                 ...item,
-                name: getItemTitle(item)
+                name: getItemTitle(item),
+                weight: getItemWeight(item)
             })),
-            subtotal: totalValue,
-            total: totalValue,
+            subtotal: totalSubtotal,
+            shipping: shippingCharge,
+            total: grandTotal,
+            totalWeight: totalParcelWeight,
+            shippingService: SHIPPING_SERVICE_NAME,
             paymentMethod: "UPI",
             paymentScreenshot: cloudinaryUrl,
             orderStatus: initialStatus,
@@ -158,7 +199,6 @@ async function handleOrderSubmission(e) {
             updatedAt: serverTimestamp()
         };
 
-        // Attach user ID if logged in
         if (auth.currentUser) {
             orderData.userId = auth.currentUser.uid;
         }
@@ -166,10 +206,8 @@ async function handleOrderSubmission(e) {
         const docRef = await addDoc(collection(db, "orders"), orderData);
 
         // STEP 3: Success!
-        // Clear the cart
         localStorage.removeItem('glamaura_cart');
         
-        // Update UI
         document.getElementById('checkoutFlow').style.display = 'none';
         document.getElementById('successMessage').style.display = 'block';
         document.getElementById('orderNumberDisplay').textContent = orderNumber;
@@ -178,7 +216,6 @@ async function handleOrderSubmission(e) {
         console.error("Order submission failed:", error);
         alert("Something went wrong while submitting your order. Your cart is saved. Please try again or contact us on Instagram.\n\nError: " + error.message);
         
-        // Restore button state (DO NOT clear cart)
         placeOrderBtn.disabled = false;
         placeOrderBtn.style.display = 'block';
         uploadStatus.style.display = 'none';
@@ -186,15 +223,11 @@ async function handleOrderSubmission(e) {
 }
 
 async function uploadToCloudinary(file) {
-    // Cloudinary Unsigned Upload API
     const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
     
     const formData = new FormData();
     formData.append("file", file);
     formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
-    
-    // Add an explicit folder if configured in the preset, otherwise it uses preset default
-    // formData.append("folder", "payments");
 
     const response = await fetch(url, {
         method: "POST",
