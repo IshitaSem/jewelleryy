@@ -1,5 +1,5 @@
 import { auth, db, serverTimestamp } from './firebase.js';
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+import { onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 import { collection, getDocs, doc, updateDoc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 import { getProductId, renderStockBadge } from './stock-utils.js';
 
@@ -7,21 +7,70 @@ let allOrders = [];
 let currentOrder = null;
 let allProducts = [];
 
-// Ensure admin only
+const googleProvider = new GoogleAuthProvider();
+const googleLoginBtn = document.getElementById('googleLoginBtn');
+const emailLoginForm = document.getElementById('emailLoginForm');
+const loginErrorMsg = document.getElementById('loginErrorMsg');
+const adminLoginOverlay = document.getElementById('adminLoginOverlay');
+
+if (googleLoginBtn) {
+    googleLoginBtn.addEventListener('click', async () => {
+        try {
+            if (loginErrorMsg) loginErrorMsg.style.display = 'none';
+            await signInWithPopup(auth, googleProvider);
+        } catch (e) {
+            console.error("Google Login failed:", e);
+            if (loginErrorMsg) {
+                loginErrorMsg.textContent = "Google Sign In failed: " + e.message;
+                loginErrorMsg.style.display = 'block';
+            }
+        }
+    });
+}
+
+if (emailLoginForm) {
+    emailLoginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('loginEmailInput').value.trim();
+        const pass = document.getElementById('loginPassInput').value;
+        try {
+            if (loginErrorMsg) loginErrorMsg.style.display = 'none';
+            await signInWithEmailAndPassword(auth, email, pass);
+        } catch (e) {
+            console.error("Email Login failed:", e);
+            if (loginErrorMsg) {
+                loginErrorMsg.textContent = "Login failed: " + e.message;
+                loginErrorMsg.style.display = 'block';
+            }
+        }
+    });
+}
+
+const ADMIN_EMAIL = 'ishitasemwal84@gmail.com';
+
+// Admin Authentication State Listener
 onAuthStateChanged(auth, async (user) => {
-    if (!user || user.email !== 'ishitasemwal84@gmail.com') {
-        alert("Unauthorized access. Redirecting...");
-        window.location.href = 'index.html';
-        return;
+    const userEmail = user && user.email ? user.email.toLowerCase().trim() : '';
+    if (user && userEmail === ADMIN_EMAIL) {
+        if (adminLoginOverlay) adminLoginOverlay.style.display = 'none';
+        document.getElementById('adminEmail').textContent = user.email;
+        loadOrders();
+        initStockManagement();
+    } else {
+        if (user && userEmail !== ADMIN_EMAIL) {
+            if (loginErrorMsg) {
+                loginErrorMsg.textContent = `Access denied (${user.email}). Only ${ADMIN_EMAIL} is authorized.`;
+                loginErrorMsg.style.display = 'block';
+            }
+            await signOut(auth);
+        }
+        if (adminLoginOverlay) adminLoginOverlay.style.display = 'flex';
     }
-    document.getElementById('adminEmail').textContent = user.email;
-    loadOrders();
-    initStockManagement();
 });
 
 document.getElementById('logoutBtn').addEventListener('click', async () => {
     await signOut(auth);
-    window.location.href = 'index.html';
+    if (adminLoginOverlay) adminLoginOverlay.style.display = 'flex';
 });
 
 // Tab Switcher
