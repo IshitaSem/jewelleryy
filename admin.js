@@ -115,8 +115,11 @@ function openOrderDetails(order) {
     itemsEl.innerHTML = '';
     if(order.items) {
         order.items.forEach(item => {
+            const displayName = (item.image && typeof window.getProductNameFromImage === 'function')
+                ? window.getProductNameFromImage(item.image)
+                : (item.name || '');
             itemsEl.innerHTML += `<div style="padding:0.5rem 0; border-bottom:1px solid #ddd;">
-                ${item.quantity}x <strong>${item.name}</strong> - ₹${item.price * item.quantity}
+                ${item.quantity}x <strong>${displayName}</strong> - ₹${item.price * item.quantity}
             </div>`;
         });
     }
@@ -174,14 +177,6 @@ document.getElementById('btnSaveUpdate').addEventListener('click', async () => {
             statusHistory: historyArray,
             updatedAt: new Date()
         });
-
-        if (currentOrder.trackingDocId) {
-            await updateDoc(doc(db, "orderTracking", currentOrder.trackingDocId), {
-                status: newOrderStatus,
-                statusHistory: historyArray,
-                updatedAt: new Date()
-            });
-        }
         
         // Show success msg
         const msg = document.getElementById('adminSaveMsg');

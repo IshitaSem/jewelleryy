@@ -4,19 +4,29 @@ function saveCart() {
     localStorage.setItem('glamaura_cart', JSON.stringify(cart));
 }
 
+function getItemTitle(image, fallbackTitle) {
+    if (image && typeof getProductNameFromImage === 'function') {
+        const derived = getProductNameFromImage(image);
+        if (derived) return derived;
+    }
+    return fallbackTitle || '';
+}
+
 function addToCartFromModal() {
-    const title = document.getElementById('modalTitle').textContent;
-    const priceText = document.getElementById('modalPrice').textContent;
-    // Extract number from "₹79"
-    const price = parseInt(priceText.replace(/[^0-9]/g, ''));
-    
     // The active image in the modal
     const activeImg = document.querySelector('#modalImageContainer img.active');
     const image = activeImg ? activeImg.src : '';
+    const modalTitleText = document.getElementById('modalTitle') ? document.getElementById('modalTitle').textContent : '';
+    const title = getItemTitle(image, modalTitleText);
+    
+    const priceText = document.getElementById('modalPrice').textContent;
+    // Extract number from "₹79"
+    const price = parseInt(priceText.replace(/[^0-9]/g, '')) || 0;
 
-    const existingItem = cart.find(item => item.name === title);
+    const existingItem = cart.find(item => item.name === title || (image && item.image && getItemTitle(item.image, item.name) === title));
     if (existingItem) {
         existingItem.quantity += 1;
+        existingItem.name = title; // Ensure name is synchronized
     } else {
         cart.push({
             name: title,
@@ -86,12 +96,13 @@ function updateCartUI() {
         cart.forEach((item, index) => {
             totalCount += item.quantity;
             totalValue += item.price * item.quantity;
+            const displayName = getItemTitle(item.image, item.name);
             
             cartItemsDiv.innerHTML += `
                 <div class="cart-item">
-                    <img src="${item.image}" alt="${item.name}">
+                    <img src="${item.image}" alt="${displayName}">
                     <div class="cart-item-details">
-                        <h4>${item.name}</h4>
+                        <h4>${displayName}</h4>
                         <p>₹${item.price}</p>
                         <div class="cart-quantity">
                             <button onclick="updateQuantity(${index}, -1)">-</button>
@@ -125,14 +136,18 @@ document.addEventListener('click', (e) => {
         e.stopPropagation(); // prevent opening the modal
         const productDiv = e.target.closest('.product');
         if (productDiv) {
-            const title = productDiv.querySelector('h3').textContent;
-            const priceText = productDiv.querySelector('p').textContent;
-            const price = parseInt(priceText.replace(/[^0-9]/g, ''));
-            const image = productDiv.querySelector('img').src;
+            const imageEl = productDiv.querySelector('img');
+            const image = imageEl ? imageEl.src : '';
+            const h3Text = productDiv.querySelector('h3') ? productDiv.querySelector('h3').textContent : '';
+            const title = getItemTitle(image, h3Text);
             
-            const existingItem = cart.find(item => item.name === title);
+            const priceText = productDiv.querySelector('p').textContent;
+            const price = parseInt(priceText.replace(/[^0-9]/g, '')) || 0;
+            
+            const existingItem = cart.find(item => item.name === title || (image && item.image && getItemTitle(item.image, item.name) === title));
             if (existingItem) {
                 existingItem.quantity += 1;
+                existingItem.name = title;
             } else {
                 cart.push({
                     name: title,

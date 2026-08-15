@@ -1,5 +1,23 @@
 export type View = 'home' | 'shop' | 'builder' | 'guide' | 'checkout' | 'admin';
 
+export function getProductNameFromImage(imagePath: string): string {
+  if (!imagePath) return '';
+  let filename = imagePath.split('/').pop()?.split('\\').pop() || '';
+  try {
+    filename = decodeURIComponent(filename);
+  } catch (e) {}
+  let nameWithoutExt = filename.replace(/\.(jpg|jpeg|png|webp|gif|svg)$/i, '');
+  let cleaned = nameWithoutExt.replace(/\(([0-9]+)\)/g, '$1');
+  cleaned = cleaned.replace(/[-_]+/g, ' ');
+  cleaned = cleaned.replace(/\s+/g, ' ').trim();
+  return cleaned.split(' ').map(word => {
+    if (!word) return '';
+    if (/^\d+(\.\d+)?$/.test(word)) return word;
+    if (word.toUpperCase() === 'Y2K') return 'Y2K';
+    return word.charAt(0).toUpperCase() + word.slice(1);
+  }).join(' ');
+}
+
 export interface Product {
   id: string;
   name: string;
