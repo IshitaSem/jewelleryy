@@ -109,7 +109,8 @@ if (tabOrdersBtn && tabStockBtn) {
 
 async function loadOrders() {
     const listEl = document.getElementById('adminOrderList');
-    listEl.innerHTML = '<p>Loading...</p>';
+    if (!listEl) return;
+    listEl.innerHTML = '<p style="padding:1rem; color:#666;">Loading orders...</p>';
     
     try {
         const querySnapshot = await getDocs(collection(db, "orders"));
@@ -119,15 +120,25 @@ async function loadOrders() {
         });
 
         allOrders.sort((a, b) => {
-            const timeA = a.createdAt ? a.createdAt.toMillis() : 0;
-            const timeB = b.createdAt ? b.createdAt.toMillis() : 0;
+            const timeA = a.createdAt ? (typeof a.createdAt.toMillis === 'function' ? a.createdAt.toMillis() : (a.createdAt.seconds ? a.createdAt.seconds * 1000 : 0)) : 0;
+            const timeB = b.createdAt ? (typeof b.createdAt.toMillis === 'function' ? b.createdAt.toMillis() : (b.createdAt.seconds ? b.createdAt.seconds * 1000 : 0)) : 0;
             return timeB - timeA;
         });
 
         renderSidebar();
     } catch (e) {
         console.error("Error loading orders:", e);
-        listEl.innerHTML = '<p style="color:red;">Error loading orders.</p>';
+        if (e.code === 'permission-denied' || (e.message && e.message.includes('permissions'))) {
+            listEl.innerHTML = `
+                <div style="padding:1rem; background:#fff2f0; border:1px solid #ffccc7; border-radius:8px; color:#ff4d4f; font-size:0.85rem; margin:0.5rem;">
+                    <strong>Permission Denied</strong><br>
+                    Missing permissions to read orders.<br><br>
+                    <em>Please publish the updated <code>firestore.rules</code> in your Firebase Console (Firestore Database -> Rules tab).</em>
+                </div>
+            `;
+        } else {
+            listEl.innerHTML = `<p style="color:red; padding:1rem;">Error loading orders: ${e.message || e}</p>`;
+        }
     }
 }
 
@@ -500,6 +511,11 @@ function renderStockGrid() {
 async function updateStock(productId, newStock) {
     const product = allProducts.find(p => p.id === productId);
     try {
+        if (!auth.currentUser) {
+            alert("Error: You are not currently authenticated as Admin. Please log in with ishitasemwal84@gmail.com first.");
+            if (adminLoginOverlay) adminLoginOverlay.style.display = 'flex';
+            return;
+        }
         const pRef = doc(db, "products", productId);
         await setDoc(pRef, {
             productId: productId,
@@ -519,6 +535,10 @@ async function updateStock(productId, newStock) {
         }
     } catch (e) {
         console.error("Error updating product stock in Firestore:", e);
-        alert("Failed to update stock: " + e.message);
+        if (e.code === 'permission-denied' || (e.message && e.message.includes('permissions'))) {
+            alert("Failed to update stock: Missing or insufficient permissions.\n\nTo fix this:\n1. Verify you are logged into Firebase with email: ishitasemwal84@gmail.com\n2. Publish/Deploy the updated firestore.rules in your Firebase Console (Firestore Database -> Rules).");
+        } else {
+            alert("Failed to update stock: " + e.message);
+        }
     }
 }
