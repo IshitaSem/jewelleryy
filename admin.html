@@ -124,6 +124,46 @@
             padding: 1rem 2rem; border-radius: 5px;
             display: none; font-weight: bold; z-index: 9999;
         }
+
+        /* Responsive Admin Adjustments */
+        @media screen and (max-width: 900px) {
+            .admin-nav {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+                padding: 1rem;
+            }
+            .admin-container {
+                grid-template-columns: 1fr;
+                margin: 1rem auto;
+                gap: 1.25rem;
+            }
+            .order-list-panel {
+                height: auto;
+                max-height: 360px;
+            }
+            .order-detail-panel {
+                height: auto;
+                padding: 1.25rem;
+            }
+            .grid-2 {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .admin-tabs {
+                flex-direction: column;
+                gap: 0.5rem !important;
+            }
+            .admin-tabs button {
+                width: 100%;
+            }
+            #stockGrid {
+                grid-template-columns: 1fr !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -295,7 +335,7 @@
                     </select>
                 </div>
             </div>
-            <div id="stockGrid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap:1.5rem;">
+            <div id="stockGrid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap:1.25rem;">
                 <p>Loading inventory...</p>
             </div>
         </div>

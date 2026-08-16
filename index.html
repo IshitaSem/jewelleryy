@@ -48,7 +48,26 @@
       <button class="header-cart-btn" onclick="toggleCart()">
         🛒 Cart <span class="cart-count-badge" id="cartCount">0</span>
       </button>
+      <button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleMobileNav()" aria-label="Toggle Menu">
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+      </button>
     </div>
+  </div>
+
+  <!-- MOBILE NAVIGATION DRAWER -->
+  <div class="mobile-nav-drawer" id="mobileNavDrawer">
+    <ul>
+      <li><a href="#earrings" onclick="scrollToSection('#earrings'); toggleMobileNav(); return false;">Earrings 🌸</a></li>
+      <li><a href="#pendants" onclick="scrollToSection('#pendants'); toggleMobileNav(); return false;">Pendants 💖</a></li>
+      <li><a href="#bracelet" onclick="scrollToSection('#bracelet'); toggleMobileNav(); return false;">Bracelets ✨</a></li>
+      <li><a href="#charms" onclick="scrollToSection('#charms'); toggleMobileNav(); return false;">Charms 🍒</a></li>
+      <li><a href="#brooches" onclick="scrollToSection('#brooches'); toggleMobileNav(); return false;">Brooches 🦋</a></li>
+      <li><a href="#jewellery-sets" onclick="scrollToSection('#jewellery-sets'); toggleMobileNav(); return false;">Jewellery Sets 🎁</a></li>
+      <li><a href="#" onclick="openGuideModal(); toggleMobileNav(); return false;">Guide 📖</a></li>
+      <li><a href="#" onclick="openPolicyModal(); toggleMobileNav(); return false;">Policies 📜</a></li>
+    </ul>
   </div>
 </header>
 

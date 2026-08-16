@@ -1,8 +1,15 @@
-// SCROLL
+// SCROLL & MOBILE NAV
 function scrollToSection(selector) {
   const element = document.querySelector(selector);
   if (element) { element.scrollIntoView({ behavior: 'smooth' }); }
 }
+
+window.toggleMobileNav = function() {
+  const drawer = document.getElementById('mobileNavDrawer');
+  const btn = document.getElementById('mobileMenuBtn');
+  if (drawer) drawer.classList.toggle('active');
+  if (btn) btn.classList.toggle('active');
+};
 
 // POPUP FUNCTION
 const popup = document.getElementById("popup");
