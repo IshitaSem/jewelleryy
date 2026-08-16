@@ -1218,41 +1218,54 @@ document.addEventListener('DOMContentLoaded', () => {
       card.setAttribute('data-product-id', pId);
     });
 
+    function updateCardUI(card, stock) {
+      let badgeEl = card.querySelector('.stock-badge-wrapper');
+      if (!badgeEl) {
+        badgeEl = document.createElement('div');
+        badgeEl.className = 'stock-badge-wrapper';
+        badgeEl.style.marginTop = '0.3rem';
+        badgeEl.style.marginBottom = '0.4rem';
+        const h3 = card.querySelector('h3');
+        if (h3 && h3.nextSibling) {
+          card.insertBefore(badgeEl, h3.nextSibling);
+        } else {
+          card.appendChild(badgeEl);
+        }
+      }
+      badgeEl.innerHTML = renderStockBadge(stock);
+
+      const btn = card.querySelector('.add-to-cart-quick');
+      if (btn) {
+        if (stock <= 0) {
+          btn.disabled = true;
+          btn.innerHTML = 'Out of Stock ❌';
+          btn.style.background = '#a87177';
+          btn.style.color = '#ffffff';
+          btn.style.cursor = 'not-allowed';
+          btn.style.opacity = '0.75';
+          btn.style.boxShadow = 'none';
+        } else {
+          btn.disabled = false;
+          btn.innerHTML = 'Add to Cart 🛒';
+          btn.style.background = '';
+          btn.style.color = '';
+          btn.style.cursor = 'pointer';
+          btn.style.opacity = '1';
+          btn.style.boxShadow = '';
+        }
+      }
+    }
+
     // Realtime Firestore listener
     onSnapshot(collection(db, "products"), (snapshot) => {
       snapshot.forEach((doc) => {
         const data = doc.data();
         const pId = doc.id || getProductId(data.name, data.image);
-        const stock = typeof data.stock === 'number' ? data.stock : 10;
+        const stock = typeof data.stock === 'number' ? data.stock : 0;
         window.liveStockMap[pId] = stock;
 
         const cards = document.querySelectorAll(`.product[data-product-id="${pId}"]`);
-        cards.forEach(card => {
-          let badgeEl = card.querySelector('.stock-badge-wrapper');
-          if (!badgeEl) {
-            badgeEl = document.createElement('div');
-            badgeEl.className = 'stock-badge-wrapper';
-            badgeEl.style.marginBottom = '0.4rem';
-            const h3 = card.querySelector('h3');
-            if (h3 && h3.nextSibling) {
-              card.insertBefore(badgeEl, h3.nextSibling);
-            } else {
-              card.appendChild(badgeEl);
-            }
-          }
-          badgeEl.innerHTML = renderStockBadge(stock);
-
-          const btn = card.querySelector('.add-to-cart-quick');
-          if (btn) {
-            if (stock <= 0) {
-              btn.disabled = true;
-              btn.innerHTML = 'Out of Stock ❌';
-            } else {
-              btn.disabled = false;
-              btn.innerHTML = 'Add to Cart 🛒';
-            }
-          }
-        });
+        cards.forEach(card => updateCardUI(card, stock));
       });
 
       if (typeof window.updateCartUI === 'function') {
