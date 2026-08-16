@@ -8,7 +8,7 @@ function saveCart() {
 }
 
 function getItemTitle(image, fallbackTitle) {
-    if (fallbackTitle && fallbackTitle.trim()) {
+    if (fallbackTitle && fallbackTitle.trim() && (fallbackTitle.trim() !== 'Gallery' || (image && image.includes('gallery (')))) {
         return fallbackTitle.trim();
     }
     if (image && typeof window.getProductNameFromImage === 'function') {
@@ -142,6 +142,17 @@ function updateCartUI() {
             const weight = getItemWeight(item);
             item.weight = weight;
             
+            // Auto-repair stale item names saved as "Gallery" for non-gallery items
+            if (item.name === 'Gallery' && item.image && !item.image.includes('gallery (')) {
+                if (typeof window.getProductNameFromImage === 'function') {
+                    const repairedName = window.getProductNameFromImage(item.image);
+                    if (repairedName) {
+                        item.name = repairedName;
+                        saveCart();
+                    }
+                }
+            }
+
             const displayName = getItemTitle(item.image, item.name);
             const availableStock = getAvailableStock(displayName, item.image);
 
