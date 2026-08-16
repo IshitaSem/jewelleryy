@@ -25,7 +25,7 @@ export function Footer() {
         </p>
 
         <motion.a
-          href="https://instagram.com/theglam._.aura"
+          href="https://www.instagram.com/theglam._.aura/"
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-2 bg-white text-[#e91e8c] font-bold px-5 py-2.5 rounded-full shadow-lg text-sm hover:shadow-xl transition-shadow"

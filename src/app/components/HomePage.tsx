@@ -570,7 +570,7 @@ function SocialSection() {
 
         <div style={{ textAlign: 'center', marginTop: '48px' }}>
           <motion.a
-            href="https://instagram.com"
+            href="https://www.instagram.com/theglam._.aura/"
             target="_blank"
             rel="noopener noreferrer"
             style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: P, color: '#FFFFFF', fontFamily: FF, fontWeight: 700, fontSize: '15px', padding: '13px 28px', borderRadius: '100px', border: `2.5px solid ${D}`, boxShadow: `3px 3px 0px ${D}`, textDecoration: 'none' }}

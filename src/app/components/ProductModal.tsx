@@ -161,7 +161,7 @@ export function ProductModal({ product, onClose }: ProductModalProps) {
                 {product.price}
               </p>
               <motion.a
-                href="https://instagram.com/direct/new/?username=theglam._.aura"
+                href="https://www.instagram.com/theglam._.aura/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center gap-2 text-white px-6 py-3 rounded-full font-semibold shadow-lg text-sm"

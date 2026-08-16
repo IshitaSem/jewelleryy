@@ -258,7 +258,7 @@ async function handleOrderSubmission(e) {
         localStorage.removeItem('glamaura_cart');
         
         document.getElementById('checkoutFlow').style.display = 'none';
-        document.getElementById('successMessage').style.display = 'block';
+        document.getElementById('successMessage').style.display = 'flex';
         document.getElementById('orderNumberDisplay').textContent = orderNumber;
 
     } catch (error) {

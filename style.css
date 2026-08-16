@@ -1365,6 +1365,10 @@ nav.categories-nav a.active {
   box-shadow: none;
 }
 
+#successMessage {
+  display: none;
+}
+
 /* ===== SHOPPING GUIDE STYLING ===== */
 .guide-container {
   max-width: 900px;
