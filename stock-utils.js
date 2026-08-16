@@ -18,8 +18,10 @@ export function getProductId(title, imagePath) {
     try {
       filename = decodeURIComponent(filename);
     } catch (e) {}
+    filename = filename.replace(/[-_][a-zA-Z0-9]{6,12}[-_]?(?=\.\w+$|$)/gi, '');
     name = filename.replace(/\.(jpg|jpeg|png|webp|gif|svg)$/i, '');
   }
+  name = name.replace(/[-_][a-zA-Z0-9]{6,12}[-_]?$/gi, '');
 
   // Strip emojis and non-alphanumeric chars
   let cleaned = name.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '');

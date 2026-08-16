@@ -11,8 +11,12 @@ export function getProductNameFromImage(imagePath) {
     filename = decodeURIComponent(filename);
   } catch (e) {}
 
+  // Remove Vite production asset hashes (e.g. "-I0ko5PP-" or "-C7AtFafs")
+  filename = filename.replace(/[-_][a-zA-Z0-9]{6,12}[-_]?(?=\.\w+$|$)/gi, '');
+
   // 2. Remove file extension
   let nameWithoutExt = filename.replace(/\.(jpg|jpeg|png|webp|gif|svg)$/i, '');
+  nameWithoutExt = nameWithoutExt.replace(/[-_][a-zA-Z0-9]{6,12}[-_]?$/gi, '');
 
   // 3. Strip decorative emojis for clean title case string
   let cleanStr = nameWithoutExt.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '');
