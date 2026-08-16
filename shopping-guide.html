@@ -3,139 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shopping Guide - The Glam Aura</title>
-    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&family=Pacifico&display=swap" rel="stylesheet">
+    <title>Shopping Guide – The Glam Aura</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600&family=Quicksand:wght@400;500;600;700&family=Pacifico&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <style>
-        .guide-container {
-            max-width: 900px;
-            margin: 3rem auto;
-            padding: 2rem;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(255, 105, 180, 0.15);
-            border: 4px solid #ffb6c1;
-        }
-        .guide-header {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-        .guide-header h1 {
-            font-family: 'Pacifico', cursive;
-            color: #ff1493;
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
-        .guide-header p {
-            font-size: 1.2rem;
-            color: #666;
-            font-weight: 600;
-        }
-        
-        .guide-step {
-            display: flex;
-            gap: 2rem;
-            margin-bottom: 2.5rem;
-            background: #fff0f5;
-            padding: 1.5rem;
-            border-radius: 15px;
-            transition: transform 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        .guide-step:hover {
-            transform: translateX(10px);
-            box-shadow: 0 5px 15px rgba(255,105,180,0.2);
-        }
-        .guide-step::before {
-            content: "";
-            position: absolute;
-            left: 0;
-            top: 0;
-            height: 100%;
-            width: 5px;
-            background: #ff69b4;
-        }
-        
-        .step-number {
-            background: white;
-            color: #ff1493;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Pacifico', cursive;
-            font-size: 1.8rem;
-            box-shadow: 0 4px 10px rgba(255,105,180,0.3);
-            flex-shrink: 0;
-            border: 2px solid #ffb6c1;
-        }
-        .step-content {
-            flex: 1;
-        }
-        .step-content h3 {
-            font-size: 1.5rem;
-            color: #ff1493;
-            margin-bottom: 0.5rem;
-            font-family: 'Quicksand', sans-serif;
-        }
-        .step-content p {
-            font-size: 1.05rem;
-            line-height: 1.6;
-            color: #444;
-        }
-
-        .back-nav {
-            text-align: center;
-            margin-top: 2rem;
-        }
-        .btn-shop {
-            background: #ff69b4;
-            color: white;
-            border: none;
-            padding: 1rem 2rem;
-            font-size: 1.2rem;
-            border-radius: 30px;
-            cursor: pointer;
-            text-decoration: none;
-            font-weight: bold;
-            display: inline-block;
-            transition: all 0.3s ease;
-        }
-        .btn-shop:hover {
-            background: #ff1493;
-            transform: scale(1.05);
-        }
-
-        @media screen and (max-width: 600px) {
-            .guide-step { flex-direction: column; gap: 1rem; text-align: center; }
-            .guide-step::before { display: none; }
-            .step-number { margin: 0 auto; }
-        }
-    </style>
 </head>
 <body>
 
-    <nav class="categories">
-        <ul>
-            <li><a href="index.html">← Back to Catalogue</a></li>
-
-        </ul>
-    </nav>
+    <header class="main-header">
+      <div class="header-container" style="justify-content: center;">
+        <a href="index.html" class="brand-logo">
+          <img src="images/hero/hero.png" alt="The Glam Aura Logo">
+          <div>
+            <div class="brand-name">The Glam Aura</div>
+            <div class="brand-subtitle">← Back to Store Catalogue</div>
+          </div>
+        </a>
+      </div>
+    </header>
 
     <div class="guide-container">
         <div class="guide-header">
-            <h1>How to Shop 💖</h1>
-            <p>Your complete guide to buying cute, handmade chaos from The Glam Aura.</p>
+            <h1>Shopping Guide ✨</h1>
+            <p>Your step-by-step guide to buying handcrafted jewellery from The Glam Aura.</p>
         </div>
 
         <div class="guide-step">
             <div class="step-number">1</div>
             <div class="step-content">
                 <h3>Explore the Catalogue 🐾</h3>
-                <p>Browse through our collection of Earrings, Necklaces, Phone Charms, and more on the homepage. Click on any product to see more images and details.</p>
+                <p>Browse through our collection of Earrings, Necklaces, Bracelets, Phone Charms, and Brooches. Click on any product card to open the detail view with full un-cropped images.</p>
             </div>
         </div>
 
@@ -143,7 +41,7 @@
             <div class="step-number">2</div>
             <div class="step-content">
                 <h3>Review Your Cart 🛒</h3>
-                <p>Once you've found what you love, add it to your cart. You can open the cart sidebar at any time to review your items, change quantities, or remove things.</p>
+                <p>Add your favorite items to your cart. Click the floating or header cart button at any time to open your cart sidebar, adjust item quantities, or check shipping weight.</p>
             </div>
         </div>
 
@@ -151,7 +49,7 @@
             <div class="step-number">3</div>
             <div class="step-content">
                 <h3>Provide Delivery Details 📦</h3>
-                <p>Ready to checkout? Provide your full name, complete address, and phone number on the checkout page so we know exactly where to send your sparkle.</p>
+                <p>Click "Proceed to Checkout" and enter your full name, complete address, pincode, and phone number so we can dispatch your parcel safely.</p>
             </div>
         </div>
 
@@ -159,7 +57,7 @@
             <div class="step-number">4</div>
             <div class="step-content">
                 <h3>Review Invoice ✨</h3>
-                <p>Double-check your order summary and total amount in the right panel of the checkout page before making a payment. Ensure all items are correct.</p>
+                <p>Verify your total amount, parcel weight, and shipping charges in the Order Summary panel before proceeding to payment.</p>
             </div>
         </div>
 
@@ -167,7 +65,7 @@
             <div class="step-number">5</div>
             <div class="step-content">
                 <h3>Make Your Payment 💸</h3>
-                <p>Click the "Pay via UPI" button to open your preferred UPI app. The exact order total and our UPI ID are already filled in for a seamless transaction.</p>
+                <p>Click "Pay via UPI Mobile App" or copy our UPI ID <code>ishsem@ptyes</code> to complete prepayment using Google Pay, PhonePe, Paytm, or BHIM.</p>
             </div>
         </div>
 
@@ -175,31 +73,34 @@
             <div class="step-number">6</div>
             <div class="step-content">
                 <h3>Submit Screenshot 📸</h3>
-                <p>Take a screenshot of the successful payment from your UPI app. Upload the image directly on the checkout page using the file upload button.</p>
+                <p>Take a screenshot of your successful UPI transaction. Attach the image file on the checkout page and click "Place Order".</p>
             </div>
         </div>
-        
+
         <div class="guide-step">
             <div class="step-number">7</div>
             <div class="step-content">
-                <h3>Track Your Order 🚚</h3>
-                <p>If you're logged in, you can view real-time status updates and courier tracking numbers in your Account dashboard. Guest buyers can simply DM us on Instagram with their Order ID.</p>
+                <h3>Order Confirmation & Tracking 🚚</h3>
+                <p>Save your unique Order Number (JEW-XXXXX). We process handmade orders in 10-15 days and dispatch via India Post with tracking updates.</p>
             </div>
         </div>
 
         <div class="guide-step">
             <div class="step-number">8</div>
             <div class="step-content">
-                <h3>Custom Requests? 🎀</h3>
-                <p>Want a specific color combo or a customized charm? <a href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" style="color:#ff1493; font-weight:bold;">DM us on Instagram</a> before placing your order, and we'll create something special just for you!</p>
+                <h3>Custom Requests & Help 🎀</h3>
+                <p>Looking for a custom color combination or special request? <a href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" style="color:var(--rosewood); font-weight:bold;">Direct Message us on Instagram</a> anytime!</p>
             </div>
         </div>
 
-        <div class="back-nav">
-            <a href="index.html" class="btn-shop">Start Shopping ✨</a>
+        <div class="back-nav" style="text-align: center; margin-top: 2.5rem;">
+            <a href="index.html" class="btn-hero">Start Shopping Now ✨</a>
         </div>
     </div>
 
+    <footer>
+      <p>© 2025 The Glam Aura Jewellery • Crafted with Love & Sparkles ✨</p>
+    </footer>
 
 </body>
 </html>

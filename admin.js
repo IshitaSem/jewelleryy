@@ -1,7 +1,7 @@
 import { auth, db, serverTimestamp } from './firebase.js';
 import { onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 import { collection, getDocs, doc, updateDoc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-import { getProductId, renderStockBadge } from './stock-utils.js';
+import { getProductId, renderStockBadge, normalizeCategory, deriveCategory, combineProducts } from './stock-utils.js';
 
 let allOrders = [];
 let currentOrder = null;
@@ -39,7 +39,11 @@ if (emailLoginForm) {
         } catch (e) {
             console.error("Email Login failed:", e);
             if (loginErrorMsg) {
-                loginErrorMsg.textContent = "Login failed: " + e.message;
+                let msg = e.message;
+                if (e.code === 'auth/invalid-credential' || e.code === 'auth/wrong-password' || e.code === 'auth/user-not-found') {
+                    msg = "Invalid credentials. If this account was not created with a password, please click 'Sign in with Google' above!";
+                }
+                loginErrorMsg.textContent = msg;
                 loginErrorMsg.style.display = 'block';
             }
         }
@@ -363,28 +367,57 @@ function initStockManagement() {
     if (searchInput) searchInput.addEventListener('input', renderStockGrid);
     if (categoryFilter) categoryFilter.addEventListener('change', renderStockGrid);
 
-    // Real-time listener for products stock collection
-    onSnapshot(collection(db, "products"), (snapshot) => {
-        allProducts = [];
-        snapshot.forEach((doc) => {
-            allProducts.push({ id: doc.id, ...doc.data() });
+    // Initial load: render master catalog immediately so page is never stuck on "Loading inventory..."
+    allProducts = combineProducts([]);
+    renderStockGrid();
+
+    // Real-time listener for products stock collection in Firestore
+    try {
+        onSnapshot(collection(db, "products"), (snapshot) => {
+            console.log("Firestore stock snapshot received. Document count:", snapshot.size);
+            const docs = [];
+            snapshot.forEach((doc) => {
+                docs.push({ id: doc.id, ...doc.data() });
+            });
+            allProducts = combineProducts(docs);
+            renderStockGrid();
+        }, (error) => {
+            console.error("Firestore onSnapshot error in Stock Management:", error);
+            // On error, gracefully render catalog so page never freezes
+            allProducts = combineProducts([]);
+            renderStockGrid();
+            const stockGrid = document.getElementById('stockGrid');
+            if (stockGrid) {
+                const notice = document.createElement('div');
+                notice.style.cssText = 'grid-column: 1/-1; background:#fff2f0; border:1px solid #ffccc7; color:#ff4d4f; padding:0.8rem 1rem; border-radius:8px; margin-bottom:1rem; font-size:0.9rem;';
+                notice.textContent = `Notice: Operating in local catalog mode (${error.message}). Stock updates will sync when online.`;
+                stockGrid.prepend(notice);
+            }
         });
+    } catch (err) {
+        console.error("Exception initializing stock management snapshot:", err);
+        allProducts = combineProducts([]);
         renderStockGrid();
-    });
+    }
 }
 
 function renderStockGrid() {
     const stockGrid = document.getElementById('stockGrid');
     const searchQuery = document.getElementById('stockSearchInput') ? document.getElementById('stockSearchInput').value.trim().toLowerCase() : '';
     const selectedCategory = document.getElementById('stockCategoryFilter') ? document.getElementById('stockCategoryFilter').value : 'ALL';
+    const normSelectedCategory = normalizeCategory(selectedCategory);
 
     if (!stockGrid) return;
     stockGrid.innerHTML = '';
 
-    // Filter products
+    // Filter products using normalized category matching & multi-field search
     const filtered = allProducts.filter(p => {
-        const matchesCategory = selectedCategory === 'ALL' || (p.category && p.category.toLowerCase() === selectedCategory.toLowerCase());
-        const matchesSearch = !searchQuery || (p.name && p.name.toLowerCase().includes(searchQuery)) || (p.id && p.id.toLowerCase().includes(searchQuery));
+        const pCategory = p.category || deriveCategory(p.image, p.name);
+        const pNormCategory = normalizeCategory(pCategory);
+        const matchesCategory = selectedCategory === 'ALL' || pNormCategory === normSelectedCategory;
+        const matchesSearch = !searchQuery ||
+            (p.name && p.name.toLowerCase().includes(searchQuery)) ||
+            (p.id && p.id.toLowerCase().includes(searchQuery));
         return matchesCategory && matchesSearch;
     });
 
@@ -394,7 +427,7 @@ function renderStockGrid() {
     }
 
     filtered.forEach(product => {
-        const stock = typeof product.stock === 'number' ? product.stock : 10;
+        const stock = typeof product.stock === 'number' ? product.stock : 0;
         const pId = product.id;
 
         const card = document.createElement('div');
@@ -408,7 +441,7 @@ function renderStockGrid() {
 
         card.innerHTML = `
             <div style="display:flex; gap:1rem; align-items:center;">
-                <img src="${product.image}" alt="${product.name}" style="width:70px; height:70px; object-fit:cover; border-radius:8px; border:1px solid #ccc;">
+                <img src="${product.image}" alt="${product.name}" style="width:70px; height:70px; object-fit:cover; border-radius:8px; border:1px solid #ccc;" onerror="this.src='https://via.placeholder.com/70?text=Jewellery';">
                 <div>
                     <h4 style="margin:0; font-size:1.1rem; color:#333;">${product.name}</h4>
                     <p style="margin:0.2rem 0; font-size:0.85rem; color:#666;">ID: <code>${pId}</code></p>
@@ -450,7 +483,7 @@ function renderStockGrid() {
             const setVal = e.target.getAttribute('data-set');
             
             const product = allProducts.find(p => p.id === pId);
-            const currentStock = product ? (typeof product.stock === 'number' ? product.stock : 10) : 10;
+            const currentStock = product ? (typeof product.stock === 'number' ? product.stock : 0) : 0;
 
             let newStock = 0;
             if (setVal !== null && setVal !== undefined) {
@@ -472,7 +505,7 @@ async function updateStock(productId, newStock) {
             productId: productId,
             name: product ? product.name : productId,
             price: product ? product.price : 0,
-            category: product ? product.category : 'Jewellery',
+            category: product ? product.category : deriveCategory(product ? product.image : '', product ? product.name : ''),
             stock: newStock,
             image: product ? product.image : '',
             updatedAt: serverTimestamp()
@@ -485,7 +518,7 @@ async function updateStock(productId, newStock) {
             setTimeout(() => msg.style.display = 'none', 2500);
         }
     } catch (e) {
-        console.error("Error updating product stock:", e);
+        console.error("Error updating product stock in Firestore:", e);
         alert("Failed to update stock: " + e.message);
     }
 }

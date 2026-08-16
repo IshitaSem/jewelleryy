@@ -1,774 +1,1019 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Glam Aura – Catalogue</title>
+<title>The Glam Aura – Premium Handmade Jewellery Store</title>
+<meta name="description" content="Discover exquisite handmade jewellery by The Glam Aura. Browse our collection of earrings, pendants, bracelets, charms, brooches, and jewellery sets.">
+
+<!-- Google Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&family=Pacifico&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600&family=Quicksand:wght@400;500;600;700&family=Pacifico&display=swap" rel="stylesheet">
+
 <link rel="stylesheet" href="style.css">
-<style>
-/* ===== GLOBAL ===== */
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body {
-  font-family: 'Quicksand', sans-serif;
-  /* PINK CHECK PATTERN */
-  background:
-      linear-gradient(45deg, #ffe6ef 25%, transparent 25%) -20px 0,
-      linear-gradient(45deg, transparent 75%, #ffe6ef 75%) -20px 0,
-      linear-gradient(45deg, transparent 75%, #ffe6ef 75%),
-      linear-gradient(45deg, #ffe6ef 25%, transparent 25%);
-  background-size: 40px 40px;
-  background-color: #fff0f5;
-  color: #333;
-  overflow-x: hidden;
-}
-/* ===== HERO ===== */
-.hero { text-align: center; padding: 2rem 1rem; background: linear-gradient(135deg, #ffd1dc, #ffb6c1); border-bottom: 5px dashed #ff69b4; }
-.hero-img-wrapper { position: relative; display: inline-block; margin-bottom: 1rem; animation: heroFadeIn 0.8s ease-out; }
-@keyframes heroFadeIn { from { opacity:0; transform:scale(0.5) rotate(-180deg);} to{ opacity:1; transform:scale(1) rotate(0deg);} }
-
-.hero-img { width: 7rem; height: 7rem; border-radius: 50%; border: 4px solid #ff69b4; box-shadow:0 4px 15px rgba(0,0,0,0.1); object-fit: cover; }
-.cat-paw { position:absolute; top:-0.5rem; left:-0.75rem; font-size:1.875rem; opacity:0.7; animation: float 3s ease-in-out infinite; }
-.sparkle { position:absolute; top:-0.5rem; right:-0.5rem; font-size:1.5rem; opacity:0.8; animation: sparkleAnim 2s infinite alternate; }
-
-@keyframes float { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-5px);} }
-@keyframes sparkleAnim { 0%{transform:rotate(0deg) scale(1);opacity:0.8;} 50%{transform:rotate(20deg) scale(1.2);opacity:1;} 100%{transform:rotate(0deg) scale(1);opacity:0.8;} }
-
-.hero h1 { font-family:'Pacifico', cursive; color:#ff1493; font-size:1.125rem; margin-bottom:0.75rem; padding:0 1rem; animation: fadeInUp 0.6s ease-out 0.3s both; }
-@keyframes fadeInUp { from{opacity:0; transform:translateY(20px);} to{opacity:1; transform:translateY(0);} }
-
-.btn-main { background:#ff69b4; color:white; border:none; padding:0.5rem 1.5rem; font-size:0.875rem; border-radius:25px; cursor:pointer; transition:all 0.3s ease; box-shadow:0 2px 8px rgba(0,0,0,0.1); font-weight:600; animation: fadeInUp 0.6s ease-out 0.7s both; }
-.btn-main:hover { background:#ff1493; transform:scale(1.05); }
-.btn-main:active { transform:scale(0.95); }
-
-/* ===== CATEGORY NAV ===== */
-nav.categories { background:#ffe4e1; padding:1rem; text-align:center; position:sticky; top:0; z-index:100; box-shadow:0 2px 8px rgba(0,0,0,0.1); }
-nav.categories ul { list-style:none; display:flex; justify-content:center; flex-wrap:wrap; gap:1.5rem; max-width:64rem; margin:0 auto; }
-nav.categories a { text-decoration:none; color:#ff69b4; font-weight:600; transition: all 0.3s ease; display:inline-block; }
-nav.categories a:hover { color:#ff1493; transform:scale(1.1); }
-
-/* ===== GALLERY ===== */
-.gallery { padding:3rem 1rem; text-align:center; }
-.gallery h2 { font-family:'Pacifico', cursive; color:#ff1493; margin-bottom:2rem; font-size:1.5rem; }
-.gallery-row { display:flex; flex-wrap:wrap; justify-content:center; gap:1rem; max-width:72rem; margin:0 auto; }
-.gallery-row img { width:10rem; height:10rem; object-fit:cover; border-radius:1rem; border:4px solid #ff69b4; transition:transform 0.3s ease; opacity:0; animation: fadeInRotate 0.6s ease-out forwards; }
-.gallery-row img:nth-child(1){animation-delay:0s;} .gallery-row img:nth-child(2){animation-delay:0.1s;} .gallery-row img:nth-child(3){animation-delay:0.2s;} .gallery-row img:nth-child(4){animation-delay:0.3s;}
-@keyframes fadeInRotate { from{opacity:0; transform:scale(0.8) rotate(-10deg);} to{opacity:1; transform:scale(1) rotate(0deg);} }
-.gallery-row img:hover { transform:scale(1.05) rotate(3deg); }
-
-/* ===== PRODUCT SECTIONS ===== */
-.section-title { font-family:'Pacifico', cursive; color:#ff1493; text-align:center; margin:3rem 0 2rem 0; font-size:1.5rem; }
-.product-grid { display:flex; flex-wrap:wrap; justify-content:center; gap:1rem; padding:0 1rem 3rem 1rem; max-width:88rem; margin:0 auto; }
-.product { background:#ffe4e1; border-radius:1.25rem; padding:1rem; width:9rem; text-align:center; box-shadow:0 4px 10px rgba(255,105,180,0.3); transition:all 0.3s ease; cursor:pointer; }
-.product:hover { transform:translateY(-5px) scale(1.02); box-shadow:0 8px 20px rgba(255,105,180,0.4); }
-.product img { width:6rem; height:6rem; border-radius:50%; margin:0 auto 0.75rem; border:2px solid #ff69b4; object-fit:cover; display:block; }
-.product h3 { font-family:'Pacifico', cursive; font-size:0.875rem; color:#ff1493; margin:0.5rem 0; }
-.product p { font-weight:bold; margin-bottom:0.75rem; font-size:0.875rem; }
-.dm-btn { display:inline-block; text-decoration:none; background:#ff69b4; color:white; padding:0.5rem 1rem; border-radius:25px; font-size:0.75rem; font-weight:600; transition:all 0.3s ease; border:none; cursor:pointer; font-family:'Quicksand', sans-serif; }
-.dm-btn:hover { background:#ff1493; transform:scale(1.05); }
-.dm-btn:active { transform:scale(0.95); }
-
-/* ===== MODAL/POPUP ===== */
-.modal-overlay {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.7);
-  z-index: 1000;
-  justify-content: center;
-  align-items: center;
-  animation: fadeIn 0.3s ease;
-}
-.modal-overlay.active { display: flex; }
-@keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
-
-.modal-content {
-  background: white;
-  border-radius: 20px;
-  max-width: 900px;
-  width: 90%;
-  max-height: 90vh;
-  overflow-y: auto;
-  display: flex;
-  position: relative;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-  animation: slideUp 0.3s ease;
-}
-@keyframes slideUp { from{transform:translateY(50px); opacity:0;} to{transform:translateY(0); opacity:1;} }
-
-.modal-close {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: white;
-  border: none;
-  font-size: 1.5rem;
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 50%;
-  cursor: pointer;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-  transition: all 0.3s ease;
-}
-.modal-close:hover { background: #ff69b4; color: white; transform: rotate(90deg); }
-
-.modal-left {
-  flex: 1;
-  background: #f8f8f8;
-  padding: 2rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-
-.modal-image-container {
-  width: 100%;
-  max-width: 400px;
-  aspect-ratio: 1;
-  position: relative;
-  overflow: hidden;
-  border-radius: 15px;
-  margin-bottom: 1rem;
-}
-
-.modal-image-container img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: none;
-}
-.modal-image-container img.active { display: block; }
-
-.carousel-dots {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-  margin-top: 1rem;
-}
-.carousel-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #ccc;
-  border: none;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-.carousel-dot.active { background: #ff69b4; width: 30px; border-radius: 5px; }
-
-.carousel-nav {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(255, 255, 255, 0.9);
-  border: none;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 1.2rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-}
-.carousel-nav:hover { background: #ff69b4; color: white; }
-.carousel-prev { left: 1rem; }
-.carousel-next { right: 1rem; }
-
-.modal-right {
-  flex: 1;
-  padding: 3rem 2rem;
-  display: flex;
-  flex-direction: column;
-}
-
-.modal-title {
-  font-family: 'Pacifico', cursive;
-  color: #ff1493;
-  font-size: 2rem;
-  margin-bottom: 1rem;
-}
-
-.modal-price {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 2rem;
-}
-
-.modal-dm-btn {
-  background: #ff69b4;
-  color: white;
-  border: none;
-  padding: 1rem 2rem;
-  font-size: 1rem;
-  border-radius: 30px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  text-decoration: none;
-  display: inline-block;
-  text-align: center;
-  margin-top: auto;
-}
-.modal-dm-btn:hover { background: #ff1493; transform: scale(1.05); }
-
-/* ===== FOOTER ===== */
-footer { text-align:center; padding:1.5rem; background:#ffe4e1; color:#ff1493; font-weight:600; border-top:5px dashed #ff69b4; margin-top:2rem; }
-
-/* ===== RESPONSIVE ===== */
-@media screen and (min-width:768px) { 
-.hero-img{width:9rem;height:9rem;}
-.hero h1{font-size:1.25rem;}
-.gallery-row img{width:13rem;height:13rem;}
-.product{width:12rem;}
-.product img{width:8rem;height:8rem;}
-.product h3{font-size:1rem;}
-.product p{font-size:1rem;}
-.dm-btn{font-size:0.875rem;}
-}
-@media screen and (max-width:768px) {
-  .modal-content { flex-direction: column; }
-  .modal-left { padding: 1.5rem; }
-  .modal-right { padding: 2rem 1.5rem; }
-  .modal-title { font-size: 1.5rem; }
-  .modal-price { font-size: 1.2rem; }
-}
-@media screen and (max-width:480px) {
-.hero h1{font-size:1rem;}
-.gallery-row img{width:7.5rem;height:7.5rem;}
-.product{width:7.5rem;}
-.product img{width:5rem;height:5rem;}
-}
-</style>
 </head>
 <body>
 
-<!-- HERO -->
-<section class="hero">
-  <div class="hero-img-wrapper">
-    <img src="images/hero/hero.png" class="hero-img" alt="The Glam Aura Logo">
-    <span class="cat-paw">🐾</span>
-    <span class="sparkle">✨</span>
+<!-- TOP ANNOUNCEMENT BAR -->
+<div class="top-announcement">
+  ✨ Free Shipping on Orders Over ₹999 • Handcrafted with Love & Care 💖
+</div>
+
+<!-- MAIN HEADER & NAV -->
+<header class="main-header">
+  <div class="header-container">
+    <a href="index.html" class="brand-logo">
+      <img src="images/hero/hero.png" alt="The Glam Aura Logo">
+      <div>
+        <div class="brand-name">The Glam Aura</div>
+        <div class="brand-subtitle">Handmade Jewellery</div>
+      </div>
+    </a>
+
+    <nav class="categories-nav">
+      <ul>
+        <li><a href="#earrings" onclick="scrollToSection('#earrings'); return false;">Earrings</a></li>
+        <li><a href="#pendants" onclick="scrollToSection('#pendants'); return false;">Pendants</a></li>
+        <li><a href="#bracelet" onclick="scrollToSection('#bracelet'); return false;">Bracelets</a></li>
+        <li><a href="#charms" onclick="scrollToSection('#charms'); return false;">Charms</a></li>
+        <li><a href="#brooches" onclick="scrollToSection('#brooches'); return false;">Brooches</a></li>
+        <li><a href="#jewellery-sets" onclick="scrollToSection('#jewellery-sets'); return false;">Jewellery Sets</a></li>
+        <li><a href="#" onclick="openGuideModal(); return false;">Guide 📖</a></li>
+        <li><a href="#" onclick="openPolicyModal(); return false;">Policies 📜</a></li>
+      </ul>
+    </nav>
+
+    <div class="header-actions">
+      <button class="header-cart-btn" onclick="toggleCart()">
+        🛒 Cart <span class="cart-count-badge" id="cartCount">0</span>
+      </button>
+    </div>
   </div>
-  <h1>Cute Lil Sparkles • Handmade Chaos By The Glam Aura 💖</h1>
-  <button class="btn-main" onclick="scrollToSection('#earrings')">Shop Catalogue</button>
+</header>
+
+<!-- COMPACT HERO SECTION -->
+<section class="hero-compact">
+  <div class="hero-content-wrapper">
+    <div class="hero-avatar-badge">
+      <img src="images/hero/hero.png" class="hero-avatar" alt="The Glam Aura Brand">
+      <span class="hero-sparkle">✨</span>
+    </div>
+    <h1>Handcrafted Fine Jewellery & Charms</h1>
+    <p class="hero-subtitle">Cute Lil Sparkles • Unique Handmade Designs by The Glam Aura 💖</p>
+    <button class="btn-hero" onclick="scrollToSection('#earrings')">Explore Collection ✨</button>
+  </div>
 </section>
 
-<!-- CATEGORIES NAV -->
-<nav class="categories">
-  <ul>
-    <li><a href="#earrings" onclick="scrollToSection('#earrings'); return false;">Earrings 🐾</a></li>
-    <li><a href="#necklaces" onclick="scrollToSection('#necklaces'); return false;">Necklaces 😸</a></li>
-    <li><a href="#bracelet" onclick="scrollToSection('#bracelet'); return false;">Bracelets 😸</a></li>
-    <li><a href="#charms" onclick="scrollToSection('#charms'); return false;">Charms & Keychains 🐾</a></li>
-    <li><a href="#brooches" onclick="scrollToSection('#brooches'); return false;">Brooches 🎀</a></li>
-    <li><a href="shopping-guide.html">Shopping Guide 📖</a></li>
-  </ul>
-</nav>
+<!-- INSTAGRAM CUSTOM ORDERS BANNER PILL (EXACT DESIGN MATCH WITH USER HANDLE @theglam._.aura) -->
+<div class="insta-banner-wrapper">
+  <div class="insta-banner-pill">
+    <div class="insta-text">
+      <span>📷</span>
+      <span>DM us on Instagram <span class="insta-handle">@theglam._.aura</span> for custom orders!</span>
+    </div>
+    <a href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" class="insta-btn">
+      Message Now
+    </a>
+  </div>
+</div>
 
-<!-- GALLERY -->
-<section class="gallery">
-  <h2>Gallery 🐾</h2>
-  <div class="gallery-row">
-    <img src="images/gallery/gallery (1).jpg" alt="Gallery 1">
-    <img src="images/gallery/gallery (2).jpg" alt="Gallery 2">
-    <img src="images/gallery/gallery (3).jpg" alt="Gallery 3">
-    <img src="images/gallery/gallery (4).jpg" alt="Gallery 4">
+<!-- SEARCH & SORT FILTER BAR -->
+<section class="filter-bar-section">
+  <div class="filter-bar-container">
+    <div class="search-box-wrapper">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" class="search-input" placeholder="Search jewellery by name...">
+    </div>
+    <div class="sort-select-wrapper">
+      <label for="sortSelect">Sort By:</label>
+      <select id="sortSelect" class="sort-select">
+        <option value="default">Featured / Newest</option>
+        <option value="price-low">Price: Low to High</option>
+        <option value="price-high">Price: High to Low</option>
+        <option value="title-az">Name: A to Z</option>
+      </select>
+    </div>
   </div>
 </section>
 
-<!-- EARRINGS -->
-<h2 id="earrings" class="section-title">Earrings 🐾</h2>
+<!-- FEATURED GALLERY -->
+<section class="gallery-section">
+  <h2>Featured Highlights 🐾</h2>
+  <div class="gallery-grid">
+    <div class="gallery-card"><img src="images/gallery/gallery (1).jpg" alt="Gallery Showcase 1"></div>
+    <div class="gallery-card"><img src="images/gallery/gallery (2).jpg" alt="Gallery Showcase 2"></div>
+    <div class="gallery-card"><img src="images/gallery/gallery (3).jpg" alt="Gallery Showcase 3"></div>
+    <div class="gallery-card"><img src="images/gallery/gallery (4).jpg" alt="Gallery Showcase 4"></div>
+  </div>
+</section>
+
+<!-- EARRINGS SECTION -->
+<div class="section-header-wrap">
+  <div class="section-header-line"></div>
+  <h2 id="earrings" class="section-title">Earrings Collection 🐾</h2>
+  <div class="section-header-line"></div>
+</div>
 <div class="product-grid">
   <div class="product" onclick="openModal('Butterfly Bloom', '₹69', ['images/earrings/Butterfly Bloom 🦋.jpg'])">
-    <img src="images/earrings/Butterfly Bloom 🦋.jpg" alt="Butterfly Bloom">
-    <h3>Butterfly Bloom</h3>
-    <p>₹69</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/earrings/Butterfly Bloom 🦋.jpg" alt="Butterfly Bloom">
+    </div>
+    <div class="product-info">
+      <h3>Butterfly Bloom</h3>
+      <p>₹69</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Cherry Heart Star', '₹99', ['images/earrings/Cherry Heart star🍒.jpg'])">
-    <img src="images/earrings/Cherry Heart star🍒.jpg" alt="Cherry Heart Star">
-    <h3>Cherry Heart Star</h3>
-    <p>₹99</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/earrings/Cherry Heart star🍒.jpg" alt="Cherry Heart Star">
+    </div>
+    <div class="product-info">
+      <h3>Cherry Heart Star</h3>
+      <p>₹99</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Silver Drops', '₹99', ['images/earrings/Silver Drops ✨.jpg'])">
-    <img src="images/earrings/Silver Drops ✨.jpg" alt="Silver Drops">
-    <h3>Silver Drops</h3>
-    <p>₹99</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/earrings/Silver Drops ✨.jpg" alt="Silver Drops">
+    </div>
+    <div class="product-info">
+      <h3>Silver Drops</h3>
+      <p>₹99</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Black Moon Dagly', '₹179', ['images/earrings/black moon dagly.JPG'])">
-    <img src="images/earrings/black moon dagly.JPG" alt="Black Moon Dagly">
-    <h3>Black Moon Dagly</h3>
-    <p>₹179</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/earrings/black moon dagly.JPG" alt="Black Moon Dagly">
+    </div>
+    <div class="product-info">
+      <h3>Black Moon Dagly</h3>
+      <p>₹179</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
-
-
   <div class="product" onclick="openModal('Feather Heartkey', '₹59', ['images/earrings/feather heartkey.jpg'])">
-    <img src="images/earrings/feather heartkey.jpg" alt="Feather Heartkey">
-    <h3>Feather Heartkey</h3>
-    <p>₹59</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/earrings/feather heartkey.jpg" alt="Feather Heartkey">
+    </div>
+    <div class="product-info">
+      <h3>Feather Heartkey</h3>
+      <p>₹59</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Pink Bowiee', '₹179', ['images/earrings/pink bowiee.JPG'])">
-    <img src="images/earrings/pink bowiee.JPG" alt="Pink Bowiee">
-    <h3>Pink Bowiee</h3>
-    <p>₹179</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/earrings/pink bowiee.JPG" alt="Pink Bowiee">
+    </div>
+    <div class="product-info">
+      <h3>Pink Bowiee</h3>
+      <p>₹179</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Pink Lily Crystal Garden', '₹119', ['images/earrings/pink lily Crystal Garden ✨.jpg'])">
-    <img src="images/earrings/pink lily Crystal Garden ✨.jpg" alt="Pink Lily Crystal Garden">
-    <h3>Pink Lily Crystal Garden</h3>
-    <p>₹119</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/earrings/pink lily Crystal Garden ✨.jpg" alt="Pink Lily Crystal Garden">
+    </div>
+    <div class="product-info">
+      <h3>Pink Lily Crystal Garden</h3>
+      <p>₹119</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Pink Love Heart', '₹79', ['images/earrings/pink love heart.jpg'])">
-    <img src="images/earrings/pink love heart.jpg" alt="Pink Love Heart">
-    <h3>Pink Love Heart</h3>
-    <p>₹79</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/earrings/pink love heart.jpg" alt="Pink Love Heart">
+    </div>
+    <div class="product-info">
+      <h3>Pink Love Heart</h3>
+      <p>₹79</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Pink Moon Dangly', '₹179', ['images/earrings/pink moon dangly (1).jpg', 'images/earrings/pink moon dangly (3).jpg'])">
-    <img src="images/earrings/pink moon dangly (1).jpg" alt="Pink Moon Dangly">
-    <h3>Pink Moon Dangly</h3>
-    <p>₹179</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/earrings/pink moon dangly (1).jpg" alt="Pink Moon Dangly">
+    </div>
+    <div class="product-info">
+      <h3>Pink Moon Dangly</h3>
+      <p>₹179</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Pink Tulip', '₹99', ['images/earrings/pink tulip.jpg'])">
-    <img src="images/earrings/pink tulip.jpg" alt="Pink Tulip">
-    <h3>Pink Tulip</h3>
-    <p>₹99</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/earrings/pink tulip.jpg" alt="Pink Tulip">
+    </div>
+    <div class="product-info">
+      <h3>Pink Tulip</h3>
+      <p>₹99</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Purple Love Heart', '₹79', ['images/earrings/purple love heart.jpg'])">
-    <img src="images/earrings/purple love heart.jpg" alt="Purple Love Heart">
-    <h3>Purple Love Heart</h3>
-    <p>₹79</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/earrings/purple love heart.jpg" alt="Purple Love Heart">
+    </div>
+    <div class="product-info">
+      <h3>Purple Love Heart</h3>
+      <p>₹79</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Red Bling Star', '₹169', ['images/earrings/red bling star.jpg'])">
-    <img src="images/earrings/red bling star.jpg" alt="Red Bling Star">
-    <h3>Red Bling Star</h3>
-    <p>₹169</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/earrings/red bling star.jpg" alt="Red Bling Star">
+    </div>
+    <div class="product-info">
+      <h3>Red Bling Star</h3>
+      <p>₹169</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
-  <div class="product" onclick="openModal('Red Donut Hoop', '₹69', ['images/earrings/red donut hoop.jpg'])">
-    <img src="images/earrings/red donut hoop.jpg" alt="Red Donut Hoop">
-    <h3>Red Donut Hoop</h3>
-    <p>₹49</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+  <div class="product" onclick="openModal('Red Donut Hoop', '₹49', ['images/earrings/red donut hoop.jpg'])">
+    <div class="product-img-wrapper">
+      <img src="images/earrings/red donut hoop.jpg" alt="Red Donut Hoop">
+    </div>
+    <div class="product-info">
+      <h3>Red Donut Hoop</h3>
+      <p>₹49</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Redhearty Bow', '₹169', ['images/earrings/redhearty bow.jpg'])">
-    <img src="images/earrings/redhearty bow.jpg" alt="Redhearty Bow">
-    <h3>Redhearty Bow</h3>
-    <p>₹169</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/earrings/redhearty bow.jpg" alt="Redhearty Bow">
+    </div>
+    <div class="product-info">
+      <h3>Redhearty Bow</h3>
+      <p>₹169</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Silver Bowy', '₹179', ['images/earrings/silver bowy (1).jpg', 'images/earrings/silver bowy (2).jpg'])">
-    <img src="images/earrings/silver bowy (1).jpg" alt="Silver Bowy">
-    <h3>Silver Bowy</h3>
-    <p>₹179</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/earrings/silver bowy (1).jpg" alt="Silver Bowy">
+    </div>
+    <div class="product-info">
+      <h3>Silver Bowy</h3>
+      <p>₹179</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 </div>
 
-<!-- NECKLACES -->
-<h2 id="necklaces" class="section-title">Necklaces 😸</h2>
+<!-- PENDANTS SECTION (RENAMED FROM NECKLACES) -->
+<div class="section-header-wrap">
+  <div class="section-header-line"></div>
+  <h2 id="pendants" id="necklaces" class="section-title">Pendants Collection 😸</h2>
+  <div class="section-header-line"></div>
+</div>
 <div class="product-grid">
   <div class="product" onclick="openModal('Celi Novia', '₹400', ['images/necklaces/Celi✧Novia (1).jpeg', 'images/necklaces/Celi✧Novia (2).jpeg', 'images/necklaces/Celi✧Novia (3).jpeg'])">
-    <img src="images/necklaces/Celi✧Novia (1).jpeg" alt="Celi Novia">
-    <h3>Celi Novia</h3>
-    <p>₹400</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/necklaces/Celi✧Novia (1).jpeg" alt="Celi Novia">
+    </div>
+    <div class="product-info">
+      <h3>Celi Novia</h3>
+      <p>₹400</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Pink Hearty Cross', '₹250', ['images/necklaces/pink hearty cross.jpg'])">
-    <img src="images/necklaces/pink hearty cross.jpg" alt="Pink Hearty Cross">
-    <h3>Pink Hearty Cross</h3>
-    <p>₹250</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/necklaces/pink hearty cross.jpg" alt="Pink Hearty Cross">
+    </div>
+    <div class="product-info">
+      <h3>Pink Hearty Cross</h3>
+      <p>₹250</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Red Gem Bling', '₹250', ['images/necklaces/red gem bling.jpg'])">
-    <img src="images/necklaces/red gem bling.jpg" alt="Red Gem Bling">
-    <h3>Red Gem Bling</h3>
-    <p>₹250</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/necklaces/red gem bling.jpg" alt="Red Gem Bling">
+    </div>
+    <div class="product-info">
+      <h3>Red Gem Bling</h3>
+      <p>₹250</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Sun Nd Moon', '₹299', ['images/necklaces/sun nd moon.JPG'])">
-    <img src="images/necklaces/sun nd moon.JPG" alt="Sun Nd Moon">
-    <h3>Sun Nd Moon</h3>
-    <p>₹299</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/necklaces/sun nd moon.JPG" alt="Sun Nd Moon">
+    </div>
+    <div class="product-info">
+      <h3>Sun Nd Moon</h3>
+      <p>₹299</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Y2K White Cross', '₹250', ['images/necklaces/Y2K white cross.JPG'])">
-    <img src="images/necklaces/Y2K white cross.JPG" alt="Y2K White Cross">
-    <h3>Y2K White Cross</h3>
-    <p>₹250</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/necklaces/Y2K white cross.JPG" alt="Y2K White Cross">
+    </div>
+    <div class="product-info">
+      <h3>Y2K White Cross</h3>
+      <p>₹250</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Baddie Heartycross', '₹300', ['images/necklaces/baddie heartycross.JPG'])">
-    <img src="images/necklaces/baddie heartycross.JPG" alt="Baddie Heartycross">
-    <h3>Baddie Heartycross</h3>
-    <p>₹300</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/necklaces/baddie heartycross.JPG" alt="Baddie Heartycross">
+    </div>
+    <div class="product-info">
+      <h3>Baddie Heartycross</h3>
+      <p>₹300</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Blackgothic Cross', '₹250', ['images/necklaces/blackgothic cross (1).jpg', 'images/necklaces/blackgothic cross (2).jpg'])">
-    <img src="images/necklaces/blackgothic cross (1).jpg" alt="Blackgothic Cross">
-    <h3>Blackgothic Cross</h3>
-    <p>₹250</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/necklaces/blackgothic cross (1).jpg" alt="Blackgothic Cross">
+    </div>
+    <div class="product-info">
+      <h3>Blackgothic Cross</h3>
+      <p>₹250</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Bling', '₹200', ['images/necklaces/bling.JPG'])">
-    <img src="images/necklaces/bling.JPG" alt="Bling">
-    <h3>Bling</h3>
-    <p>₹200</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/necklaces/bling.JPG" alt="Bling">
+    </div>
+    <div class="product-info">
+      <h3>Bling</h3>
+      <p>₹200</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Bludysword', '₹100', ['images/necklaces/bludysword (1).jpg', 'images/necklaces/bludysword (2).jpg'])">
-    <img src="images/necklaces/bludysword (1).jpg" alt="Bludysword">
-    <h3>Bludysword</h3>
-    <p>₹100</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/necklaces/bludysword (1).jpg" alt="Bludysword">
+    </div>
+    <div class="product-info">
+      <h3>Bludysword</h3>
+      <p>₹100</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Bowie', '₹200', ['images/necklaces/bowie.JPG', 'images/necklaces/bowie 2.0.JPG'])">
-    <img src="images/necklaces/bowie.JPG" alt="Bowie">
-    <h3>Bowie</h3>
-    <p>₹200</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/necklaces/bowie.JPG" alt="Bowie">
+    </div>
+    <div class="product-info">
+      <h3>Bowie</h3>
+      <p>₹200</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Box Cross', '₹250', ['images/necklaces/box cross.JPG'])">
-    <img src="images/necklaces/box cross.JPG" alt="Box Cross">
-    <h3>Box Cross</h3>
-    <p>₹250</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/necklaces/box cross.JPG" alt="Box Cross">
+    </div>
+    <div class="product-info">
+      <h3>Box Cross</h3>
+      <p>₹250</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Chromeish', '₹250', ['images/necklaces/chromeish.JPG'])">
-    <img src="images/necklaces/chromeish.JPG" alt="Chromeish">
-    <h3>Chromeish</h3>
-    <p>₹250</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/necklaces/chromeish.JPG" alt="Chromeish">
+    </div>
+    <div class="product-info">
+      <h3>Chromeish</h3>
+      <p>₹250</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Crosssilver', '₹250', ['images/necklaces/crosssilver.JPG'])">
-    <img src="images/necklaces/crosssilver.JPG" alt="Crosssilver">
-    <h3>Crosssilver</h3>
-    <p>₹250</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/necklaces/crosssilver.JPG" alt="Crosssilver">
+    </div>
+    <div class="product-info">
+      <h3>Crosssilver</h3>
+      <p>₹250</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Gothic Black Cromeheart', '₹300', ['images/necklaces/gothic black cromeheart (1).jpg', 'images/necklaces/gothic black cromeheart (2).jpg', 'images/necklaces/gothic black cromeheart (3).jpg'])">
-    <img src="images/necklaces/gothic black cromeheart (1).jpg" alt="Gothic Black Cromeheart">
-    <h3>Gothic Black Cromeheart</h3>
-    <p>₹300</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/necklaces/gothic black cromeheart (1).jpg" alt="Gothic Black Cromeheart">
+    </div>
+    <div class="product-info">
+      <h3>Gothic Black Cromeheart</h3>
+      <p>₹300</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Gothic Red Moonie', '₹200', ['images/necklaces/gothic red moonie (1).jpg', 'images/necklaces/gothic red moonie (2).jpg'])">
-    <img src="images/necklaces/gothic red moonie (1).jpg" alt="Gothic Red Moonie">
-    <h3>Gothic Red Moonie</h3>
-    <p>₹200</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/necklaces/gothic red moonie (1).jpg" alt="Gothic Red Moonie">
+    </div>
+    <div class="product-info">
+      <h3>Gothic Red Moonie</h3>
+      <p>₹200</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Heart Pearl', '₹200', ['images/necklaces/heart pearl.JPG'])">
-    <img src="images/necklaces/heart pearl.JPG" alt="Heart Pearl">
-    <h3>Heart Pearl</h3>
-    <p>₹200</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/necklaces/heart pearl.JPG" alt="Heart Pearl">
+    </div>
+    <div class="product-info">
+      <h3>Heart Pearl</h3>
+      <p>₹200</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Hollowhearty', '₹200', ['images/necklaces/hollowhearty.JPG'])">
-    <img src="images/necklaces/hollowhearty.JPG" alt="Hollowhearty">
-    <h3>Hollowhearty</h3>
-    <p>₹200</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/necklaces/hollowhearty.JPG" alt="Hollowhearty">
+    </div>
+    <div class="product-info">
+      <h3>Hollowhearty</h3>
+      <p>₹200</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Knotty Crossy', '₹250', ['images/necklaces/knotty crossy (1).jpg', 'images/necklaces/knotty crossy (2).jpg'])">
-    <img src="images/necklaces/knotty crossy (1).jpg" alt="Knotty Crossy">
-    <h3>Knotty Crossy</h3>
-    <p>₹250</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/necklaces/knotty crossy (1).jpg" alt="Knotty Crossy">
+    </div>
+    <div class="product-info">
+      <h3>Knotty Crossy</h3>
+      <p>₹250</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Long Blackgothic', '₹300', ['images/necklaces/long blackgothic (1).jpg', 'images/necklaces/long blackgothic (2).jpg', 'images/necklaces/long blackgothic (3).jpg'])">
-    <img src="images/necklaces/long blackgothic (1).jpg" alt="Long Blackgothic">
-    <h3>Long Blackgothic</h3>
-    <p>₹300</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/necklaces/long blackgothic (1).jpg" alt="Long Blackgothic">
+    </div>
+    <div class="product-info">
+      <h3>Long Blackgothic</h3>
+      <p>₹300</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Meltin Hearty', '₹250', ['images/necklaces/meltin hearty (1).jpg', 'images/necklaces/meltin hearty (2).jpg'])">
-    <img src="images/necklaces/meltin hearty (1).jpg" alt="Meltin Hearty">
-    <h3>Meltin Hearty</h3>
-    <p>₹250</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/necklaces/meltin hearty (1).jpg" alt="Meltin Hearty">
+    </div>
+    <div class="product-info">
+      <h3>Meltin Hearty</h3>
+      <p>₹250</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Moonie', '₹250', ['images/necklaces/moonie.JPG'])">
-    <img src="images/necklaces/moonie.JPG" alt="Moonie">
-    <h3>Moonie</h3>
-    <p>₹250</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/necklaces/moonie.JPG" alt="Moonie">
+    </div>
+    <div class="product-info">
+      <h3>Moonie</h3>
+      <p>₹250</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Oval Open Heart Long', '₹300', ['images/necklaces/oval open heart long.JPG'])">
-    <img src="images/necklaces/oval open heart long.JPG" alt="Oval Open Heart Long">
-    <h3>Oval Open Heart Long</h3>
-    <p>₹300</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/necklaces/oval open heart long.JPG" alt="Oval Open Heart Long">
+    </div>
+    <div class="product-info">
+      <h3>Oval Open Heart Long</h3>
+      <p>₹300</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Red Gem Cross Ross', '₹250', ['images/necklaces/red gem cross ross (1).jpg', 'images/necklaces/red gem cross ross (2).jpg'])">
-    <img src="images/necklaces/red gem cross ross (1).jpg" alt="Red Gem Cross Ross">
-    <h3>Red Gem Cross Ross</h3>
-    <p>₹250</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/necklaces/red gem cross ross (1).jpg" alt="Red Gem Cross Ross">
+    </div>
+    <div class="product-info">
+      <h3>Red Gem Cross Ross</h3>
+      <p>₹250</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Red Heart Pearl', '₹180', ['images/necklaces/red heart pearl.jpg'])">
-    <img src="images/necklaces/red heart pearl.jpg" alt="Red Heart Pearl">
-    <h3>Red Heart Pearl</h3>
-    <p>₹180</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/necklaces/red heart pearl.jpg" alt="Red Heart Pearl">
+    </div>
+    <div class="product-info">
+      <h3>Red Heart Pearl</h3>
+      <p>₹180</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('RedCromie', '₹200', ['images/necklaces/redCromie (1).jpg', 'images/necklaces/redCromie (2).jpg'])">
-    <img src="images/necklaces/redCromie (1).jpg" alt="RedCromie">
-    <h3>RedCromie</h3>
-    <p>₹200</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/necklaces/redCromie (1).jpg" alt="RedCromie">
+    </div>
+    <div class="product-info">
+      <h3>RedCromie</h3>
+      <p>₹200</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Redsil Chromee Heart', '₹190', ['images/necklaces/redsil chromee heart.JPG'])">
-    <img src="images/necklaces/redsil chromee heart.JPG" alt="Redsil Chromee Heart">
-    <h3>Redsil Chromee Heart</h3>
-    <p>₹190</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/necklaces/redsil chromee heart.JPG" alt="Redsil Chromee Heart">
+    </div>
+    <div class="product-info">
+      <h3>Redsil Chromee Heart</h3>
+      <p>₹190</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Sneakerpendant', '₹200', ['images/necklaces/sneakerpendant.jpg'])">
-    <img src="images/necklaces/sneakerpendant.jpg" alt="Sneakerpendant">
-    <h3>Sneakerpendant</h3>
-    <p>₹200</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/necklaces/sneakerpendant.jpg" alt="Sneakerpendant">
+    </div>
+    <div class="product-info">
+      <h3>Sneakerpendant</h3>
+      <p>₹200</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Sneaky knot Hearty', '₹250', ['images/necklaces/sneaky hearty.JPG'])">
-    <img src="images/necklaces/sneaky hearty.JPG" alt="Sneaky Hearty">
-    <h3>Sneaky knot Hearty</h3>
-    <p>₹250</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/necklaces/sneaky hearty.JPG" alt="Sneaky knot Hearty">
+    </div>
+    <div class="product-info">
+      <h3>Sneaky knot Hearty</h3>
+      <p>₹250</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Spiral Star', '₹200', ['images/necklaces/spiral star.JPG'])">
-    <img src="images/necklaces/spiral star.JPG" alt="Spiral Star">
-    <h3>Spiral Star</h3>
-    <p>₹200</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/necklaces/spiral star.JPG" alt="Spiral Star">
+    </div>
+    <div class="product-info">
+      <h3>Spiral Star</h3>
+      <p>₹200</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Starsy', '₹250', ['images/necklaces/starsy.JPG'])">
-    <img src="images/necklaces/starsy.JPG" alt="Starsy">
-    <h3>Starsy</h3>
-    <p>₹250</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/necklaces/starsy.JPG" alt="Starsy">
+    </div>
+    <div class="product-info">
+      <h3>Starsy</h3>
+      <p>₹250</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 </div>
 
-<!-- BRACELTS -->
-<h2 id="bracelet" class="section-title">Bracelets 😸</h2>
+<!-- BRACELETS SECTION -->
+<div class="section-header-wrap">
+  <div class="section-header-line"></div>
+  <h2 id="bracelet" class="section-title">Bracelets Collection 😸</h2>
+  <div class="section-header-line"></div>
+</div>
 <div class="product-grid">
   <div class="product" onclick="openModal('Bestie Bnw', '₹180', ['images/Bracelet/bestie bnw (1).jpg', 'images/Bracelet/bestie bnw (2).jpg'])">
-    <img src="images/Bracelet/bestie bnw (1).jpg" alt="Bestie Bnw">
-    <h3>Bestie Bnw</h3>
-    <p>₹180</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/Bracelet/bestie bnw (1).jpg" alt="Bestie Bnw">
+    </div>
+    <div class="product-info">
+      <h3>Bestie Bnw</h3>
+      <p>₹180</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 </div>
-  
-<!-- CHARMS / KEYCHAINS -->
- 
-<h2 id="charms" class="section-title">Phone Charms & Keychains 🐾</h2>
+
+<!-- CHARMS / KEYCHAINS SECTION -->
+<div class="section-header-wrap">
+  <div class="section-header-line"></div>
+  <h2 id="charms" class="section-title">Phone Charms & Keychains 🐾</h2>
+  <div class="section-header-line"></div>
+</div>
 <div class="product-grid">
   <div class="product" onclick="openModal('Blue Bow', '₹120', ['images/charms/blue bow.jpg'])">
-    <img src="images/charms/blue bow.jpg" alt="Blue Bow">
-    <h3>Blue Bow</h3>
-    <p>₹120</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/charms/blue bow.jpg" alt="Blue Bow">
+    </div>
+    <div class="product-info">
+      <h3>Blue Bow</h3>
+      <p>₹120</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Cherry', '₹99', ['images/charms/cherry (1).jpg', 'images/charms/cherry (2).jpg'])">
-    <img src="images/charms/cherry (1).jpg" alt="Cherry">
-    <h3>Cherry</h3>
-    <p>₹99</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/charms/cherry (1).jpg" alt="Cherry">
+    </div>
+    <div class="product-info">
+      <h3>Cherry</h3>
+      <p>₹99</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Greenie Bowie', '₹120', ['images/charms/greenie bowie.jpg'])">
-    <img src="images/charms/greenie bowie.jpg" alt="Greenie Bowie">
-    <h3>Greenie Bowie</h3>
-    <p>₹120</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/charms/greenie bowie.jpg" alt="Greenie Bowie">
+    </div>
+    <div class="product-info">
+      <h3>Greenie Bowie</h3>
+      <p>₹120</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Katil Billi', '₹120', ['images/charms/katil billi (1).jpg', 'images/charms/katil billi (2).jpg'])">
-    <img src="images/charms/katil billi (1).jpg" alt="Katil Billi">
-    <h3>Katil Billi</h3>
-    <p>₹120</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/charms/katil billi (1).jpg" alt="Katil Billi">
+    </div>
+    <div class="product-info">
+      <h3>Katil Billi</h3>
+      <p>₹120</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Pearly Bow', '₹120', ['images/charms/pearly bow.jpg'])">
-    <img src="images/charms/pearly bow.jpg" alt="Pearly Bow">
-    <h3>Pearly Bow</h3>
-    <p>₹120</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/charms/pearly bow.jpg" alt="Pearly Bow">
+    </div>
+    <div class="product-info">
+      <h3>Pearly Bow</h3>
+      <p>₹120</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Pink Bowie', '₹120', ['images/charms/pink bowie.jpg'])">
-    <img src="images/charms/pink bowie.jpg" alt="Pink Bowie">
-    <h3>Pink Bowie</h3>
-    <p>₹120</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/charms/pink bowie.jpg" alt="Pink Bowie">
+    </div>
+    <div class="product-info">
+      <h3>Pink Bowie</h3>
+      <p>₹120</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Pink Clover Dangle', '₹110', ['images/charms/pink clover dangle.jpg'])">
-    <img src="images/charms/pink clover dangle.jpg" alt="Pink Clover Dangle">
-    <h3>Pink Clover Dangle</h3>
-    <p>₹110</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/charms/pink clover dangle.jpg" alt="Pink Clover Dangle">
+    </div>
+    <div class="product-info">
+      <h3>Pink Clover Dangle</h3>
+      <p>₹110</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Pink Missi', '₹150', ['images/charms/pink missi (1).jpg', 'images/charms/pink missi (2).jpg', 'images/charms/pink missi (3).jpg'])">
-    <img src="images/charms/pink missi (1).jpg" alt="Pink Missi">
-    <h3>Pink Missi</h3>
-    <p>₹150</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/charms/pink missi (1).jpg" alt="Pink Missi">
+    </div>
+    <div class="product-info">
+      <h3>Pink Missi</h3>
+      <p>₹150</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Purple Bowie', '₹120', ['images/charms/purple bowie.jpg'])">
-    <img src="images/charms/purple bowie.jpg" alt="Purple Bowie">
-    <h3>Purple Bowie</h3>
-    <p>₹120</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/charms/purple bowie.jpg" alt="Purple Bowie">
+    </div>
+    <div class="product-info">
+      <h3>Purple Bowie</h3>
+      <p>₹120</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 </div>
 
-<!-- BROOCHES -->
-<h2 id="brooches" class="section-title">Brooches 🎀</h2>
+<!-- BROOCHES SECTION -->
+<div class="section-header-wrap">
+  <div class="section-header-line"></div>
+  <h2 id="brooches" class="section-title">Brooches Collection 🎀</h2>
+  <div class="section-header-line"></div>
+</div>
 <div class="product-grid">
   <div class="product" onclick="openModal('Danglecrystal', '₹250', ['images/Brooches/danglecrystal.JPG'])">
-    <img src="images/Brooches/danglecrystal.JPG" alt="Danglecrystal">
-    <h3>Danglecrystal</h3>
-    <p>₹250</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/Brooches/danglecrystal.JPG" alt="Danglecrystal">
+    </div>
+    <div class="product-info">
+      <h3>Danglecrystal</h3>
+      <p>₹250</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Fetherz', '₹250', ['images/Brooches/fetherz.JPG'])">
-    <img src="images/Brooches/fetherz.JPG" alt="Fetherz">
-    <h3>Fetherz</h3>
-    <p>₹250</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/Brooches/fetherz.JPG" alt="Fetherz">
+    </div>
+    <div class="product-info">
+      <h3>Fetherz</h3>
+      <p>₹250</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Merima', '₹250', ['images/Brooches/merima.JPG'])">
-    <img src="images/Brooches/merima.JPG" alt="Merima">
-    <h3>Merima</h3>
-    <p>₹250</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/Brooches/merima.JPG" alt="Merima">
+    </div>
+    <div class="product-info">
+      <h3>Merima</h3>
+      <p>₹250</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 
   <div class="product" onclick="openModal('Pinnima', '₹250', ['images/Brooches/pinnima.JPG'])">
-    <img src="images/Brooches/pinnima.JPG" alt="Pinnima">
-    <h3>Pinnima</h3>
-    <p>₹250</p>
-    <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    <div class="product-img-wrapper">
+      <img src="images/Brooches/pinnima.JPG" alt="Pinnima">
+    </div>
+    <div class="product-info">
+      <h3>Pinnima</h3>
+      <p>₹250</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
   </div>
 </div>
-<!-- PRODUCT MODAL -->
+
+<!-- JEWELLERY SETS SECTION (NEW CATEGORY) -->
+<div class="section-header-wrap">
+  <div class="section-header-line"></div>
+  <h2 id="jewellery-sets" class="section-title">Jewellery Sets 💎</h2>
+  <div class="section-header-line"></div>
+</div>
+<div class="product-grid">
+  <div class="product" onclick="openModal('Custom Jar Set', '₹420', ['images/gallery/gallery (1).jpg', 'images/gallery/gallery (2).jpg'])">
+    <div class="product-img-wrapper">
+      <img src="images/gallery/gallery (1).jpg" alt="Custom Jar Set">
+    </div>
+    <div class="product-info">
+      <h3>Custom Jar Set</h3>
+      <p>₹420</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
+  </div>
+
+  <div class="product" onclick="openModal('Vintage Jewellery Jar Set', '₹420', ['images/gallery/gallery (2).jpg', 'images/gallery/gallery (3).jpg'])">
+    <div class="product-img-wrapper">
+      <img src="images/gallery/gallery (2).jpg" alt="Vintage Jewellery Jar Set">
+    </div>
+    <div class="product-info">
+      <h3>Vintage Jewellery Jar Set</h3>
+      <p>₹420</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
+  </div>
+
+  <div class="product" onclick="openModal('Y2K Mystery Jar Set', '₹400', ['images/gallery/gallery (3).jpg', 'images/gallery/gallery (4).jpg'])">
+    <div class="product-img-wrapper">
+      <img src="images/gallery/gallery (3).jpg" alt="Y2K Mystery Jar Set">
+    </div>
+    <div class="product-info">
+      <h3>Y2K Mystery Jar Set</h3>
+      <p>₹400</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRODUCT DETAIL MODAL -->
 <div id="productModal" class="modal-overlay" onclick="closeModal(event)">
   <div class="modal-content" onclick="event.stopPropagation()">
     <button class="modal-close" onclick="closeModal()">✕</button>
     
     <div class="modal-left">
       <div class="modal-image-container" id="modalImageContainer">
-        <!-- Images will be inserted here dynamically -->
+        <!-- Dynamic product images -->
       </div>
       <button class="carousel-nav carousel-prev" onclick="changeImage(-1)">‹</button>
       <button class="carousel-nav carousel-next" onclick="changeImage(1)">›</button>
       <div class="carousel-dots" id="carouselDots">
-        <!-- Dots will be inserted here dynamically -->
+        <!-- Dynamic dots -->
       </div>
     </div>
     
     <div class="modal-right">
       <h2 class="modal-title" id="modalTitle">Product Name</h2>
       <p class="modal-price" id="modalPrice">₹000</p>
-      <div style="display: flex; flex-direction: column; gap: 10px; margin-top: auto;">
+      <div style="display: flex; flex-direction: column; gap: 12px; margin-top: auto;">
         <button class="modal-add-cart-btn" onclick="addToCartFromModal()">Add to Cart 🛒</button>
-        <a class="modal-dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" style="margin-top: 0; padding: 0.8rem; background: #ffe4e1; color: #ff1493; border: 2px solid #ffb6c1;">
-          DM on Instagram instead
+        <a class="modal-dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" style="display:flex; align-items:center; justify-content:center; gap:0.5rem;">
+          <span>📷</span> Direct Message on Instagram @theglam._.aura
         </a>
       </div>
     </div>
   </div>
 </div>
 
+<!-- SHOPPING GUIDE POPUP MODAL -->
+<div id="guideModal" class="modal-overlay" onclick="closeGuideModal(event)">
+  <div class="modal-content" style="max-width: 750px; padding: 2.25rem;" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeGuideModal()">✕</button>
+    <div style="width: 100%;">
+      <h2 style="font-family: var(--font-heading); font-size: 2.2rem; color: var(--midnight-lagoon); text-align: center; margin-bottom: 0.4rem;">
+        Shopping Guide 📖
+      </h2>
+      <p style="font-size: 0.95rem; color: var(--rosewood); font-weight: 600; text-align: center; margin-bottom: 1.75rem;">
+        Your complete step-by-step guide to ordering handcrafted jewellery 💕
+      </p>
+
+      <div style="display: flex; flex-direction: column; gap: 1rem; max-height: 60vh; overflow-y: auto; padding-right: 0.5rem;">
+        <div class="guide-step" style="margin-bottom: 0;">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <h3>Explore the Catalogue 🐾</h3>
+            <p>Browse through Earrings, Pendants, Bracelets, Charms, Brooches, and Jewellery Sets. Click any card to open detail view with full un-cropped photos.</p>
+          </div>
+        </div>
+        <div class="guide-step" style="margin-bottom: 0;">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <h3>Review Your Cart 🛒</h3>
+            <p>Click "Add to Cart". You can review items, adjust quantity, or check parcel weight inside the cart sidebar anytime.</p>
+          </div>
+        </div>
+        <div class="guide-step" style="margin-bottom: 0;">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <h3>Provide Delivery Details 📦</h3>
+            <p>Click "Proceed to Checkout" and enter your address and phone number for shipping updates.</p>
+          </div>
+        </div>
+        <div class="guide-step" style="margin-bottom: 0;">
+          <div class="step-number">4</div>
+          <div class="step-content">
+            <h3>Pay via UPI App 💸</h3>
+            <p>Use the "Pay via UPI" button or copy our UPI ID <code>ishsem@ptyes</code> to complete payment.</p>
+          </div>
+        </div>
+        <div class="guide-step" style="margin-bottom: 0;">
+          <div class="step-number">5</div>
+          <div class="step-content">
+            <h3>Upload Payment Screenshot 📸</h3>
+            <p>Take a screenshot of your successful UPI payment, upload it on checkout, and submit your order!</p>
+          </div>
+        </div>
+        <div class="guide-step" style="margin-bottom: 0;">
+          <div class="step-number">6</div>
+          <div class="step-content">
+            <h3>Custom Orders on Instagram 🎀</h3>
+            <p>Want a custom set or personalized charm? <a href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" style="color:var(--rosewood); font-weight:bold;">DM us on Instagram @theglam._.aura</a> anytime!</p>
+          </div>
+        </div>
+      </div>
+
+      <div style="text-align: center; margin-top: 1.5rem;">
+        <button onclick="closeGuideModal()" class="btn-hero" style="width: 100%;">Got It! Start Browsing ✨</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STORE POLICY MODAL -->
+<div id="policyModal" class="modal-overlay" onclick="closePolicyModal(event)">
+  <div class="modal-content" style="max-width: 600px; padding: 2rem;" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closePolicyModal()">✕</button>
+    <div style="text-align: center; width: 100%;">
+      <h2 style="font-family: var(--font-heading); font-size: 2rem; color: var(--midnight-lagoon); margin-bottom: 0.5rem;">
+        📜 Store Policies
+      </h2>
+      <p style="font-size: 0.9rem; color: var(--rosewood); font-weight: 600; margin-bottom: 1.5rem;">
+        Please read carefully before placing your order 💕
+      </p>
+      
+      <div style="display: flex; flex-direction: column; gap: 0.85rem; text-align: left; margin-bottom: 1.5rem;">
+        <div style="background: var(--bg-main); padding: 0.85rem 1rem; border-radius: var(--radius-sm); border-left: 4px solid var(--rosewood);">
+          <strong>❌ NO COD:</strong> Full prepayment via UPI required. Orders confirmed only after payment screenshot verification.
+        </div>
+        <div style="background: var(--bg-main); padding: 0.85rem 1rem; border-radius: var(--radius-sm); border-left: 4px solid var(--rosewood);">
+          <strong>⏱️ Processing Time:</strong> 10–15 days. Handmade jewellery takes time and care — each piece is made just for you.
+        </div>
+        <div style="background: var(--bg-main); padding: 0.85rem 1rem; border-radius: var(--radius-sm); border-left: 4px solid var(--rosewood);">
+          <strong>🚫 No Returns / Refunds:</strong> All sales are final unless an incorrect item was dispatched from our side.
+        </div>
+        <div style="background: var(--bg-main); padding: 0.85rem 1rem; border-radius: var(--radius-sm); border-left: 4px solid var(--rosewood);">
+          <strong>📦 Shipping & Tracking:</strong> Shipped via India Post Parcel Retail. Tracking code provided upon dispatch.
+        </div>
+        <div style="background: var(--bg-main); padding: 0.85rem 1rem; border-radius: var(--radius-sm); border-left: 4px solid var(--rosewood);">
+          <strong>📹 Unboxing Video:</strong> Continuous unboxing video is required as proof for any damage claims.
+        </div>
+      </div>
+
+      <button onclick="closePolicyModal()" class="btn-hero" style="width: 100%;">I Understand & Agree 💖</button>
+    </div>
+  </div>
+</div>
+
+<!-- CART SIDEBAR -->
+<div id="cartSidebar" class="cart-sidebar">
+  <div class="cart-header">
+    <h2>Your Cart 🛒</h2>
+    <button onclick="toggleCart()" class="cart-close">✕</button>
+  </div>
+  <div id="cartItems" class="cart-items">
+    <!-- Dynamic cart items -->
+  </div>
+  <div class="cart-footer">
+    <div class="cart-weight-info" id="cartWeightInfo" style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.6rem; background:var(--bg-main); padding:0.6rem 0.8rem; border-radius:var(--radius-sm); border: 1px solid var(--border-color);">
+      📦 Parcel Weight: <strong id="cartWeightValue">20g</strong><br>
+      <span style="font-size:0.75rem; color:var(--text-muted);">(Items: <span id="cartProdWeightValue">0g</span> + Packaging: <span id="cartPkgWeightValue">20g</span>)</span>
+    </div>
+    <div class="cart-total" style="display:flex; justify-content:space-between; font-size:0.95rem; margin-bottom:0.3rem;">
+      <span>Subtotal:</span>
+      <span id="cartSubtotalValue">₹0</span>
+    </div>
+    <div class="cart-total" style="display:flex; justify-content:space-between; font-size:0.95rem; color:var(--rosewood); margin-bottom:0.5rem;">
+      <span>Shipping (India Post):</span>
+      <span id="cartShippingValue">₹0</span>
+    </div>
+    <div class="cart-total" style="font-size:1.3rem; font-weight:bold; color:var(--rosewood); margin-bottom:0.8rem; border-top:1px dashed var(--border-color); padding-top:0.6rem;">
+      Total: <span id="cartTotalValue">₹0</span>
+    </div>
+    <button onclick="window.location.href='checkout.html'" class="checkout-btn" id="checkoutBtn" disabled>Proceed to Checkout</button>
+  </div>
+</div>
+
+<!-- FLOATING CART BUTTON -->
+<button class="floating-cart-btn" onclick="toggleCart()">
+  🛒 <span id="cartCount">0</span>
+</button>
+
 <!-- FOOTER -->
 <footer>
-  <p>© 2025 The Glam Aura Jewellery</p>
+  <p>© 2025 The Glam Aura Jewellery • Crafted with Love & Sparkles ✨</p>
 </footer>
 
+<!-- SCRIPTS & FUNCTIONALITY -->
 <script src="product-utils.js" type="module"></script>
 <script>
 let currentImageIndex = 0;
 let currentImages = [];
 
-function scrollToSection(selector){
+function scrollToSection(selector) {
   const element = document.querySelector(selector);
-  if(element){ element.scrollIntoView({ behavior: 'smooth' }); }
+  if (element) { element.scrollIntoView({ behavior: 'smooth' }); }
 }
 
 function openModal(title, price, images) {
@@ -782,7 +1027,7 @@ function openModal(title, price, images) {
   document.getElementById('modalTitle').textContent = displayTitle;
   document.getElementById('modalPrice').textContent = price;
   
-  // Create image elements
+  // Create modal images
   const imageContainer = document.getElementById('modalImageContainer');
   imageContainer.innerHTML = '';
   images.forEach((img, index) => {
@@ -815,6 +1060,30 @@ function closeModal(event) {
   }
 }
 
+function openPolicyModal() {
+  document.getElementById('policyModal').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closePolicyModal(event) {
+  if (!event || event.target.classList.contains('modal-overlay') || event.target.classList.contains('modal-close')) {
+    document.getElementById('policyModal').classList.remove('active');
+    document.body.style.overflow = 'auto';
+  }
+}
+
+function openGuideModal() {
+  document.getElementById('guideModal').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeGuideModal(event) {
+  if (!event || event.target.classList.contains('modal-overlay') || event.target.classList.contains('modal-close')) {
+    document.getElementById('guideModal').classList.remove('active');
+    document.body.style.overflow = 'auto';
+  }
+}
+
 function changeImage(direction) {
   currentImageIndex += direction;
   if (currentImageIndex < 0) currentImageIndex = currentImages.length - 1;
@@ -840,115 +1109,131 @@ function updateImage() {
   });
 }
 
-// Close modal on ESC key
+// ESC Key listener
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') closeModal();
+  if (e.key === 'Escape') {
+    closeModal();
+    closePolicyModal();
+    closeGuideModal();
+  }
+});
+
+// Live Search & Sort Handler
+document.addEventListener('DOMContentLoaded', () => {
+  const searchInput = document.getElementById('searchInput');
+  const sortSelect = document.getElementById('sortSelect');
+
+  if (searchInput) {
+    searchInput.addEventListener('input', filterAndSortProducts);
+  }
+  if (sortSelect) {
+    sortSelect.addEventListener('change', filterAndSortProducts);
+  }
+
+  function filterAndSortProducts() {
+    const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    const sortValue = sortSelect ? sortSelect.value : 'default';
+
+    const productGrids = document.querySelectorAll('.product-grid');
+    productGrids.forEach(grid => {
+      const products = Array.from(grid.querySelectorAll('.product'));
+      
+      products.forEach(product => {
+        const titleEl = product.querySelector('h3');
+        const title = titleEl ? titleEl.textContent.toLowerCase() : '';
+        if (!query || title.includes(query)) {
+          product.style.display = 'flex';
+        } else {
+          product.style.display = 'none';
+        }
+      });
+
+      if (sortValue !== 'default') {
+        const visibleProducts = products.filter(p => p.style.display !== 'none');
+        visibleProducts.sort((a, b) => {
+          const titleA = a.querySelector('h3') ? a.querySelector('h3').textContent : '';
+          const titleB = b.querySelector('h3') ? b.querySelector('h3').textContent : '';
+          const priceA = parseInt(a.querySelector('p') ? a.querySelector('p').textContent.replace(/[^0-9]/g, '') : 0) || 0;
+          const priceB = parseInt(b.querySelector('p') ? b.querySelector('p').textContent.replace(/[^0-9]/g, '') : 0) || 0;
+
+          if (sortValue === 'price-low') return priceA - priceB;
+          if (sortValue === 'price-high') return priceB - priceA;
+          if (sortValue === 'title-az') return titleA.localeCompare(titleB);
+          return 0;
+        });
+
+        visibleProducts.forEach(p => grid.appendChild(p));
+      }
+    });
+  }
 });
 </script>
 
-<!-- CART SIDEBAR -->
-<div id="cartSidebar" class="cart-sidebar">
-  <div class="cart-header">
-    <h2>Your Cart 🛒</h2>
-    <button onclick="toggleCart()" class="cart-close">✕</button>
-  </div>
-  <div id="cartItems" class="cart-items">
-    <!-- Cart items injected here -->
-  </div>
-  <div class="cart-footer">
-    <div class="cart-weight-info" id="cartWeightInfo" style="font-size:0.85rem; color:#666; margin-bottom:0.4rem; background:#fff0f5; padding:0.4rem 0.6rem; border-radius:6px;">
-      📦 Parcel Weight: <strong id="cartWeightValue">20g</strong><br>
-      <span style="font-size:0.75rem; color:#888;">(Items: <span id="cartProdWeightValue">0g</span> + Packaging: <span id="cartPkgWeightValue">20g</span>)</span>
-    </div>
-    <div class="cart-total" style="display:flex; justify-content:space-between; font-size:0.95rem; margin-bottom:0.3rem;">
-      <span>Subtotal:</span>
-      <span id="cartSubtotalValue">₹0</span>
-    </div>
-    <div class="cart-total" style="display:flex; justify-content:space-between; font-size:0.95rem; color:#ff1493; margin-bottom:0.5rem;">
-      <span>Shipping (India Post):</span>
-      <span id="cartShippingValue">₹0</span>
-    </div>
-    <div class="cart-total" style="font-size:1.3rem; font-weight:bold; color:#ff1493; margin-bottom:0.8rem; border-top:1px dashed #ffb6c1; padding-top:0.5rem;">
-      Total: <span id="cartTotalValue">₹0</span>
-    </div>
-    <button onclick="window.location.href='checkout.html'" class="checkout-btn" id="checkoutBtn" disabled>Proceed to Checkout</button>
-  </div>
-</div>
+<script src="stock-utils.js" type="module"></script>
+<script src="shipping-config.js" type="module"></script>
+<script src="firebase.js" type="module"></script>
+<script src="cart.js" type="module"></script>
 
-<!-- FLOATING CART BUTTON -->
-<button class="floating-cart-btn" onclick="toggleCart()">
-  🛒 <span id="cartCount">0</span>
-</button>
+<script type="module">
+  import { db } from './firebase.js';
+  import { collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+  import { getProductId, renderStockBadge } from './stock-utils.js';
 
-  <script src="stock-utils.js" type="module"></script>
-  <script src="shipping-config.js" type="module"></script>
-  <script src="firebase.js" type="module"></script>
-  <script src="cart.js" type="module"></script>
+  window.liveStockMap = {};
 
-  <script type="module">
-    import { db } from './firebase.js';
-    import { collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-    import { getProductId, renderStockBadge } from './stock-utils.js';
-
-    window.liveStockMap = {};
-
-    document.addEventListener('DOMContentLoaded', () => {
-      // Auto-tag all product cards with data-product-id
-      document.querySelectorAll('.product').forEach(card => {
-        const titleEl = card.querySelector('h3');
-        const imgEl = card.querySelector('img');
-        const title = titleEl ? titleEl.textContent : '';
-        const image = imgEl ? imgEl.src : '';
-        const pId = getProductId(title, image);
-        card.setAttribute('data-product-id', pId);
-      });
-
-      // Realtime listener for product stock
-      onSnapshot(collection(db, "products"), (snapshot) => {
-        snapshot.forEach((doc) => {
-          const data = doc.data();
-          const pId = doc.id || getProductId(data.name, data.image);
-          const stock = typeof data.stock === 'number' ? data.stock : 10;
-          window.liveStockMap[pId] = stock;
-
-          const cards = document.querySelectorAll(`.product[data-product-id="${pId}"]`);
-          cards.forEach(card => {
-            let badgeEl = card.querySelector('.stock-badge-wrapper');
-            if (!badgeEl) {
-              badgeEl = document.createElement('div');
-              badgeEl.className = 'stock-badge-wrapper';
-              badgeEl.style.marginBottom = '0.4rem';
-              const h3 = card.querySelector('h3');
-              if (h3 && h3.nextSibling) {
-                card.insertBefore(badgeEl, h3.nextSibling);
-              } else {
-                card.appendChild(badgeEl);
-              }
-            }
-            badgeEl.innerHTML = renderStockBadge(stock);
-
-            const btn = card.querySelector('.add-to-cart-quick');
-            if (btn) {
-              if (stock <= 0) {
-                btn.disabled = true;
-                btn.innerHTML = 'Out of Stock ❌';
-                btn.style.opacity = '0.65';
-                btn.style.cursor = 'not-allowed';
-              } else {
-                btn.disabled = false;
-                btn.innerHTML = 'Add to Cart 🛒';
-                btn.style.opacity = '1';
-                btn.style.cursor = 'pointer';
-              }
-            }
-          });
-        });
-
-        if (typeof window.updateCartUI === 'function') {
-          window.updateCartUI();
-        }
-      });
+  document.addEventListener('DOMContentLoaded', () => {
+    // Auto-tag product cards with data-product-id
+    document.querySelectorAll('.product').forEach(card => {
+      const titleEl = card.querySelector('h3');
+      const imgEl = card.querySelector('img');
+      const title = titleEl ? titleEl.textContent : '';
+      const image = imgEl ? imgEl.src : '';
+      const pId = getProductId(title, image);
+      card.setAttribute('data-product-id', pId);
     });
-  </script>
+
+    // Realtime Firestore listener
+    onSnapshot(collection(db, "products"), (snapshot) => {
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        const pId = doc.id || getProductId(data.name, data.image);
+        const stock = typeof data.stock === 'number' ? data.stock : 10;
+        window.liveStockMap[pId] = stock;
+
+        const cards = document.querySelectorAll(`.product[data-product-id="${pId}"]`);
+        cards.forEach(card => {
+          let badgeEl = card.querySelector('.stock-badge-wrapper');
+          if (!badgeEl) {
+            badgeEl = document.createElement('div');
+            badgeEl.className = 'stock-badge-wrapper';
+            badgeEl.style.marginBottom = '0.4rem';
+            const h3 = card.querySelector('h3');
+            if (h3 && h3.nextSibling) {
+              card.insertBefore(badgeEl, h3.nextSibling);
+            } else {
+              card.appendChild(badgeEl);
+            }
+          }
+          badgeEl.innerHTML = renderStockBadge(stock);
+
+          const btn = card.querySelector('.add-to-cart-quick');
+          if (btn) {
+            if (stock <= 0) {
+              btn.disabled = true;
+              btn.innerHTML = 'Out of Stock ❌';
+            } else {
+              btn.disabled = false;
+              btn.innerHTML = 'Add to Cart 🛒';
+            }
+          }
+        });
+      });
+
+      if (typeof window.updateCartUI === 'function') {
+        window.updateCartUI();
+      }
+    });
+  });
+</script>
 </body>
 </html>
