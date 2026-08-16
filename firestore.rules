@@ -6,7 +6,11 @@ service cloud.firestore {
     function isAdmin() {
       return request.auth != null
         && request.auth.token.email != null
-        && request.auth.token.email.toLowerCase() == 'ishitasemwal84@gmail.com';
+        && (
+          request.auth.token.email == 'ishitasemwal84@gmail.com' ||
+          request.auth.token.email.toLowerCase() == 'ishitasemwal84@gmail.com' ||
+          request.auth.token.email.matches('(?i)^ishitasemwal84@gmail\\.com$')
+        );
     }
 
     match /customers/{userId} {
@@ -73,8 +77,9 @@ service cloud.firestore {
         && (request.resource.data.updatedAt is timestamp || request.resource.data.updatedAt == request.time)
         && (!('userId' in request.resource.data) || (request.auth != null && request.resource.data.userId == request.auth.uid));
 
-      // Customers can read their own orders. Admins can read all.
-      allow read: if isAdmin() || (request.auth != null && resource.data.userId == request.auth.uid);
+      // Separate get and list rules for orders
+      allow get: if isAdmin() || (request.auth != null && resource.data.userId == request.auth.uid);
+      allow list: if isAdmin();
 
       // Only authenticated administrators can update orders.
       allow update: if isAdmin();

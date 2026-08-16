@@ -128,12 +128,15 @@ async function loadOrders() {
         renderSidebar();
     } catch (e) {
         console.error("Error loading orders:", e);
+        const currentUserEmail = auth.currentUser ? auth.currentUser.email : 'Not logged in';
+        const currentUid = auth.currentUser ? auth.currentUser.uid : 'N/A';
         if (e.code === 'permission-denied' || (e.message && e.message.includes('permissions'))) {
             listEl.innerHTML = `
                 <div style="padding:1rem; background:#fff2f0; border:1px solid #ffccc7; border-radius:8px; color:#ff4d4f; font-size:0.85rem; margin:0.5rem;">
                     <strong>Permission Denied</strong><br>
                     Missing permissions to read orders.<br><br>
-                    <em>Please publish the updated <code>firestore.rules</code> in your Firebase Console (Firestore Database -> Rules tab).</em>
+                    <small>Logged in as: ${currentUserEmail} (UID: ${currentUid})</small><br><br>
+                    <em>Action required: Copy and publish the latest <code>firestore.rules</code> in your Firebase Console (Firestore Database -> Rules tab).</em>
                 </div>
             `;
         } else {
