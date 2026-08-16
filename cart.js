@@ -37,7 +37,8 @@ function addToCartFromModal() {
     const itemWeight = getItemWeight({ name: title, image: image });
 
     const availableStock = getAvailableStock(title, image);
-    const existingItem = cart.find(item => item.name === title || (image && item.image && getItemTitle(item.image, item.name) === title));
+    const targetPid = getProductId(title, image);
+    const existingItem = cart.find(item => getProductId(item.name, item.image) === targetPid || item.name === title);
     const currentQty = existingItem ? existingItem.quantity : 0;
 
     if (availableStock <= 0) {
@@ -126,6 +127,25 @@ function updateCartUI() {
     const checkoutBtn = document.getElementById('checkoutBtn');
     
     if (!cartItemsDiv) return;
+
+    // Deduplicate cart array by getProductId so duplicate entries (e.g. title with vs without emoji) merge cleanly
+    if (cart.length > 1) {
+        const mergedCart = [];
+        const seenMap = {};
+        cart.forEach(item => {
+            const pid = getProductId(item.name, item.image);
+            if (seenMap[pid]) {
+                seenMap[pid].quantity += (item.quantity || 1);
+            } else {
+                seenMap[pid] = { ...item };
+                mergedCart.push(seenMap[pid]);
+            }
+        });
+        if (mergedCart.length !== cart.length) {
+            cart = mergedCart;
+            saveCart();
+        }
+    }
     
     let totalCount = 0;
     let totalSubtotal = 0;
@@ -232,7 +252,8 @@ document.addEventListener('click', (e) => {
             const itemWeight = getItemWeight({ name: title, image: image });
             
             const availableStock = getAvailableStock(title, image);
-            const existingItem = cart.find(item => item.name === title || (image && item.image && getItemTitle(item.image, item.name) === title));
+            const targetPid = getProductId(title, image);
+            const existingItem = cart.find(item => getProductId(item.name, item.image) === targetPid || item.name === title);
             const currentQty = existingItem ? existingItem.quantity : 0;
 
             if (availableStock <= 0) {
