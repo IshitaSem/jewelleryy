@@ -1203,7 +1203,7 @@ document.addEventListener('DOMContentLoaded', () => {
 <script type="module">
   import { db } from './firebase.js';
   import { collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-  import { getProductId, renderStockBadge } from './stock-utils.js';
+  import { getProductId, renderStockBadge, combineProducts } from './stock-utils.js';
 
   window.liveStockMap = {};
 
@@ -1256,21 +1256,32 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
+    function syncAllProductsUI(docs = []) {
+      const allProds = combineProducts(docs);
+      allProds.forEach(prod => {
+        window.liveStockMap[prod.id] = prod.stock;
+        const cards = document.querySelectorAll(`.product[data-product-id="${prod.id}"]`);
+        cards.forEach(card => updateCardUI(card, prod.stock));
+      });
+    }
+
+    // Initial sync with local catalog
+    syncAllProductsUI([]);
+
     // Realtime Firestore listener
     onSnapshot(collection(db, "products"), (snapshot) => {
+      const docs = [];
       snapshot.forEach((doc) => {
-        const data = doc.data();
-        const pId = doc.id || getProductId(data.name, data.image);
-        const stock = typeof data.stock === 'number' ? data.stock : 0;
-        window.liveStockMap[pId] = stock;
-
-        const cards = document.querySelectorAll(`.product[data-product-id="${pId}"]`);
-        cards.forEach(card => updateCardUI(card, stock));
+        docs.push({ id: doc.id, ...doc.data() });
       });
+      syncAllProductsUI(docs);
 
       if (typeof window.updateCartUI === 'function') {
         window.updateCartUI();
       }
+    }, (error) => {
+      console.warn("Realtime stock listener warning:", error.message);
+      syncAllProductsUI([]);
     });
   });
 </script>
