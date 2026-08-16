@@ -120,15 +120,15 @@ export function combineProducts(firestoreDocs = []) {
 export function renderStockBadge(stock) {
   const count = Number(stock);
   if (isNaN(count) || count <= 0) {
-    return `<span class="stock-badge out-of-stock" style="display:inline-block; background:#ff4d4f; color:white; padding:0.2rem 0.5rem; border-radius:12px; font-size:0.75rem; font-weight:bold; margin-top:0.3rem;">Out of Stock ❌</span>`;
+    return `<span class="stock-badge out-of-stock">Out of Stock ❌</span>`;
   }
   if (count === 1) {
-    return `<span class="stock-badge low-stock" style="display:inline-block; background:#ff9c6e; color:white; padding:0.2rem 0.5rem; border-radius:12px; font-size:0.75rem; font-weight:bold; margin-top:0.3rem;">Only 1 left! 🔥</span>`;
+    return `<span class="stock-badge low-stock">In Stock (Only 1 left! 🔥)</span>`;
   }
   if (count >= 2 && count <= 5) {
-    return `<span class="stock-badge low-stock" style="display:inline-block; background:#fff7e6; color:#d46b08; border:1px solid #ffd591; padding:0.2rem 0.5rem; border-radius:12px; font-size:0.75rem; font-weight:bold; margin-top:0.3rem;">Only ${count} left!</span>`;
+    return `<span class="stock-badge low-stock">In Stock (${count} left)</span>`;
   }
-  return `<span class="stock-badge in-stock" style="display:inline-block; background:#f6ffed; color:#389e0d; border:1px solid #b7eb8f; padding:0.2rem 0.5rem; border-radius:12px; font-size:0.75rem; font-weight:bold; margin-top:0.3rem;">In Stock (${count})</span>`;
+  return `<span class="stock-badge in-stock">In Stock (${count} available)</span>`;
 }
 
 if (typeof window !== 'undefined') {

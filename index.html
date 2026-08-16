@@ -857,6 +857,7 @@
     <div class="modal-right">
       <h2 class="modal-title" id="modalTitle">Product Name</h2>
       <p class="modal-price" id="modalPrice">₹000</p>
+      <div id="modalStockBadge" style="margin-bottom: 1rem;"></div>
       <div style="display: flex; flex-direction: column; gap: 12px; margin-top: auto;">
         <button class="modal-add-cart-btn" onclick="addToCartFromModal()">Add to Cart 🛒</button>
         <a class="modal-dm-btn" href="https://instagram.com/direct/new/?username=theglam._.aura" target="_blank" style="display:flex; align-items:center; justify-content:center; gap:0.5rem;">
@@ -1026,6 +1027,31 @@ function openModal(title, price, images) {
 
   document.getElementById('modalTitle').textContent = displayTitle;
   document.getElementById('modalPrice').textContent = price;
+
+  // Update stock badge inside modal
+  const firstImg = images && images[0] ? images[0] : '';
+  const pId = (typeof getProductId === 'function') ? getProductId(displayTitle, firstImg) : '';
+  const stock = (window.liveStockMap && typeof window.liveStockMap[pId] === 'number') ? window.liveStockMap[pId] : 10;
+  
+  const modalStockEl = document.getElementById('modalStockBadge');
+  if (modalStockEl && typeof renderStockBadge === 'function') {
+    modalStockEl.innerHTML = renderStockBadge(stock);
+  }
+
+  const modalCartBtn = document.querySelector('.modal-add-cart-btn');
+  if (modalCartBtn) {
+    if (stock <= 0) {
+      modalCartBtn.disabled = true;
+      modalCartBtn.innerHTML = 'Out of Stock ❌';
+      modalCartBtn.style.opacity = '0.65';
+      modalCartBtn.style.cursor = 'not-allowed';
+    } else {
+      modalCartBtn.disabled = false;
+      modalCartBtn.innerHTML = 'Add to Cart 🛒';
+      modalCartBtn.style.opacity = '1';
+      modalCartBtn.style.cursor = 'pointer';
+    }
+  }
   
   // Create modal images
   const imageContainer = document.getElementById('modalImageContainer');

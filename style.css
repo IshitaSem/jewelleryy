@@ -643,6 +643,12 @@ nav.categories-nav a.active {
   border: 1px solid rgba(74, 96, 56, 0.2);
 }
 
+.stock-badge.low-stock {
+  background: #FFF7E6;
+  color: #D46B08;
+  border: 1px solid #FFD591;
+}
+
 .stock-badge.out-of-stock {
   background: #FDE8E8;
   color: #E02424;
