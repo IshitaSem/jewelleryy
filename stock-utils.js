@@ -2,7 +2,7 @@
  * Stock Management Utilities & Product Identifier Normalization
  */
 
-export const DEFAULT_INITIAL_STOCK = 0;
+export const DEFAULT_INITIAL_STOCK = 10;
 
 /**
  * Standardize product titles or image filenames into clean, deterministic Firestore Document IDs.

@@ -18,11 +18,14 @@ let shippingCharge = 0;
 let grandTotal = 0;
 
 function getItemTitle(item) {
-    if (item.image && typeof window.getProductNameFromImage === 'function') {
+    if (item && item.name && item.name.trim()) {
+        return item.name.trim();
+    }
+    if (item && item.image && typeof window.getProductNameFromImage === 'function') {
         const derived = window.getProductNameFromImage(item.image);
         if (derived) return derived;
     }
-    return item.name || '';
+    return (item && item.name) || '';
 }
 
 function recalculateTotals() {

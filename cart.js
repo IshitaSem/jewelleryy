@@ -8,6 +8,9 @@ function saveCart() {
 }
 
 function getItemTitle(image, fallbackTitle) {
+    if (fallbackTitle && fallbackTitle.trim()) {
+        return fallbackTitle.trim();
+    }
     if (image && typeof window.getProductNameFromImage === 'function') {
         const derived = window.getProductNameFromImage(image);
         if (derived) return derived;
