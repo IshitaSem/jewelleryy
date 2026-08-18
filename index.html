@@ -1267,11 +1267,12 @@ document.addEventListener('DOMContentLoaded', () => {
         badgeEl.className = 'stock-badge-wrapper';
         badgeEl.style.marginTop = '0.3rem';
         badgeEl.style.marginBottom = '0.4rem';
-        const h3 = card.querySelector('h3');
+        const productInfo = card.querySelector('.product-info') || card;
+        const h3 = productInfo.querySelector('h3');
         if (h3 && h3.nextSibling) {
-          card.insertBefore(badgeEl, h3.nextSibling);
+          productInfo.insertBefore(badgeEl, h3.nextSibling);
         } else {
-          card.appendChild(badgeEl);
+          productInfo.appendChild(badgeEl);
         }
       }
       badgeEl.innerHTML = renderStockBadge(stock);
