@@ -81,7 +81,7 @@ export const STOREFRONT_PRODUCTS = [
   { name: 'Redhearty Bow', price: 169, image: 'images/earrings/redhearty bow.jpg', category: 'Earrings' },
   { name: 'Silver Bowy', price: 179, image: 'images/earrings/silver bowy (1).jpg', category: 'Earrings' },
 
-  // PENDANTS (30)
+  // PENDANTS (31)
   { name: 'Celi Novia', price: 400, image: 'images/necklaces/Celi✧Novia (1).jpeg', category: 'Pendants' },
   { name: 'Pink Hearty Cross', price: 250, image: 'images/necklaces/pink hearty cross.jpg', category: 'Pendants' },
   { name: 'Red Gem Bling', price: 250, image: 'images/necklaces/red gem bling.jpg', category: 'Pendants' },
@@ -95,6 +95,7 @@ export const STOREFRONT_PRODUCTS = [
   { name: 'Box Cross', price: 250, image: 'images/necklaces/box cross.JPG', category: 'Pendants' },
   { name: 'Chromeish', price: 250, image: 'images/necklaces/chromeish.JPG', category: 'Pendants' },
   { name: 'Crosssilver', price: 250, image: 'images/necklaces/crosssilver.JPG', category: 'Pendants' },
+  { name: 'Cyber Cross', price: 250, image: 'images/necklaces/Cyber Cross (1).png', category: 'Pendants' },
   { name: 'Gothic Black Cromeheart', price: 300, image: 'images/necklaces/gothic black cromeheart (1).jpg', category: 'Pendants' },
   { name: 'Gothic Red Moonie', price: 200, image: 'images/necklaces/gothic red moonie (1).jpg', category: 'Pendants' },
   { name: 'Heart Pearl', price: 200, image: 'images/necklaces/heart pearl.JPG', category: 'Pendants' },
@@ -113,8 +114,9 @@ export const STOREFRONT_PRODUCTS = [
   { name: 'Spiral Star', price: 200, image: 'images/necklaces/spiral star.JPG', category: 'Pendants' },
   { name: 'Starsy', price: 250, image: 'images/necklaces/starsy.JPG', category: 'Pendants' },
 
-  // BRACELETS (1)
+  // BRACELETS (2)
   { name: 'Bestie Bnw', price: 180, image: 'images/Bracelet/bestie bnw (1).jpg', category: 'Bracelets' },
+  { name: 'Car Guys Italian Charm Bracelet', price: 215, image: 'images/Bracelet/itelian bracelets.png', category: 'Bracelets', options: ['BMW', 'Volkswagen', 'Porsche'] },
 
   // CHARMS (9)
   { name: 'Blue Bow', price: 120, image: 'images/charms/blue bow.jpg', category: 'Charms' },
@@ -127,19 +129,35 @@ export const STOREFRONT_PRODUCTS = [
   { name: 'Pink Missi', price: 150, image: 'images/charms/pink missi (1).jpg', category: 'Charms' },
   { name: 'Purple Bowie', price: 120, image: 'images/charms/purple bowie.jpg', category: 'Charms' },
 
-  // BROOCHES (3)
+  // BROOCHES (4)
   { name: 'Danglecrystal', price: 250, image: 'images/Brooches/danglecrystal.JPG', category: 'Brooches' },
   { name: 'Fetherz', price: 250, image: 'images/Brooches/fetherz.JPG', category: 'Brooches' },
   { name: 'Merima', price: 250, image: 'images/Brooches/merima.JPG', category: 'Brooches' },
+  { name: 'Pinnima', price: 250, image: 'images/Brooches/pinnima.JPG', category: 'Brooches' },
 
-  // JEWELLERY SETS (3)
+  // RINGS (11)
+  { name: 'Bloodclutch', price: 199, image: 'images/rings/Bloodclutch.png', category: 'Rings' },
+  { name: 'Ember Throne', price: 249, image: 'images/rings/Ember throne (1).png', category: 'Rings' },
+  { name: 'Heartslash', price: 199, image: 'images/rings/Heartslash.png', category: 'Rings' },
+  { name: 'Iron Cromecrest', price: 249, image: 'images/rings/Iron Cromecrest.png', category: 'Rings' },
+  { name: 'Nightspire', price: 220, image: 'images/rings/Nightspire.png', category: 'Rings' },
+  { name: 'Novamelt', price: 199, image: 'images/rings/Novamelt.png', category: 'Rings' },
+  { name: 'Queendrip', price: 199, image: 'images/rings/Queendrip.png', category: 'Rings' },
+  { name: 'Starscar', price: 199, image: 'images/rings/Starscar.png', category: 'Rings' },
+  { name: 'Venomfang', price: 220, image: 'images/rings/Venomfang.png', category: 'Rings' },
+  { name: 'Batman Ring', price: 199, image: 'images/rings/batman.png', category: 'Rings' },
+  { name: 'Dear Couple Ring', price: 299, image: 'images/rings/dear couple ring (1).png', category: 'Rings' },
+
+  // JEWELLERY SETS (4)
   { name: 'Custom Jar Set', price: 420, image: 'images/gallery/gallery (1).jpg', category: 'Jewellery Sets' },
   { name: 'Vintage Jewellery Jar Set', price: 420, image: 'images/gallery/gallery (2).jpg', category: 'Jewellery Sets' },
-  { name: 'Y2K Mystery Jar Set', price: 400, image: 'images/gallery/gallery (3).jpg', category: 'Jewellery Sets' }
+  { name: 'Y2K Mystery Jar Set', price: 400, image: 'images/gallery/gallery (3).jpg', category: 'Jewellery Sets' },
+  { name: 'Chic Jewellery Jar Set', price: 420, image: 'images/gallery/gallery (4).jpg', category: 'Jewellery Sets' }
 ];
 
 if (typeof window !== 'undefined') {
   window.getProductNameFromImage = getProductNameFromImage;
   window.STOREFRONT_PRODUCTS = STOREFRONT_PRODUCTS;
 }
+
 

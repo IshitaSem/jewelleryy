@@ -41,11 +41,13 @@ export function normalizeCategory(cat) {
   if (!cat) return '';
   let cleaned = String(cat).trim().toLowerCase();
   cleaned = cleaned.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '').trim();
-  if (cleaned === 'necklaces' || cleaned === 'necklace') return 'necklace';
+  if (cleaned === 'necklaces' || cleaned === 'necklace' || cleaned === 'pendants' || cleaned === 'pendant') return 'necklace';
   if (cleaned === 'earrings' || cleaned === 'earring') return 'earring';
   if (cleaned === 'bracelets' || cleaned === 'bracelet') return 'bracelet';
   if (cleaned === 'charms' || cleaned === 'charm') return 'charm';
   if (cleaned === 'brooches' || cleaned === 'brooch') return 'brooch';
+  if (cleaned === 'rings' || cleaned === 'ring') return 'ring';
+  if (cleaned === 'jewellery sets' || cleaned === 'jewellery set' || cleaned === 'sets' || cleaned === 'set') return 'jewellery set';
   return cleaned;
 }
 
@@ -54,11 +56,13 @@ export function normalizeCategory(cat) {
  */
 export function deriveCategory(imagePath = '', name = '') {
   const str = (String(imagePath) + ' ' + String(name)).toLowerCase();
-  if (str.includes('necklace')) return 'Necklaces';
+  if (str.includes('ring')) return 'Rings';
+  if (str.includes('necklace') || str.includes('pendant')) return 'Pendants';
   if (str.includes('earring')) return 'Earrings';
   if (str.includes('bracelet')) return 'Bracelets';
   if (str.includes('charm')) return 'Charms';
   if (str.includes('brooch')) return 'Brooches';
+  if (str.includes('gallery') || str.includes('set')) return 'Jewellery Sets';
   return 'Jewellery';
 }
 

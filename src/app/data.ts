@@ -92,15 +92,27 @@ export const PRODUCTS: Product[] = [
   { id: 'st4', name: 'Botanical Bookmarks', price: 149, category: 'Stationery', description: 'Set of 5 hand-illustrated pressed-flower bookmarks.', image: IMG('photo-1456735190827-d1262f71b8a3') },
   { id: 'st5', name: 'Greeting Cards Set', price: 249, category: 'Stationery', description: '6 letterpress greeting cards with envelopes.', image: IMG('photo-1456735190827-d1262f71b8a3'), popular: true },
 
-  // Dry Fruits & Nuts
-  { id: 'd1', name: 'Premium Cashews (200g)', price: 349, category: 'Dry Fruits', description: 'Whole W180 grade cashews, lightly salted.', image: IMG('photo-1599940778173-e276d4acb2bb'), popular: true },
-  { id: 'd2', name: 'Almond & Raisin Mix', price: 299, category: 'Dry Fruits', description: 'California almonds with Afghani golden raisins.', image: IMG('photo-1599940778173-e276d4acb2bb') },
-  { id: 'd3', name: 'Medjool Dates Box', price: 399, category: 'Dry Fruits', description: 'Soft and luscious jumbo Medjool dates.', image: IMG('photo-1599940778173-e276d4acb2bb') },
-  { id: 'd4', name: 'Pistachio Pack (150g)', price: 449, category: 'Dry Fruits', description: 'Roasted and salted Iranian pistachios.', image: IMG('photo-1599940778173-e276d4acb2bb') },
-  { id: 'd5', name: 'Mixed Berry Trail Mix', price: 279, category: 'Dry Fruits', description: 'Cranberries, blueberries, goji with cashews & almonds.', image: IMG('photo-1599940778173-e276d4acb2bb'), popular: true },
+  // Bracelets & Accessories
+  { id: 'b1', name: 'Car Guys Italian Charm Bracelet', price: 215, category: 'Bracelets', description: 'Italian charm bracelet with 3 brand options: BMW, Volkswagen, Porsche.', image: 'images/Bracelet/itelian bracelets.png', popular: true },
+  { id: 'b2', name: 'Bestie Bnw Bracelet', price: 180, category: 'Bracelets', description: 'Matching bestie black & white bracelet set.', image: 'images/Bracelet/bestie bnw (1).jpg' },
+
+  // Rings Collection
+  { id: 'r1', name: 'Bloodclutch Ring', price: 199, category: 'Rings', description: 'Gothic statement claw ring.', image: 'images/rings/Bloodclutch.png', popular: true },
+  { id: 'r2', name: 'Ember Throne Ring', price: 249, category: 'Rings', description: 'Vintage intricate crown throne ring.', image: 'images/rings/Ember throne (1).png' },
+  { id: 'r3', name: 'Heartslash Ring', price: 199, category: 'Rings', description: 'Silver slashed heart ring.', image: 'images/rings/Heartslash.png' },
+  { id: 'r4', name: 'Iron Cromecrest Ring', price: 249, category: 'Rings', description: 'Chrome crest heavy signet ring.', image: 'images/rings/Iron Cromecrest.png' },
+  { id: 'r5', name: 'Nightspire Ring', price: 220, category: 'Rings', description: 'Dark spire edgy ring.', image: 'images/rings/Nightspire.png' },
+  { id: 'r6', name: 'Novamelt Ring', price: 199, category: 'Rings', description: 'Molten metal texture ring.', image: 'images/rings/Novamelt.png' },
+  { id: 'r7', name: 'Queendrip Ring', price: 199, category: 'Rings', description: 'Dripping jewel queen ring.', image: 'images/rings/Queendrip.png' },
+  { id: 'r8', name: 'Starscar Ring', price: 199, category: 'Rings', description: 'Scarred star signet ring.', image: 'images/rings/Starscar.png' },
+  { id: 'r9', name: 'Venomfang Ring', price: 220, category: 'Rings', description: 'Serpent venom fang ring.', image: 'images/rings/Venomfang.png' },
+  { id: 'r10', name: 'Batman Ring', price: 199, category: 'Rings', description: 'Dark knight insignia ring.', image: 'images/rings/batman.png' },
+  { id: 'r11', name: 'Dear Couple Ring', price: 299, category: 'Rings', description: 'Matching couple romantic ring set.', image: 'images/rings/dear couple ring (1).png', popular: true },
 ];
 
 export const CATEGORIES = [
+  { name: 'Bracelets', emoji: '✨', description: 'Italian charm & handmade bracelets', image: 'images/Bracelet/itelian bracelets.png' },
+  { name: 'Rings', emoji: '💍', description: 'Gothic & statement rings', image: 'images/rings/Bloodclutch.png' },
   { name: 'Chocolates', emoji: '🍫', description: 'Handcrafted artisan chocolates', image: IMG('photo-1599599810769-bcde5a160d32', 600, 600) },
   { name: 'Candles', emoji: '🕯️', description: 'Hand-poured aromatic candles', image: IMG('photo-1643122966676-29e8597257f7', 600, 600) },
   { name: 'Skincare', emoji: '🌿', description: 'Natural beauty & skincare', image: IMG('photo-1556228578-8c89e6adf883', 600, 600) },

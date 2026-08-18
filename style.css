@@ -1631,3 +1631,89 @@ footer p {
     padding: 0.45rem 0.2rem;
   }
 }
+
+/* ===== PRODUCT OPTION & BRAND SELECTOR PILLS ===== */
+.card-brand-options {
+  margin: 0.35rem 0 0.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.card-brand-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--midnight-lagoon);
+}
+
+.card-brand-pills {
+  display: flex;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
+
+.card-option-pill {
+  padding: 0.2rem 0.6rem;
+  border-radius: 14px;
+  font-size: 0.73rem;
+  font-weight: 700;
+  border: 1.5px solid #18181B;
+  background: #E8ECF2;
+  color: #18181B;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.card-option-pill:hover {
+  background: #D9E1EB;
+}
+
+.card-option-pill.active {
+  background: #18181B;
+  color: #FFFFFF;
+  border-color: #18181B;
+}
+
+/* Modal Option Selector Pills */
+.product-options-wrapper {
+  margin-bottom: 1.25rem;
+}
+
+.product-options-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--midnight-lagoon);
+  margin-bottom: 0.4rem;
+  display: block;
+}
+
+.option-pills-container {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.modal-option-btn {
+  padding: 0.45rem 1.15rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border: 1.5px solid #18181B;
+  background: #E8ECF2;
+  color: #18181B;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modal-option-btn:hover {
+  background: #D9E1EB;
+}
+
+.modal-option-btn.active {
+  background: #18181B;
+  color: #FFFFFF;
+  border-color: #18181B;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+

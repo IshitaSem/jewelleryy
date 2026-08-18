@@ -38,6 +38,7 @@
         <li><a href="#bracelet" onclick="scrollToSection('#bracelet'); return false;">Bracelets</a></li>
         <li><a href="#charms" onclick="scrollToSection('#charms'); return false;">Charms</a></li>
         <li><a href="#brooches" onclick="scrollToSection('#brooches'); return false;">Brooches</a></li>
+        <li><a href="#rings" onclick="scrollToSection('#rings'); return false;">Rings</a></li>
         <li><a href="#jewellery-sets" onclick="scrollToSection('#jewellery-sets'); return false;">Jewellery Sets</a></li>
         <li><a href="#" onclick="openGuideModal(); return false;">Guide 📖</a></li>
         <li><a href="#" onclick="openPolicyModal(); return false;">Policies 📜</a></li>
@@ -64,6 +65,7 @@
       <li><a href="#bracelet" onclick="scrollToSection('#bracelet'); toggleMobileNav(); return false;">Bracelets ✨</a></li>
       <li><a href="#charms" onclick="scrollToSection('#charms'); toggleMobileNav(); return false;">Charms 🍒</a></li>
       <li><a href="#brooches" onclick="scrollToSection('#brooches'); toggleMobileNav(); return false;">Brooches 🦋</a></li>
+      <li><a href="#rings" onclick="scrollToSection('#rings'); toggleMobileNav(); return false;">Rings 💍</a></li>
       <li><a href="#jewellery-sets" onclick="scrollToSection('#jewellery-sets'); toggleMobileNav(); return false;">Jewellery Sets 🎁</a></li>
       <li><a href="#" onclick="openGuideModal(); toggleMobileNav(); return false;">Guide 📖</a></li>
       <li><a href="#" onclick="openPolicyModal(); toggleMobileNav(); return false;">Policies 📜</a></li>
@@ -636,6 +638,17 @@
       <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
     </div>
   </div>
+
+  <div class="product" data-product-id="cyber_cross" onclick="openModal('Cyber Cross', '₹250', ['images/necklaces/Cyber Cross (1).png', 'images/necklaces/Cyber Cross (2).png'])">
+    <div class="product-img-wrapper">
+      <img src="images/necklaces/Cyber Cross (1).png" alt="Cyber Cross">
+    </div>
+    <div class="product-info">
+      <h3>Cyber Cross</h3>
+      <p>₹250</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
+  </div>
 </div>
 
 <!-- BRACELETS SECTION -->
@@ -652,6 +665,25 @@
     <div class="product-info">
       <h3>Bestie Bnw</h3>
       <p>₹180</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
+  </div>
+
+  <div class="product" data-product-id="car_guys_italian_charm_bracelet" onclick="openModal('Car Guys Italian Charm Bracelet', '₹215', ['images/Bracelet/itelian bracelets.png'], ['BMW', 'Volkswagen', 'Porsche'])">
+    <div class="product-img-wrapper">
+      <img src="images/Bracelet/itelian bracelets.png" alt="Car Guys Italian Charm Bracelet">
+    </div>
+    <div class="product-info">
+      <h3>Car Guys Italian Charm Bracelet</h3>
+      <p>₹215</p>
+      <div class="card-brand-options" onclick="event.stopPropagation()">
+        <span class="card-brand-label">Brand:</span>
+        <div class="card-brand-pills">
+          <button type="button" class="card-option-pill active" onclick="selectCardOption(this, 'BMW')">BMW</button>
+          <button type="button" class="card-option-pill" onclick="selectCardOption(this, 'Volkswagen')">Volkswagen</button>
+          <button type="button" class="card-option-pill" onclick="selectCardOption(this, 'Porsche')">Porsche</button>
+        </div>
+      </div>
       <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
     </div>
   </div>
@@ -816,7 +848,136 @@
   </div>
 </div>
 
-<!-- JEWELLERY SETS SECTION (NEW CATEGORY) -->
+<!-- RINGS SECTION (NEW CATEGORY) -->
+<div class="section-header-wrap">
+  <div class="section-header-line"></div>
+  <h2 id="rings" class="section-title">Rings Collection 💍</h2>
+  <div class="section-header-line"></div>
+</div>
+<div class="product-grid">
+  <div class="product" data-product-id="bloodclutch" onclick="openModal('Bloodclutch', '₹199', ['images/rings/Bloodclutch.png'])">
+    <div class="product-img-wrapper">
+      <img src="images/rings/Bloodclutch.png" alt="Bloodclutch">
+    </div>
+    <div class="product-info">
+      <h3>Bloodclutch</h3>
+      <p>₹199</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
+  </div>
+
+  <div class="product" data-product-id="ember_throne" onclick="openModal('Ember Throne', '₹249', ['images/rings/Ember throne (1).png', 'images/rings/Ember throne (2).png'])">
+    <div class="product-img-wrapper">
+      <img src="images/rings/Ember throne (1).png" alt="Ember Throne">
+    </div>
+    <div class="product-info">
+      <h3>Ember Throne</h3>
+      <p>₹249</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
+  </div>
+
+  <div class="product" data-product-id="heartslash" onclick="openModal('Heartslash', '₹199', ['images/rings/Heartslash.png'])">
+    <div class="product-img-wrapper">
+      <img src="images/rings/Heartslash.png" alt="Heartslash">
+    </div>
+    <div class="product-info">
+      <h3>Heartslash</h3>
+      <p>₹199</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
+  </div>
+
+  <div class="product" data-product-id="iron_cromecrest" onclick="openModal('Iron Cromecrest', '₹249', ['images/rings/Iron Cromecrest.png'])">
+    <div class="product-img-wrapper">
+      <img src="images/rings/Iron Cromecrest.png" alt="Iron Cromecrest">
+    </div>
+    <div class="product-info">
+      <h3>Iron Cromecrest</h3>
+      <p>₹249</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
+  </div>
+
+  <div class="product" data-product-id="nightspire" onclick="openModal('Nightspire', '₹220', ['images/rings/Nightspire.png'])">
+    <div class="product-img-wrapper">
+      <img src="images/rings/Nightspire.png" alt="Nightspire">
+    </div>
+    <div class="product-info">
+      <h3>Nightspire</h3>
+      <p>₹220</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
+  </div>
+
+  <div class="product" data-product-id="novamelt" onclick="openModal('Novamelt', '₹199', ['images/rings/Novamelt.png'])">
+    <div class="product-img-wrapper">
+      <img src="images/rings/Novamelt.png" alt="Novamelt">
+    </div>
+    <div class="product-info">
+      <h3>Novamelt</h3>
+      <p>₹199</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
+  </div>
+
+  <div class="product" data-product-id="queendrip" onclick="openModal('Queendrip', '₹199', ['images/rings/Queendrip.png'])">
+    <div class="product-img-wrapper">
+      <img src="images/rings/Queendrip.png" alt="Queendrip">
+    </div>
+    <div class="product-info">
+      <h3>Queendrip</h3>
+      <p>₹199</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
+  </div>
+
+  <div class="product" data-product-id="starscar" onclick="openModal('Starscar', '₹199', ['images/rings/Starscar.png'])">
+    <div class="product-img-wrapper">
+      <img src="images/rings/Starscar.png" alt="Starscar">
+    </div>
+    <div class="product-info">
+      <h3>Starscar</h3>
+      <p>₹199</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
+  </div>
+
+  <div class="product" data-product-id="venomfang" onclick="openModal('Venomfang', '₹220', ['images/rings/Venomfang.png'])">
+    <div class="product-img-wrapper">
+      <img src="images/rings/Venomfang.png" alt="Venomfang">
+    </div>
+    <div class="product-info">
+      <h3>Venomfang</h3>
+      <p>₹220</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
+  </div>
+
+  <div class="product" data-product-id="batman_ring" onclick="openModal('Batman Ring', '₹199', ['images/rings/batman.png'])">
+    <div class="product-img-wrapper">
+      <img src="images/rings/batman.png" alt="Batman Ring">
+    </div>
+    <div class="product-info">
+      <h3>Batman Ring</h3>
+      <p>₹199</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
+  </div>
+
+  <div class="product" data-product-id="dear_couple_ring" onclick="openModal('Dear Couple Ring', '₹299', ['images/rings/dear couple ring (1).png', 'images/rings/dear couple ring (2).png', 'images/rings/dear couple ring (3).png'])">
+    <div class="product-img-wrapper">
+      <img src="images/rings/dear couple ring (1).png" alt="Dear Couple Ring">
+    </div>
+    <div class="product-info">
+      <h3>Dear Couple Ring</h3>
+      <p>₹299</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
+  </div>
+</div>
+
+<!-- JEWELLERY SETS SECTION -->
 <div class="section-header-wrap">
   <div class="section-header-line"></div>
   <h2 id="jewellery-sets" class="section-title">Jewellery Sets 💎</h2>
@@ -855,6 +1016,17 @@
       <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
     </div>
   </div>
+
+  <div class="product" data-product-id="chic_jewellery_jar_set" onclick="openModal('Chic Jewellery Jar Set', '₹420', ['images/gallery/gallery (4).jpg'])">
+    <div class="product-img-wrapper">
+      <img src="images/gallery/gallery (4).jpg" alt="Chic Jewellery Jar Set">
+    </div>
+    <div class="product-info">
+      <h3>Chic Jewellery Jar Set</h3>
+      <p>₹420</p>
+      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
+    </div>
+  </div>
 </div>
 
 <!-- PRODUCT DETAIL MODAL -->
@@ -877,6 +1049,7 @@
       <h2 class="modal-title" id="modalTitle">Product Name</h2>
       <p class="modal-price" id="modalPrice">₹000</p>
       <div id="modalStockBadge" style="margin-bottom: 1rem;"></div>
+      <div id="modalOptionsWrapper" class="product-options-wrapper" style="display:none;"></div>
       <div style="display: flex; flex-direction: column; gap: 12px; margin-top: auto;">
         <button class="modal-add-cart-btn" onclick="addToCartFromModal()">Add to Cart 🛒</button>
         <a class="modal-dm-btn" href="https://www.instagram.com/theglam._.aura/" target="_blank" style="display:flex; align-items:center; justify-content:center; gap:0.5rem;">
@@ -1030,15 +1203,42 @@
 <script>
 let currentImageIndex = 0;
 let currentImages = [];
+window.currentModalOptions = [];
+window.selectedModalOption = '';
 
 function scrollToSection(selector) {
   const element = document.querySelector(selector);
   if (element) { element.scrollIntoView({ behavior: 'smooth' }); }
 }
 
-function openModal(title, price, images) {
+function selectCardOption(btnEl, optionVal) {
+  const container = btnEl.closest('.card-brand-pills');
+  if (container) {
+    container.querySelectorAll('.card-option-pill').forEach(b => b.classList.remove('active'));
+  }
+  btnEl.classList.add('active');
+  const productCard = btnEl.closest('.product');
+  if (productCard) {
+    productCard.dataset.selectedOption = optionVal;
+  }
+}
+
+function selectModalOption(btnEl, optionVal) {
+  const container = document.getElementById('modalOptionPills');
+  if (container) {
+    container.querySelectorAll('.modal-option-btn').forEach(b => b.classList.remove('active'));
+  }
+  btnEl.classList.add('active');
+  window.selectedModalOption = optionVal;
+}
+window.selectCardOption = selectCardOption;
+window.selectModalOption = selectModalOption;
+
+function openModal(title, price, images, options = null) {
   currentImages = images;
   currentImageIndex = 0;
+  window.currentModalOptions = options || [];
+  window.selectedModalOption = (options && options.length > 0) ? options[0] : '';
   
   const displayTitle = title || ((images && images.length > 0 && typeof window.getProductNameFromImage === 'function') 
     ? window.getProductNameFromImage(images[0]) 
@@ -1046,6 +1246,24 @@ function openModal(title, price, images) {
 
   document.getElementById('modalTitle').textContent = displayTitle;
   document.getElementById('modalPrice').textContent = price;
+
+  // Render options inside modal if provided
+  const optionsWrap = document.getElementById('modalOptionsWrapper');
+  if (optionsWrap) {
+    if (window.currentModalOptions && window.currentModalOptions.length > 0) {
+      optionsWrap.style.display = 'block';
+      let html = `<label class="product-options-label">Brand / Variant:</label><div class="option-pills-container" id="modalOptionPills">`;
+      window.currentModalOptions.forEach((opt, idx) => {
+        const isActive = idx === 0 ? 'active' : '';
+        html += `<button type="button" class="modal-option-btn ${isActive}" onclick="selectModalOption(this, '${opt}')">${opt}</button>`;
+      });
+      html += `</div>`;
+      optionsWrap.innerHTML = html;
+    } else {
+      optionsWrap.style.display = 'none';
+      optionsWrap.innerHTML = '';
+    }
+  }
 
   // Update stock badge inside modal
   const firstImg = images && images[0] ? images[0] : '';

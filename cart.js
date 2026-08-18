@@ -30,7 +30,13 @@ function addToCartFromModal() {
     const activeImg = document.querySelector('#modalImageContainer img.active');
     const image = activeImg ? activeImg.src : '';
     const modalTitleText = document.getElementById('modalTitle') ? document.getElementById('modalTitle').textContent : '';
-    const title = getItemTitle(image, modalTitleText);
+    let title = getItemTitle(image, modalTitleText);
+    
+    // Append selected variant option (e.g., "BMW", "Volkswagen", "Porsche") if available
+    const selectedOption = window.selectedModalOption || '';
+    if (selectedOption && !title.includes(`(${selectedOption})`)) {
+        title = `${title} (${selectedOption})`;
+    }
     
     const priceText = document.getElementById('modalPrice').textContent;
     const price = parseInt(priceText.replace(/[^0-9]/g, '')) || 0;
@@ -38,7 +44,7 @@ function addToCartFromModal() {
 
     const availableStock = getAvailableStock(title, image);
     const targetPid = getProductId(title, image);
-    const existingItem = cart.find(item => getProductId(item.name, item.image) === targetPid || item.name === title);
+    const existingItem = cart.find(item => item.name === title || (getProductId(item.name, item.image) === targetPid && (!selectedOption || item.name.includes(selectedOption))));
     const currentQty = existingItem ? existingItem.quantity : 0;
 
     if (availableStock <= 0) {
@@ -261,15 +267,22 @@ document.addEventListener('click', (e) => {
             const imageEl = productDiv.querySelector('img');
             const image = imageEl ? imageEl.src : '';
             const h3Text = productDiv.querySelector('h3') ? productDiv.querySelector('h3').textContent : '';
-            const title = getItemTitle(image, h3Text);
+            let title = getItemTitle(image, h3Text);
             
+            // Check for card-level option selection
+            const activeCardPill = productDiv.querySelector('.card-option-pill.active');
+            const cardOption = productDiv.dataset.selectedOption || (activeCardPill ? activeCardPill.textContent.trim() : '');
+            if (cardOption && !title.includes(`(${cardOption})`)) {
+                title = `${title} (${cardOption})`;
+            }
+
             const priceText = productDiv.querySelector('p').textContent;
             const price = parseInt(priceText.replace(/[^0-9]/g, '')) || 0;
             const itemWeight = getItemWeight({ name: title, image: image });
             
             const availableStock = getAvailableStock(title, image);
             const targetPid = getProductId(title, image);
-            const existingItem = cart.find(item => getProductId(item.name, item.image) === targetPid || item.name === title);
+            const existingItem = cart.find(item => item.name === title || (getProductId(item.name, item.image) === targetPid && (!cardOption || item.name.includes(cardOption))));
             const currentQty = existingItem ? existingItem.quantity : 0;
 
             if (availableStock <= 0) {
