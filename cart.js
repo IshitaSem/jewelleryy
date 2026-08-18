@@ -8,7 +8,7 @@ function saveCart() {
 }
 
 function getItemTitle(image, fallbackTitle) {
-    if (fallbackTitle && fallbackTitle.trim() && (fallbackTitle.trim() !== 'Gallery' || (image && image.includes('gallery (')))) {
+    if (fallbackTitle && typeof fallbackTitle === 'string' && fallbackTitle.trim() && fallbackTitle.trim() !== 'Product') {
         return fallbackTitle.trim();
     }
     if (image && typeof window.getProductNameFromImage === 'function') {
@@ -177,12 +177,11 @@ function updateCartUI() {
             const availableStock = getAvailableStock(displayName, item.image);
 
             // Re-validate against latest available stock
-            if (item.quantity > availableStock) {
-                if (availableStock <= 0) {
-                    hasStockIssue = true;
-                } else {
-                    item.quantity = availableStock;
-                }
+            if (availableStock <= 0) {
+                hasStockIssue = true;
+            } else if (item.quantity > availableStock) {
+                item.quantity = availableStock;
+                saveCart();
             }
 
             totalCount += item.quantity;
@@ -192,25 +191,40 @@ function updateCartUI() {
             const isOutOfStock = availableStock <= 0;
 
             cartItemsDiv.innerHTML += `
-                <div class="cart-item" style="${isOutOfStock ? 'opacity:0.6; border:1px solid #ff4d4f;' : ''}">
+                <div class="cart-item" style="${isOutOfStock ? 'opacity:0.65; border:1px solid #ff4d4f; background:#fff2f0;' : ''}">
                     <img src="${item.image}" alt="${displayName}">
                     <div class="cart-item-details">
                         <h4>${displayName}</h4>
                         <p>₹${item.price} • ${weight}g</p>
-                        <div style="font-size:0.75rem; color:${availableStock <= 2 ? '#d46b08' : '#666'};">
-                            ${isOutOfStock ? '<strong style="color:#ff4d4f;">Out of Stock ❌</strong>' : `Stock: ${availableStock}`}
+                        <div style="font-size:0.75rem; margin-top:0.2rem; color:${isOutOfStock ? '#ff4d4f' : (availableStock <= 2 ? '#d46b08' : '#666')}; font-weight:${isOutOfStock ? 'bold' : 'normal'};">
+                            ${isOutOfStock ? 'Out of Stock ❌' : `Stock: ${availableStock}`}
                         </div>
                         <div class="cart-quantity">
                             <button onclick="updateQuantity(${index}, -1)">-</button>
                             <span>${item.quantity}</span>
-                            <button onclick="updateQuantity(${index}, 1)" ${item.quantity >= availableStock ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>+</button>
+                            <button onclick="updateQuantity(${index}, 1)" ${item.quantity >= availableStock || isOutOfStock ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>+</button>
                         </div>
                     </div>
                 </div>
             `;
         });
+    }
 
-        if (checkoutBtn) checkoutBtn.disabled = hasStockIssue || totalCount <= 0;
+    let warningNotice = document.getElementById('cartStockNotice');
+    if (hasStockIssue) {
+        if (!warningNotice) {
+            warningNotice = document.createElement('div');
+            warningNotice.id = 'cartStockNotice';
+            warningNotice.style.cssText = 'color:#ff4d4f; font-weight:bold; font-size:0.8rem; text-align:center; margin-bottom:0.6rem; background:#fff2f0; padding:0.5rem; border-radius:6px; border:1px solid #ffccc7;';
+            const cartFooter = document.querySelector('.cart-footer');
+            if (cartFooter) cartFooter.insertBefore(warningNotice, cartFooter.firstChild);
+        }
+        warningNotice.innerHTML = '⚠️ Some items in your cart are out of stock. Please remove them to proceed.';
+        warningNotice.style.display = 'block';
+        if (checkoutBtn) checkoutBtn.disabled = true;
+    } else {
+        if (warningNotice) warningNotice.style.display = 'none';
+        if (checkoutBtn) checkoutBtn.disabled = totalCount <= 0;
     }
     
     const packagingWeight = cart.length > 0 ? PACKAGING_WEIGHT_GRAMS : 0;
@@ -233,9 +247,11 @@ window.updateQuantity = updateQuantity;
 window.toggleCart = toggleCart;
 window.updateCartUI = updateCartUI;
 
-document.addEventListener('DOMContentLoaded', () => {
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => updateCartUI());
+} else {
     updateCartUI();
-});
+}
 
 document.addEventListener('click', (e) => {
     if (e.target.classList.contains('add-to-cart-quick')) {

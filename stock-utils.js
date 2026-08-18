@@ -122,7 +122,7 @@ export function combineProducts(firestoreDocs = []) {
 export function renderStockBadge(stock) {
   const count = Number(stock);
   if (isNaN(count) || count <= 0) {
-    return `<span class="stock-badge out-of-stock">Out of Stock ❌</span>`;
+    return `<span class="stock-badge out-of-stock">Sold Out ❌</span>`;
   }
   if (count === 1) {
     return `<span class="stock-badge low-stock">In Stock (Only 1 left! 🔥)</span>`;

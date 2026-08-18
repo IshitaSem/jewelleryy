@@ -18,8 +18,9 @@ export function getProductNameFromImage(imagePath) {
   let nameWithoutExt = filename.replace(/\.(jpg|jpeg|png|webp|gif|svg)$/i, '');
   nameWithoutExt = nameWithoutExt.replace(/[-_][a-zA-Z0-9]{6,12}[-_]?$/gi, '');
 
-  // 3. Strip decorative emojis for clean title case string
-  let cleanStr = nameWithoutExt.replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F300}-\u{1F9FF}]|\p{Extended_Pictographic}/gu, '');
+  // 3. Strip decorative emojis and special symbols for clean title case string
+  let cleanStr = nameWithoutExt.replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F300}-\u{1F9FF}]|\p{Extended_Pictographic}/gu, ' ');
+  cleanStr = cleanStr.replace(/[✧]/g, ' ');
 
   // 4. Base product name grouping rules
   let baseName = cleanStr;

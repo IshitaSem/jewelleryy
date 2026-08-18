@@ -737,6 +737,35 @@ nav.categories-nav a.active {
   border: 1px solid rgba(224, 36, 36, 0.2);
 }
 
+/* Image Sold Out Badge Overlay */
+.product-sold-out-tag {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: #ff4d4f;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 0.35rem 0.85rem;
+  border-radius: 20px;
+  box-shadow: 0 2px 6px rgba(255, 77, 79, 0.35);
+  z-index: 3;
+  line-height: 1;
+  pointer-events: none;
+}
+
+/* Sold Out Action Button */
+.dm-btn.sold-out-btn,
+.modal-add-cart-btn.sold-out-btn {
+  background: #f0f2f5 !important;
+  color: #8c92a0 !important;
+  border: 1px solid #e2e8f0 !important;
+  cursor: not-allowed !important;
+  opacity: 0.9 !important;
+  box-shadow: none !important;
+  font-weight: 700 !important;
+}
+
 /* Add to Cart Action Button */
 .dm-btn {
   margin-top: auto;

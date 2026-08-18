@@ -50,7 +50,7 @@ function recalculateTotals() {
     if (paymentAmount) paymentAmount.textContent = `₹${grandTotal}`;
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+function initCheckout() {
     if (cart.length === 0) {
         alert("Your cart is empty! Redirecting to catalogue...");
         window.location.href = 'index.html';
@@ -96,7 +96,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (checkoutForm) {
         checkoutForm.addEventListener('submit', handleOrderSubmission);
     }
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCheckout);
+} else {
+    initCheckout();
+}
 
 async function handleOrderSubmission(e) {
     e.preventDefault();
