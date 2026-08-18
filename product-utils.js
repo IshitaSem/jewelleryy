@@ -148,11 +148,9 @@ export const STOREFRONT_PRODUCTS = [
   { name: 'Batman Ring', price: 199, image: 'images/rings/batman.png', category: 'Rings' },
   { name: 'Dear Couple Ring', price: 299, image: 'images/rings/dear couple ring (1).png', category: 'Rings' },
 
-  // JEWELLERY SETS (4)
-  { name: 'Custom Jar Set', price: 420, image: 'images/gallery/gallery (1).jpg', category: 'Jewellery Sets' },
-  { name: 'Vintage Jewellery Jar Set', price: 420, image: 'images/gallery/gallery (2).jpg', category: 'Jewellery Sets' },
-  { name: 'Y2K Mystery Jar Set', price: 400, image: 'images/gallery/gallery (3).jpg', category: 'Jewellery Sets' },
-  { name: 'Chic Jewellery Jar Set', price: 420, image: 'images/gallery/gallery (4).jpg', category: 'Jewellery Sets' }
+  // HANDMADE JEWELLERY (2)
+  { name: 'Celi Novia', price: 400, image: 'images/Handmade jewellery/Celi✧Novia (1).jpeg', category: 'Handmade Jewellery' },
+  { name: 'Gothic Black Cromeheart', price: 300, image: 'images/Handmade jewellery/gothic black cromeheart (1).jpg', category: 'Handmade Jewellery' }
 ];
 
 if (typeof window !== 'undefined') {
