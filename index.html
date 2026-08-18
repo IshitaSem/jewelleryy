@@ -1229,7 +1229,7 @@ document.addEventListener('DOMContentLoaded', () => {
 <script type="module">
   import { db } from './firebase.js';
   import { collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-  import { getProductId, renderStockBadge, combineProducts } from './stock-utils.js';
+  import { getProductId, renderStockBadge, combineProducts, parseNumberValue } from './stock-utils.js';
 
   window.liveStockMap = window.liveStockMap || {};
 
@@ -1347,8 +1347,31 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
+    async function fetchStockFromRestAPI() {
+      try {
+        const res = await fetch('https://firestore.googleapis.com/v1/projects/jewellyy-99408/databases/(default)/documents/products');
+        if (!res.ok) return;
+        const data = await res.json();
+        const docs = (data.documents || []).map(doc => {
+          const fields = doc.fields || {};
+          const id = doc.name.split('/').pop();
+          const stock = parseNumberValue(fields.stock);
+          const name = fields.name ? fields.name.stringValue : id;
+          const price = parseNumberValue(fields.price);
+          const image = fields.image ? fields.image.stringValue : '';
+          const category = fields.category ? fields.category.stringValue : '';
+          return { id, productId: id, stock, name, price, image, category };
+        });
+        syncAllProductsUI(docs);
+      } catch (err) {
+        console.warn("REST API stock fetch notice:", err);
+      }
+    }
+
     // Initial sync with local catalog
     syncAllProductsUI([]);
+    // Immediate REST API fetch fallback
+    fetchStockFromRestAPI();
 
     // Realtime Firestore listener
     onSnapshot(collection(db, "products"), (snapshot) => {
@@ -1359,7 +1382,7 @@ document.addEventListener('DOMContentLoaded', () => {
       syncAllProductsUI(docs);
     }, (error) => {
       console.warn("Realtime stock listener warning:", error.message);
-      syncAllProductsUI([]);
+      fetchStockFromRestAPI();
     });
   }
 

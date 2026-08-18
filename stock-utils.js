@@ -64,13 +64,28 @@ export function deriveCategory(imagePath = '', name = '') {
 
 import { STOREFRONT_PRODUCTS } from './product-utils.js';
 
+export function parseNumberValue(val) {
+  if (val === undefined || val === null) return null;
+  if (typeof val === 'number') return isNaN(val) ? null : val;
+  if (typeof val === 'string') {
+    const parsed = parseInt(val, 10);
+    return isNaN(parsed) ? null : parsed;
+  }
+  if (typeof val === 'object') {
+    if (val.integerValue !== undefined) return parseInt(val.integerValue, 10);
+    if (val.doubleValue !== undefined) return Math.floor(val.doubleValue);
+    if (val.stringValue !== undefined) return parseInt(val.stringValue, 10);
+  }
+  return null;
+}
+
 /**
  * Merge storefront product catalog with Firestore inventory snapshot records cleanly without duplicates.
  */
 export function combineProducts(firestoreDocs = []) {
   const fsMap = {};
   firestoreDocs.forEach(d => {
-    const id = d.id || getProductId(d.name, d.image);
+    const id = d.id || d.productId || getProductId(d.name, d.image);
     if (id) fsMap[id] = d;
   });
 
@@ -84,14 +99,22 @@ export function combineProducts(firestoreDocs = []) {
     seenIds.add(pId);
 
     const fsData = fsMap[pId] || {};
-    const finalCategory = fsData.category || dp.category || deriveCategory(dp.image, dp.name);
+    const rawStock = parseNumberValue(fsData.stock);
+    const rawPrice = parseNumberValue(fsData.price);
+    const finalStock = (rawStock !== null) ? rawStock : DEFAULT_INITIAL_STOCK;
+    const finalPrice = (rawPrice !== null) ? rawPrice : dp.price;
+    const fsName = typeof fsData.name === 'object' && fsData.name ? fsData.name.stringValue : fsData.name;
+    const fsImage = typeof fsData.image === 'object' && fsData.image ? fsData.image.stringValue : fsData.image;
+    const fsCategory = typeof fsData.category === 'object' && fsData.category ? fsData.category.stringValue : fsData.category;
+    const finalCategory = fsCategory || dp.category || deriveCategory(dp.image, dp.name);
+
     result.push({
       id: pId,
-      name: fsData.name || dp.name,
-      price: typeof fsData.price === 'number' ? fsData.price : dp.price,
+      name: fsName || dp.name,
+      price: finalPrice,
       category: finalCategory,
-      image: fsData.image || dp.image,
-      stock: typeof fsData.stock === 'number' ? fsData.stock : DEFAULT_INITIAL_STOCK,
+      image: fsImage || dp.image,
+      stock: finalStock,
       hasFsRecord: Boolean(fsData.id || fsData.productId)
     });
   });
@@ -100,13 +123,19 @@ export function combineProducts(firestoreDocs = []) {
   Object.keys(fsMap).forEach(fsId => {
     if (!seenIds.has(fsId)) {
       const fsData = fsMap[fsId];
+      const rawStock = parseNumberValue(fsData.stock);
+      const rawPrice = parseNumberValue(fsData.price);
+      const fsName = typeof fsData.name === 'object' && fsData.name ? fsData.name.stringValue : fsData.name;
+      const fsImage = typeof fsData.image === 'object' && fsData.image ? fsData.image.stringValue : fsData.image;
+      const fsCategory = typeof fsData.category === 'object' && fsData.category ? fsData.category.stringValue : fsData.category;
+
       result.push({
         id: fsId,
-        name: fsData.name || fsId,
-        price: typeof fsData.price === 'number' ? fsData.price : 0,
-        category: fsData.category || deriveCategory(fsData.image, fsData.name),
-        image: fsData.image || '',
-        stock: typeof fsData.stock === 'number' ? fsData.stock : DEFAULT_INITIAL_STOCK,
+        name: fsName || fsId,
+        price: (rawPrice !== null) ? rawPrice : 0,
+        category: fsCategory || deriveCategory(fsImage, fsName),
+        image: fsImage || '',
+        stock: (rawStock !== null) ? rawStock : DEFAULT_INITIAL_STOCK,
         hasFsRecord: true
       });
       seenIds.add(fsId);
