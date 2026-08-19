@@ -22,7 +22,13 @@
 
 <!-- MAIN HEADER & NAV -->
 <header class="main-header">
-  <div class="header-container">
+  <div class="header-top-row">
+    <div class="header-top-left">
+      <a href="https://www.instagram.com/theglam._.aura/" target="_blank" class="header-insta-link">
+        <span>📸</span> DM @theglam._.aura
+      </a>
+    </div>
+
     <a href="index.html" class="brand-logo">
       <img src="images/hero/hero.png" alt="The Glam Aura Logo">
       <div>
@@ -30,20 +36,6 @@
         <div class="brand-subtitle">Handmade Jewellery</div>
       </div>
     </a>
-
-    <nav class="categories-nav">
-      <ul>
-        <li><a href="#earrings" onclick="scrollToSection('#earrings'); return false;">Earrings</a></li>
-        <li><a href="#pendants" onclick="scrollToSection('#pendants'); return false;">Pendants</a></li>
-        <li><a href="#bracelet" onclick="scrollToSection('#bracelet'); return false;">Bracelets</a></li>
-        <li><a href="#charms" onclick="scrollToSection('#charms'); return false;">Charms</a></li>
-        <li><a href="#brooches" onclick="scrollToSection('#brooches'); return false;">Brooches</a></li>
-        <li><a href="#rings" onclick="scrollToSection('#rings'); return false;">Rings</a></li>
-        <li><a href="#handmade-jewellery" onclick="scrollToSection('#handmade-jewellery'); return false;">Handmade Jewellery</a></li>
-        <li><a href="#" onclick="openGuideModal(); return false;">Guide 📖</a></li>
-        <li><a href="#" onclick="openPolicyModal(); return false;">Policies 📜</a></li>
-      </ul>
-    </nav>
 
     <div class="header-actions">
       <button class="header-cart-btn" onclick="toggleCart()">
@@ -57,9 +49,72 @@
     </div>
   </div>
 
+  <nav class="categories-nav">
+    <ul class="nav-main-list">
+      <li><a href="index.html" class="nav-item-link active">Home</a></li>
+
+      <li class="nav-dropdown">
+        <a href="#categories" class="nav-item-link dropdown-toggle" onclick="event.preventDefault();">
+          Categories <span class="dropdown-caret">▾</span>
+        </a>
+        <div class="mega-menu-dropdown">
+          <div class="mega-menu-grid">
+            <div class="mega-menu-col">
+              <div class="mega-menu-title">Category 🌸</div>
+              <ul>
+                <li><a href="#earrings" onclick="scrollToSection('#earrings'); return false;">Earrings</a></li>
+                <li><a href="#pendants" onclick="scrollToSection('#pendants'); return false;">Pendants</a></li>
+                <li><a href="#bracelet" onclick="scrollToSection('#bracelet'); return false;">Bracelets</a></li>
+                <li><a href="#charms" onclick="scrollToSection('#charms'); return false;">Charms</a></li>
+                <li><a href="#brooches" onclick="scrollToSection('#brooches'); return false;">Brooches</a></li>
+                <li><a href="#rings" onclick="scrollToSection('#rings'); return false;">Rings</a></li>
+                <li><a href="#handmade-jewellery" onclick="scrollToSection('#handmade-jewellery'); return false;">Handmade Jewellery</a></li>
+              </ul>
+            </div>
+
+            <div class="mega-menu-col">
+              <div class="mega-menu-title">Collections ✨</div>
+              <ul>
+                <li><a href="#earrings" onclick="scrollToSection('#earrings'); return false;">Featured Highlights</a></li>
+                <li><a href="#handmade-jewellery" onclick="scrollToSection('#handmade-jewellery'); return false;">Handcrafted Specials</a></li>
+                <li><a href="https://www.instagram.com/theglam._.aura/" target="_blank">Custom Orders 📸</a></li>
+              </ul>
+            </div>
+
+            <div class="mega-menu-col">
+              <div class="mega-menu-title">Help & Info 📖</div>
+              <ul>
+                <li><a href="#" onclick="openGuideModal(); return false;">Shopping Guide 📖</a></li>
+                <li><a href="#" onclick="openPolicyModal(); return false;">Store Policies 📜</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </li>
+
+      <li><a href="#earrings" onclick="scrollToSection('#earrings'); return false;" class="nav-item-link">Earrings</a></li>
+      <li><a href="#pendants" onclick="scrollToSection('#pendants'); return false;" class="nav-item-link">Pendants</a></li>
+      <li><a href="#bracelet" onclick="scrollToSection('#bracelet'); return false;" class="nav-item-link">Bracelets</a></li>
+      <li><a href="#charms" onclick="scrollToSection('#charms'); return false;" class="nav-item-link">Charms</a></li>
+
+      <li class="nav-dropdown">
+        <a href="#" class="nav-item-link dropdown-toggle" onclick="event.preventDefault();">
+          Guide & Policies <span class="dropdown-caret">▾</span>
+        </a>
+        <div class="mega-menu-dropdown mini-dropdown">
+          <ul>
+            <li><a href="#" onclick="openGuideModal(); return false;">Shopping Guide 📖</a></li>
+            <li><a href="#" onclick="openPolicyModal(); return false;">Policies & Care 📜</a></li>
+          </ul>
+        </div>
+      </li>
+    </ul>
+  </nav>
+
   <!-- MOBILE NAVIGATION DRAWER -->
   <div class="mobile-nav-drawer" id="mobileNavDrawer">
     <ul>
+      <li class="drawer-section-title">Categories 🌸</li>
       <li><a href="#earrings" onclick="scrollToSection('#earrings'); toggleMobileNav(); return false;">Earrings 🌸</a></li>
       <li><a href="#pendants" onclick="scrollToSection('#pendants'); toggleMobileNav(); return false;">Pendants 💖</a></li>
       <li><a href="#bracelet" onclick="scrollToSection('#bracelet'); toggleMobileNav(); return false;">Bracelets ✨</a></li>
@@ -67,7 +122,8 @@
       <li><a href="#brooches" onclick="scrollToSection('#brooches'); toggleMobileNav(); return false;">Brooches 🦋</a></li>
       <li><a href="#rings" onclick="scrollToSection('#rings'); toggleMobileNav(); return false;">Rings 💍</a></li>
       <li><a href="#handmade-jewellery" onclick="scrollToSection('#handmade-jewellery'); toggleMobileNav(); return false;">Handmade Jewellery 🌸</a></li>
-      <li><a href="#" onclick="openGuideModal(); toggleMobileNav(); return false;">Guide 📖</a></li>
+      <li class="drawer-section-title">Help & Info 📖</li>
+      <li><a href="#" onclick="openGuideModal(); toggleMobileNav(); return false;">Shopping Guide 📖</a></li>
       <li><a href="#" onclick="openPolicyModal(); toggleMobileNav(); return false;">Policies 📜</a></li>
     </ul>
   </div>
@@ -308,17 +364,6 @@
   <h2 id="pendants" id="necklaces" class="section-title">Pendants Collection 😸</h2>
   <div class="section-header-line"></div>
 </div>
-<div class="product-grid">
-  <div class="product" data-product-id="celi_novia" onclick="openModal('Celi Novia', '₹400', ['images/necklaces/Celi✧Novia (1).jpeg', 'images/necklaces/Celi✧Novia (2).jpeg', 'images/necklaces/Celi✧Novia (3).jpeg'])">
-    <div class="product-img-wrapper">
-      <img src="images/necklaces/Celi✧Novia (1).jpeg" alt="Celi Novia">
-    </div>
-    <div class="product-info">
-      <h3>Celi Novia</h3>
-      <p>₹400</p>
-      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
-    </div>
-  </div>
 
   <div class="product" data-product-id="pink_hearty_cross" onclick="openModal('Pink Hearty Cross', '₹250', ['images/necklaces/pink hearty cross.jpg'])">
     <div class="product-img-wrapper">
@@ -448,17 +493,6 @@
     <div class="product-info">
       <h3>Crosssilver</h3>
       <p>₹250</p>
-      <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
-    </div>
-  </div>
-
-  <div class="product" data-product-id="gothic_black_cromeheart" onclick="openModal('Gothic Black Cromeheart', '₹300', ['images/necklaces/gothic black cromeheart (1).jpg', 'images/necklaces/gothic black cromeheart (2).jpg', 'images/necklaces/gothic black cromeheart (3).jpg'])">
-    <div class="product-img-wrapper">
-      <img src="images/necklaces/gothic black cromeheart (1).jpg" alt="Gothic Black Cromeheart">
-    </div>
-    <div class="product-info">
-      <h3>Gothic Black Cromeheart</h3>
-      <p>₹300</p>
       <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
     </div>
   </div>
