@@ -144,15 +144,39 @@
 
 
     <h2 style="margin-top: 2rem;">Payment 💸</h2>
-    <div class="payment-instructions">
-      <p style="margin-bottom: 0.5rem; font-weight: 600;">1. Pay the order total of <strong id="paymentAmount" style="color:var(--rosewood);">₹0</strong> using the UPI ID below.</p>
-      <div class="upi-id">ishsem@ptyes</div><br>
-      <a href="upi://pay?pa=ishsem@ptyes&pn=TheGlamAura" class="btn-submit" style="display:inline-block; margin-bottom:1rem; width:auto; padding:0.6rem 1.5rem; font-size:0.95rem; text-decoration:none;">Pay via UPI Mobile App</a>
-      <p style="font-size:0.9rem; color:var(--text-muted);">2. Take a screenshot of your successful UPI payment.</p>
-      <p style="font-size:0.9rem; color:var(--text-muted);">3. Upload the screenshot below to confirm your order.</p>
+    <div class="payment-instructions" style="text-align: center; background: #fffafb; border: 1px solid #ffb6c1; border-radius: 12px; padding: 1.2rem;">
+      <p style="margin-bottom: 0.8rem; font-weight: 600; font-size: 1rem; color: #333;">
+        1. Scan QR code or pay <strong id="paymentAmount" style="color:var(--rosewood);">₹0</strong> using UPI:
+      </p>
+
+      <!-- Custom UPI QR Code Box -->
+      <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0.8rem 0;">
+        <div style="background: white; padding: 0.8rem; border-radius: 12px; border: 2px solid #ffb6c1; box-shadow: 0 4px 15px rgba(255, 20, 147, 0.1); display: inline-block;">
+          <img id="upiQrImage" src="images/qr/qr code.jpeg" alt="Scan UPI QR Code to Pay" style="width: 200px; height: auto; max-height: 240px; object-fit: contain; display: block; border-radius: 8px;" onerror="this.onerror=null; this.src='https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=upi%3A%2F%2Fpay%3Fpa%3Dishsem%40ptyes%26pn%3DTheGlamAura';">
+        </div>
+        <span style="font-size: 0.8rem; color: #666; margin-top: 0.5rem; font-weight: 500;">
+          📱 Scan with Google Pay, PhonePe, Paytm, BHIM, or any UPI App
+        </span>
+      </div>
+
+      <!-- UPI ID Display & Copy -->
+      <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: white; padding: 0.4rem 0.9rem; border-radius: 20px; border: 1px dashed var(--rosewood); margin: 0.5rem 0;">
+        <span style="font-weight: bold; color: var(--rosewood); font-size: 1.05rem;">ishsem@ptyes</span>
+        <button type="button" onclick="copyUpiId()" style="background: var(--rosewood); color: white; border: none; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.75rem; cursor: pointer; font-weight: bold;">Copy 📋</button>
+      </div>
+      <div id="copyUpiMsg" style="font-size: 0.8rem; color: #28a745; display: none; margin-top: 0.2rem; font-weight: bold;">UPI ID Copied! ✨</div>
+
+      <div style="margin: 0.8rem 0;">
+        <a id="upiPayBtn" href="upi://pay?pa=ishsem@ptyes&pn=TheGlamAura" class="btn-submit" style="display:inline-block; width:auto; padding:0.6rem 1.5rem; font-size:0.95rem; text-decoration:none;">Pay via UPI Mobile App 📱</a>
+      </div>
+
+      <div style="text-align: left; background: white; padding: 0.8rem; border-radius: 8px; margin-top: 1rem; border: 1px solid #eee;">
+        <p style="font-size:0.85rem; color:#555; margin-bottom: 0.3rem;">2. Take a screenshot of your successful UPI payment.</p>
+        <p style="font-size:0.85rem; color:#555; margin: 0;">3. Upload the screenshot below to confirm your order.</p>
+      </div>
     </div>
 
-    <div class="form-group">
+    <div class="form-group" style="margin-top: 1.5rem;">
       <label for="paymentScreenshot">Upload Payment Screenshot *</label>
       <input type="file" id="paymentScreenshot" accept="image/png, image/jpeg, image/jpg, image/webp" required form="checkoutForm">
       <small style="color:var(--text-muted);">Max file size: 5MB</small>

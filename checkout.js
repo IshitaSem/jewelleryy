@@ -117,8 +117,33 @@ function recalculateTotals() {
     if (checkoutTotal) checkoutTotal.textContent = `₹${grandTotal}`;
     if (paymentAmount) paymentAmount.textContent = `₹${grandTotal}`;
 
+    const qrImg = document.getElementById('upiQrImage');
+    const upiPayBtn = document.getElementById('upiPayBtn');
+    const upiUri = `upi://pay?pa=ishsem@ptyes&pn=TheGlamAura&am=${grandTotal}&cu=INR`;
+
+    if (qrImg && (!qrImg.getAttribute('src') || qrImg.getAttribute('src').includes('qrserver.com'))) {
+        qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(upiUri)}`;
+    }
+    if (upiPayBtn) {
+        upiPayBtn.href = upiUri;
+    }
+
     renderCheckoutCouponUI();
 }
+
+function copyUpiId() {
+    navigator.clipboard.writeText('ishsem@ptyes').then(() => {
+        const msg = document.getElementById('copyUpiMsg');
+        if (msg) {
+            msg.style.display = 'block';
+            setTimeout(() => msg.style.display = 'none', 2000);
+        }
+    }).catch(() => {
+        alert("UPI ID: ishsem@ptyes");
+    });
+}
+window.copyUpiId = copyUpiId;
+
 
 function renderCheckoutCouponUI() {
     const container = document.getElementById('checkoutCouponContainer');
