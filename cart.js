@@ -18,6 +18,8 @@ async function loadPricingRule() {
         }
     } catch (e) {
         console.warn("Could not fetch pricing rules from Firestore, using default:", e);
+    } finally {
+        updateCartUI();
     }
 }
 loadPricingRule();

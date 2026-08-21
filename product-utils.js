@@ -158,22 +158,34 @@ export function isEligibleRing(item, ruleConfig = null) {
   const itemPrice = typeof item.originalPrice === 'number' ? item.originalPrice : item.price;
   if (itemPrice !== targetBasePrice) return false;
   
-  if (typeof window !== 'undefined' && typeof window.normalizeCategory === 'function') {
-    const derived = typeof window.deriveCategory === 'function' ? window.deriveCategory(item.image, item.name) : '';
-    const normCat = window.normalizeCategory(item.category || derived);
-    if (normCat) {
-      return normCat === 'ring';
+  let itemCat = (item.category || '').toLowerCase();
+  
+  if (!itemCat) {
+    const rawName = String(item.name || '').split('(')[0].trim().toLowerCase();
+    const catalog = (typeof window !== 'undefined' && window.STOREFRONT_PRODUCTS) ? window.STOREFRONT_PRODUCTS : (STOREFRONT_PRODUCTS || []);
+    const match = catalog.find(p => {
+      const pName = String(p.name || '').toLowerCase();
+      return pName === rawName || rawName.includes(pName) || pName.includes(rawName);
+    });
+    if (match && match.category) {
+      itemCat = String(match.category).toLowerCase();
     }
   }
 
-  const cat = (item.category || '').toLowerCase();
-  if (cat.includes('earring')) return false;
-  if (cat.includes('ring')) return true;
-  
-  const imgAndName = ((item.image || '') + ' ' + (item.name || '')).toLowerCase();
-  if (imgAndName.includes('earring')) return false;
-  return imgAndName.includes('/rings/') || imgAndName.includes('ring');
+  if (!itemCat) {
+    const imgAndName = ((item.image || '') + ' ' + (item.name || '')).toLowerCase();
+    if (imgAndName.includes('earring')) return false;
+    if (imgAndName.includes('necklace') || imgAndName.includes('pendant') || imgAndName.includes('bracelet') || imgAndName.includes('charm') || imgAndName.includes('brooch')) return false;
+    if (imgAndName.includes('/rings/') || imgAndName.includes('ring')) itemCat = 'rings';
+  }
+
+  if (itemCat.includes('earring')) return false;
+  if (itemCat.includes('ring')) return true;
+
+  return false;
 }
+
+
 
 
 export function calculateRingBundleDiscount(cartItems = [], ruleConfig = null) {

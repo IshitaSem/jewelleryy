@@ -685,7 +685,11 @@ function initCouponManagement() {
                 resetCouponForm();
             } catch (err) {
                 console.error("Error saving coupon:", err);
-                alert("Failed to save coupon: " + err.message);
+                if (err.code === 'permission-denied' || (err.message && err.message.includes('permissions'))) {
+                    alert("Failed to save coupon: Missing or insufficient permissions.\n\nTo fix this error:\n1. Open your Firebase Console (https://console.firebase.google.com)\n2. Go to Firestore Database -> Rules tab\n3. Copy the updated contents of 'firestore.rules' from your project and click Publish.");
+                } else {
+                    alert("Failed to save coupon: " + err.message);
+                }
             } finally {
                 btnSave.disabled = false;
                 btnSave.textContent = 'Save Coupon';
@@ -908,7 +912,11 @@ async function initOffersManagement() {
                 }
             } catch (err) {
                 console.error("Error saving pricing rule:", err);
-                alert("Failed to save pricing rule: " + err.message);
+                if (err.code === 'permission-denied' || (err.message && err.message.includes('permissions'))) {
+                    alert("Failed to save pricing rule: Missing or insufficient permissions.\n\nTo fix this error:\n1. Open your Firebase Console (https://console.firebase.google.com)\n2. Go to Firestore Database -> Rules tab\n3. Copy the updated contents of 'firestore.rules' from your project and click Publish.");
+                } else {
+                    alert("Failed to save pricing rule: " + err.message);
+                }
             } finally {
                 btnSave.disabled = false;
                 btnSave.textContent = 'Save Pricing Rule';
@@ -916,4 +924,5 @@ async function initOffersManagement() {
         });
     }
 }
+
 
