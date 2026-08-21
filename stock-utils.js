@@ -26,7 +26,9 @@ export function getProductId(title, imagePath) {
   // Strip emojis and non-alphanumeric chars
   let cleaned = name.replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F300}-\u{1F9FF}]|\p{Extended_Pictographic}/gu, '');
   cleaned = cleaned.replace(/\(([0-9]+)\)/g, ''); // strip (1), (2)
-  cleaned = cleaned.replace(/\s+2\.0$/i, '');
+  if (!name.toLowerCase().includes('batmobile')) {
+    cleaned = cleaned.replace(/\s+2\.0$/i, '');
+  }
   cleaned = cleaned.toLowerCase().trim();
   cleaned = cleaned.replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
 

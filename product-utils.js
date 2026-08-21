@@ -42,7 +42,9 @@ export function getProductNameFromImage(imagePath) {
   } else {
     // Remove multi-angle indices like (1), (2), (3) or 2.0
     baseName = baseName.replace(/\s*\(([0-9]+)\)/g, '');
-    baseName = baseName.replace(/\s+[0-9]\.0$/i, '');
+    if (!baseName.toLowerCase().includes('batmobile')) {
+      baseName = baseName.replace(/\s+[0-9]\.0$/i, '');
+    }
   }
 
   // 5. Replace hyphens and underscores with spaces
@@ -68,8 +70,11 @@ export function getProductNameFromImage(imagePath) {
  * Single source of truth for the storefront jewellery product catalog.
  */
 export const STOREFRONT_PRODUCTS = [
-  // KEYCHAINS (1)
-  { name: 'Batmobile Keychain', price: 199, image: 'images/keychains/batmobile 1.0.png', category: 'Keychains' },
+  // KEYCHAINS (4)
+  { name: 'Batmobile 1.0 Keychain', price: 199, image: 'images/keychains/batmobile 1.0.png', category: 'Keychains' },
+  { name: 'Batmobile 2.0 Keychain', price: 199, image: 'images/keychains/batmobile 2.0.png', category: 'Keychains' },
+  { name: 'Batmobile 3.0 Keychain', price: 199, image: 'images/keychains/batmobile 3.0.png', category: 'Keychains' },
+  { name: 'Batmobile 4.0 Keychain', price: 199, image: 'images/keychains/batmobile 4.0.png', category: 'Keychains' },
   // EARRINGS (15)
   { name: 'Butterfly Bloom', price: 69, image: 'images/earrings/Butterfly Bloom 🦋.jpg', category: 'Earrings' },
   { name: 'Cherry Heart Star', price: 99, image: 'images/earrings/Cherry Heart star🍒.jpg', category: 'Earrings' },

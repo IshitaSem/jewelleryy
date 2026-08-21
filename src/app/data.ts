@@ -93,7 +93,10 @@ export const PRODUCTS: Product[] = [
   { id: 'st5', name: 'Greeting Cards Set', price: 249, category: 'Stationery', description: '6 letterpress greeting cards with envelopes.', image: IMG('photo-1456735190827-d1262f71b8a3'), popular: true },
 
   // Keychains & Accessories
-  { id: 'kc1', name: 'Batmobile Keychain', price: 199, category: 'Keychains', description: 'Dark Knight Batmobile die-cast metal keychain.', image: 'images/keychains/batmobile 1.0.png', popular: true },
+  { id: 'kc1', name: 'Batmobile 1.0 Keychain', price: 199, category: 'Keychains', description: 'Dark Knight Batmobile 1.0 die-cast metal keychain.', image: 'images/keychains/batmobile 1.0.png', popular: true },
+  { id: 'kc2', name: 'Batmobile 2.0 Keychain', price: 199, category: 'Keychains', description: 'Dark Knight Batmobile 2.0 die-cast metal keychain.', image: 'images/keychains/batmobile 2.0.png' },
+  { id: 'kc3', name: 'Batmobile 3.0 Keychain', price: 199, category: 'Keychains', description: 'Dark Knight Batmobile 3.0 die-cast metal keychain.', image: 'images/keychains/batmobile 3.0.png' },
+  { id: 'kc4', name: 'Batmobile 4.0 Keychain', price: 199, category: 'Keychains', description: 'Dark Knight Batmobile 4.0 die-cast metal keychain.', image: 'images/keychains/batmobile 4.0.png' },
 
   // Bracelets & Accessories
   { id: 'b1', name: 'Car Guys Italian Charm Bracelet', price: 215, category: 'Bracelets', description: 'Italian charm bracelet with 3 brand options: BMW, Volkswagen, Porsche.', image: 'images/Bracelet/itelian bracelets.png', popular: true },
