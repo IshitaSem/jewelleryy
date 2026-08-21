@@ -205,6 +205,7 @@
 
     <div class="admin-tabs" style="max-width:1400px; margin:1.5rem auto 0 auto; padding:0 1rem; display:flex; gap:1rem; flex-wrap:wrap;">
         <button id="tabOrdersBtn" class="admin-tab-btn active" style="padding:0.8rem 1.5rem; background:#ff1493; color:white; border:none; border-radius:20px; font-weight:bold; cursor:pointer;">All Orders 📜</button>
+        <button id="tabAnalyticsBtn" class="admin-tab-btn" style="padding:0.8rem 1.5rem; background:#fff0f5; color:#ff1493; border:2px solid #ffb6c1; border-radius:20px; font-weight:bold; cursor:pointer;">Sales & Analytics 📊</button>
         <button id="tabStockBtn" class="admin-tab-btn" style="padding:0.8rem 1.5rem; background:#fff0f5; color:#ff1493; border:2px solid #ffb6c1; border-radius:20px; font-weight:bold; cursor:pointer;">Stock Management 📦</button>
         <button id="tabCouponsBtn" class="admin-tab-btn" style="padding:0.8rem 1.5rem; background:#fff0f5; color:#ff1493; border:2px solid #ffb6c1; border-radius:20px; font-weight:bold; cursor:pointer;">Coupons 🎟️</button>
         <button id="tabOffersBtn" class="admin-tab-btn" style="padding:0.8rem 1.5rem; background:#fff0f5; color:#ff1493; border:2px solid #ffb6c1; border-radius:20px; font-weight:bold; cursor:pointer;">Offers & Pricing 🏷️</button>
@@ -216,7 +217,13 @@
         <!-- Sidebar -->
         <div class="order-list-panel">
             <div class="order-list-header">
-                <h3>All Orders</h3>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h3>All Orders</h3>
+                    <span id="quickStatsBadge" style="font-size:0.8rem; background:#fff0f5; color:#ff1493; padding:0.2rem 0.6rem; border-radius:12px; font-weight:bold;">0 orders</span>
+                </div>
+                <div id="quickSalesSummary" style="margin-top:0.5rem; font-size:0.8rem; color:#555; background:#fafafa; padding:0.4rem 0.6rem; border-radius:6px; border:1px solid #eee;">
+                    <strong>Total Sales:</strong> <span id="quickTotalRev" style="color:#28a745; font-weight:bold;">₹0</span> • <strong>Items Sold:</strong> <span id="quickItemsSold" style="color:#17a2b8; font-weight:bold;">0</span>
+                </div>
             </div>
             <div class="order-list" id="adminOrderList">
                 <p>Loading orders...</p>
@@ -317,7 +324,84 @@
                         </div>
 
                         <button id="btnSaveUpdate" class="btn-update">Save & Update Customer</button>
+                        <button id="btnDeleteOrder" class="btn-update" style="background:#dc3545; margin-top:0.75rem; border:none; display:flex; align-items:center; justify-content:center; gap:0.5rem;">
+                            🗑️ Delete Order Permanently
+                        </button>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sales & Analytics Panel -->
+    <div id="adminAnalyticsView" style="display:none; max-width:1400px; margin:2rem auto; padding:0 1rem;">
+        <div style="background:white; border-radius:10px; padding:1.5rem; box-shadow:0 2px 10px rgba(0,0,0,0.1);">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem; border-bottom:2px solid #fff0f5; padding-bottom:1rem;">
+                <h2 style="font-family:'Pacifico', cursive; color:#ff1493; margin:0; font-size:1.8rem;">Sales & Items Sold Analytics 📊</h2>
+                <button id="btnRefreshAnalytics" style="background:#fff0f5; color:#ff1493; border:1.5px solid #ffb6c1; padding:0.5rem 1rem; border-radius:12px; font-weight:bold; cursor:pointer;">🔄 Refresh Analytics</button>
+            </div>
+
+            <!-- Top Metric Cards -->
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:1.25rem; margin-bottom:2rem;">
+                <div style="background:#fff0f5; border:2px solid #ffb6c1; border-radius:12px; padding:1.25rem; text-align:center;">
+                    <div style="font-size:0.85rem; color:#666; font-weight:bold; text-transform:uppercase;">Total Revenue 💰</div>
+                    <div id="statTotalRevenue" style="font-size:2rem; font-weight:bold; color:#28a745; margin-top:0.3rem;">₹0</div>
+                    <div id="statRevenueSub" style="font-size:0.78rem; color:#888; margin-top:0.2rem;">From all orders</div>
+                </div>
+                <div style="background:#e8f4f8; border:2px solid #bce8f1; border-radius:12px; padding:1.25rem; text-align:center;">
+                    <div style="font-size:0.85rem; color:#666; font-weight:bold; text-transform:uppercase;">Total Items Sold 📦</div>
+                    <div id="statItemsSold" style="font-size:2rem; font-weight:bold; color:#17a2b8; margin-top:0.3rem;">0</div>
+                    <div style="font-size:0.78rem; color:#888; margin-top:0.2rem;">Units purchased</div>
+                </div>
+                <div style="background:#fff8e7; border:2px solid #ffe8a1; border-radius:12px; padding:1.25rem; text-align:center;">
+                    <div style="font-size:0.85rem; color:#666; font-weight:bold; text-transform:uppercase;">Total Orders 📜</div>
+                    <div id="statTotalOrders" style="font-size:2rem; font-weight:bold; color:#ff9800; margin-top:0.3rem;">0</div>
+                    <div id="statOrdersSub" style="font-size:0.78rem; color:#888; margin-top:0.2rem;">Orders placed</div>
+                </div>
+                <div style="background:#f3e5f5; border:2px solid #e1bee7; border-radius:12px; padding:1.25rem; text-align:center;">
+                    <div style="font-size:0.85rem; color:#666; font-weight:bold; text-transform:uppercase;">Avg Order Value 🛍️</div>
+                    <div id="statAvgOrderValue" style="font-size:2rem; font-weight:bold; color:#9c27b0; margin-top:0.3rem;">₹0</div>
+                    <div style="font-size:0.78rem; color:#888; margin-top:0.2rem;">Per customer order</div>
+                </div>
+            </div>
+
+            <!-- Top Best Sellers Section -->
+            <div style="margin-bottom:2.5rem;">
+                <h3 style="color:#ff1493; margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem; font-size:1.3rem;">
+                    🔥 Top 5 Best Selling Items
+                </h3>
+                <div id="analyticsTopSellers" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap:1rem;">
+                    <p style="color:#666;">Loading best sellers...</p>
+                </div>
+            </div>
+
+            <!-- Product Sales Breakdown Table / Grid -->
+            <div>
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1rem;">
+                    <h3 style="color:#333; margin:0; font-size:1.3rem;">Items Sold Breakdown 🛒</h3>
+                    <div style="display:flex; gap:0.75rem; flex-wrap:wrap; align-items:center;">
+                        <input type="text" id="analyticsSearchInput" placeholder="Search product..." style="padding:0.6rem 1rem; border:1px solid #ccc; border-radius:8px; font-family:inherit;">
+                        <select id="analyticsCategoryFilter" style="padding:0.6rem 1rem; border:1px solid #ccc; border-radius:8px; font-family:inherit;">
+                            <option value="ALL">All Categories</option>
+                            <option value="Necklaces">Pendants / Necklaces</option>
+                            <option value="Earrings">Earrings</option>
+                            <option value="Bracelets">Bracelets</option>
+                            <option value="Charms">Charms</option>
+                            <option value="Brooches">Brooches</option>
+                            <option value="Rings">Rings</option>
+                            <option value="Handmade Jewellery">Handmade Jewellery</option>
+                        </select>
+                        <select id="analyticsSortBy" style="padding:0.6rem 1rem; border:1px solid #ccc; border-radius:8px; font-family:inherit;">
+                            <option value="sold-desc">Sort: Most Sold</option>
+                            <option value="revenue-desc">Sort: Highest Revenue</option>
+                            <option value="name-asc">Sort: Name (A-Z)</option>
+                            <option value="stock-asc">Sort: Lowest Stock</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="analyticsGrid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap:1.25rem;">
+                    <p>Loading items sold breakdown...</p>
                 </div>
             </div>
         </div>

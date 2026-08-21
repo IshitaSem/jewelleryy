@@ -1247,6 +1247,7 @@ function scrollToSection(selector) {
 }
 
 function selectCardOption(btnEl, optionVal) {
+  if (window.event) window.event.stopPropagation();
   const container = btnEl.closest('.card-brand-pills');
   if (container) {
     container.querySelectorAll('.card-option-pill').forEach(b => b.classList.remove('active'));
@@ -1270,6 +1271,9 @@ window.selectCardOption = selectCardOption;
 window.selectModalOption = selectModalOption;
 
 function openModal(title, price, images, options = null) {
+  if (window.event && window.event.target && window.event.target.closest('.add-to-cart-quick, .card-option-pill')) {
+    return;
+  }
   currentImages = images;
   currentImageIndex = 0;
   window.currentModalOptions = options || [];

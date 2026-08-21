@@ -439,9 +439,11 @@ if (document.readyState === 'loading') {
 }
 
 document.addEventListener('click', (e) => {
-    if (e.target.classList.contains('add-to-cart-quick')) {
+    const btn = e.target.closest('.add-to-cart-quick');
+    if (btn) {
         e.stopPropagation();
-        const productDiv = e.target.closest('.product');
+        e.preventDefault();
+        const productDiv = btn.closest('.product');
         if (productDiv) {
             const imageEl = productDiv.querySelector('img');
             const image = imageEl ? imageEl.src : '';
@@ -455,7 +457,7 @@ document.addEventListener('click', (e) => {
                 title = `${title} (${cardOption})`;
             }
 
-            const priceText = productDiv.querySelector('p').textContent;
+            const priceText = productDiv.querySelector('p') ? productDiv.querySelector('p').textContent : '';
             const price = parseInt(priceText.replace(/[^0-9]/g, '')) || 0;
             const itemWeight = getItemWeight({ name: title, image: image });
             
@@ -490,16 +492,16 @@ document.addEventListener('click', (e) => {
             saveCart();
             updateCartUI();
             
-            const originalText = e.target.innerHTML;
-            e.target.innerHTML = 'Added! 💖';
-            e.target.style.background = '#ff1493';
+            const originalText = btn.innerHTML;
+            btn.innerHTML = 'Added! 💖';
+            btn.style.background = '#ff1493';
             setTimeout(() => {
-                e.target.innerHTML = originalText;
-                e.target.style.background = '';
+                btn.innerHTML = originalText;
+                btn.style.background = '';
             }, 1500);
             
             const sidebar = document.getElementById('cartSidebar');
             if (sidebar) sidebar.classList.add('active');
         }
     }
-});
+}, true);

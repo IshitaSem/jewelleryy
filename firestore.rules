@@ -96,11 +96,8 @@ service cloud.firestore {
       allow get: if isAdmin() || (request.auth != null && resource.data.userId == request.auth.uid);
       allow list: if isAdmin();
 
-      // Only authenticated administrators can update orders.
-      allow update: if isAdmin();
-
-      // Orders must never be deleted from the client.
-      allow delete: if false;
+      // Only authenticated administrators can update or delete orders.
+      allow update, delete: if isAdmin();
     }
   }
 }

@@ -82,11 +82,13 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
 
 // Tab Switcher
 const tabOrdersBtn = document.getElementById('tabOrdersBtn');
+const tabAnalyticsBtn = document.getElementById('tabAnalyticsBtn');
 const tabStockBtn = document.getElementById('tabStockBtn');
 const tabCouponsBtn = document.getElementById('tabCouponsBtn');
 const tabOffersBtn = document.getElementById('tabOffersBtn');
 
 const adminOrdersView = document.getElementById('adminOrdersView');
+const adminAnalyticsView = document.getElementById('adminAnalyticsView');
 const adminStockView = document.getElementById('adminStockView');
 const adminCouponsView = document.getElementById('adminCouponsView');
 const adminOffersView = document.getElementById('adminOffersView');
@@ -94,6 +96,7 @@ const adminOffersView = document.getElementById('adminOffersView');
 function setActiveTab(activeBtn, activeView) {
     const tabs = [
         { btn: tabOrdersBtn, view: adminOrdersView },
+        { btn: tabAnalyticsBtn, view: adminAnalyticsView },
         { btn: tabStockBtn, view: adminStockView },
         { btn: tabCouponsBtn, view: adminCouponsView },
         { btn: tabOffersBtn, view: adminOffersView }
@@ -115,6 +118,10 @@ function setActiveTab(activeBtn, activeView) {
 }
 
 if (tabOrdersBtn) tabOrdersBtn.addEventListener('click', () => setActiveTab(tabOrdersBtn, adminOrdersView));
+if (tabAnalyticsBtn) tabAnalyticsBtn.addEventListener('click', () => {
+    setActiveTab(tabAnalyticsBtn, adminAnalyticsView);
+    renderAnalytics();
+});
 if (tabStockBtn) tabStockBtn.addEventListener('click', () => setActiveTab(tabStockBtn, adminStockView));
 if (tabCouponsBtn) tabCouponsBtn.addEventListener('click', () => setActiveTab(tabCouponsBtn, adminCouponsView));
 if (tabOffersBtn) tabOffersBtn.addEventListener('click', () => setActiveTab(tabOffersBtn, adminOffersView));
@@ -142,6 +149,7 @@ async function loadOrders() {
         });
 
         renderSidebar();
+        renderAnalytics();
     } catch (e) {
         console.error("Error loading orders:", e);
         const currentUserEmail = auth.currentUser ? auth.currentUser.email : 'Not logged in';
@@ -408,6 +416,7 @@ document.getElementById('btnSaveUpdate').addEventListener('click', async () => {
         currentOrder.trackingNumber = newTracking;
         currentOrder.statusHistory = historyArray;
         renderSidebar();
+        renderAnalytics();
 
     } catch (e) {
         console.error("Error updating order:", e);
@@ -417,6 +426,248 @@ document.getElementById('btnSaveUpdate').addEventListener('click', async () => {
         btn.textContent = 'Save & Update Customer';
     }
 });
+
+// Permanent Order Deletion Handler
+const btnDeleteOrder = document.getElementById('btnDeleteOrder');
+if (btnDeleteOrder) {
+    btnDeleteOrder.addEventListener('click', async () => {
+        if (!currentOrder) {
+            alert("No order selected to delete.");
+            return;
+        }
+
+        const confirmText = `Are you sure you want to PERMANENTLY delete Order #${currentOrder.orderNumber}?\n\nCustomer: ${currentOrder.customer ? currentOrder.customer.name : 'N/A'}\nTotal: ₹${currentOrder.total}\n\nThis action cannot be undone!`;
+        if (!confirm(confirmText)) return;
+
+        btnDeleteOrder.disabled = true;
+        btnDeleteOrder.textContent = 'Deleting...';
+
+        try {
+            await deleteDoc(doc(db, "orders", currentOrder.id));
+
+            const deletedNo = currentOrder.orderNumber;
+            allOrders = allOrders.filter(o => o.id !== currentOrder.id);
+
+            const msg = document.getElementById('adminSaveMsg');
+            if (msg) {
+                msg.textContent = `Order #${deletedNo} Deleted! 🗑️`;
+                msg.style.display = 'block';
+                setTimeout(() => {
+                    msg.style.display = 'none';
+                    msg.textContent = 'Update Saved!';
+                }, 3000);
+            }
+
+            renderSidebar();
+            renderAnalytics();
+
+            if (allOrders.length > 0) {
+                openOrderDetails(allOrders[0]);
+            } else {
+                document.getElementById('adminDetailPanel').style.display = 'none';
+                currentOrder = null;
+            }
+        } catch (e) {
+            console.error("Error deleting order:", e);
+            alert("Failed to delete order: " + (e.message || e));
+        } finally {
+            if (btnDeleteOrder) {
+                btnDeleteOrder.disabled = false;
+                btnDeleteOrder.innerHTML = '🗑️ Delete Order Permanently';
+            }
+        }
+    });
+}
+
+// ==========================================
+// 1.5 SALES & ITEMS SOLD ANALYTICS
+// ==========================================
+
+function initAnalyticsListeners() {
+    const searchInput = document.getElementById('analyticsSearchInput');
+    const categoryFilter = document.getElementById('analyticsCategoryFilter');
+    const sortBy = document.getElementById('analyticsSortBy');
+    const refreshBtn = document.getElementById('btnRefreshAnalytics');
+
+    if (searchInput) searchInput.addEventListener('input', () => renderAnalyticsGrid());
+    if (categoryFilter) categoryFilter.addEventListener('change', () => renderAnalyticsGrid());
+    if (sortBy) sortBy.addEventListener('change', () => renderAnalyticsGrid());
+    if (refreshBtn) refreshBtn.addEventListener('click', () => loadOrders());
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAnalyticsListeners);
+} else {
+    initAnalyticsListeners();
+}
+
+function renderAnalytics() {
+    if (!allOrders) return;
+
+    let totalRev = 0;
+    let totalItemsCount = 0;
+    let verifiedCount = 0;
+
+    const salesMap = {};
+
+    allOrders.forEach(order => {
+        const isCancelled = (order.orderStatus === 'Cancelled' || order.paymentStatus === 'Payment Rejected');
+
+        if (!isCancelled) {
+            totalRev += (order.total || 0);
+            if (order.paymentStatus === 'Payment Verified' || order.orderStatus === 'Delivered' || order.orderStatus === 'Shipped') {
+                verifiedCount++;
+            }
+        }
+
+        if (order.items && Array.isArray(order.items)) {
+            order.items.forEach(item => {
+                if (isCancelled) return;
+
+                const qty = item.quantity || 1;
+                totalItemsCount += qty;
+
+                const displayName = (item.image && typeof window.getProductNameFromImage === 'function')
+                    ? window.getProductNameFromImage(item.image)
+                    : (item.name || '');
+                const pId = getProductId(displayName, item.image);
+                const itemPrice = item.appliedPrice || item.price || 0;
+
+                if (!salesMap[pId]) {
+                    salesMap[pId] = {
+                        pId: pId,
+                        name: displayName,
+                        image: item.image || '',
+                        category: deriveCategory(item.image, displayName),
+                        sold: 0,
+                        revenue: 0
+                    };
+                }
+                salesMap[pId].sold += qty;
+                salesMap[pId].revenue += (itemPrice * qty);
+            });
+        }
+    });
+
+    const totalOrdersCount = allOrders.length;
+    const avgOrderValue = totalOrdersCount > 0 ? Math.round(totalRev / totalOrdersCount) : 0;
+
+    if (document.getElementById('statTotalRevenue')) document.getElementById('statTotalRevenue').textContent = `₹${totalRev.toLocaleString('en-IN')}`;
+    if (document.getElementById('statRevenueSub')) document.getElementById('statRevenueSub').textContent = `${verifiedCount} verified / ${totalOrdersCount} total orders`;
+    if (document.getElementById('statItemsSold')) document.getElementById('statItemsSold').textContent = totalItemsCount.toString();
+    if (document.getElementById('statTotalOrders')) document.getElementById('statTotalOrders').textContent = totalOrdersCount.toString();
+    if (document.getElementById('statOrdersSub')) document.getElementById('statOrdersSub').textContent = `${verifiedCount} verified / completed`;
+    if (document.getElementById('statAvgOrderValue')) document.getElementById('statAvgOrderValue').textContent = `₹${avgOrderValue.toLocaleString('en-IN')}`;
+
+    if (document.getElementById('quickTotalRev')) document.getElementById('quickTotalRev').textContent = `₹${totalRev.toLocaleString('en-IN')}`;
+    if (document.getElementById('quickItemsSold')) document.getElementById('quickItemsSold').textContent = totalItemsCount.toString();
+    if (document.getElementById('quickStatsBadge')) document.getElementById('quickStatsBadge').textContent = `${totalOrdersCount} orders`;
+
+    const catalog = combineProducts(allProducts);
+    const fullAnalyticsList = catalog.map(prod => {
+        const pId = prod.id || prod.productId || getProductId(prod.name, prod.image);
+        const s = salesMap[pId] || { sold: 0, revenue: 0 };
+        return {
+            ...prod,
+            pId: pId,
+            unitsSold: s.sold,
+            totalRevenue: s.revenue
+        };
+    });
+
+    window.lastAnalyticsList = fullAnalyticsList;
+
+    renderTopSellers(fullAnalyticsList);
+    renderAnalyticsGrid(fullAnalyticsList);
+}
+
+function renderTopSellers(list) {
+    const container = document.getElementById('analyticsTopSellers');
+    if (!container) return;
+
+    const sorted = [...list].sort((a, b) => b.unitsSold - a.unitsSold);
+    const top5 = sorted.filter(item => item.unitsSold > 0).slice(0, 5);
+
+    if (top5.length === 0) {
+        container.innerHTML = '<p style="color:#666; font-style:italic;">No items sold yet. Placed orders will reflect here automatically!</p>';
+        return;
+    }
+
+    const rankBadges = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'];
+
+    container.innerHTML = top5.map((item, idx) => `
+        <div style="background:#fff; border:2px solid #ffb6c1; border-radius:12px; padding:1rem; display:flex; gap:0.75rem; align-items:center; box-shadow:0 2px 8px rgba(255,20,147,0.08);">
+            <div style="font-size:1.6rem; min-width:32px; text-align:center;">${rankBadges[idx] || (idx + 1)}</div>
+            <img src="${item.image}" alt="${item.name}" style="width:50px; height:50px; object-fit:cover; border-radius:8px; border:1px solid #eee;">
+            <div style="flex:1; overflow:hidden;">
+                <div style="font-weight:bold; font-size:0.9rem; color:#333; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.name}</div>
+                <div style="font-size:0.8rem; color:#ff1493; font-weight:bold;">📦 ${item.unitsSold} sold</div>
+                <div style="font-size:0.75rem; color:#28a745; font-weight:bold;">💰 ₹${item.totalRevenue.toLocaleString('en-IN')}</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function renderAnalyticsGrid(listOverride) {
+    const container = document.getElementById('analyticsGrid');
+    if (!container) return;
+
+    const list = listOverride || window.lastAnalyticsList || combineProducts(allProducts);
+    const searchVal = (document.getElementById('analyticsSearchInput')?.value || '').toLowerCase().trim();
+    const catVal = document.getElementById('analyticsCategoryFilter')?.value || 'ALL';
+    const sortBy = document.getElementById('analyticsSortBy')?.value || 'sold-desc';
+
+    let filtered = list.filter(item => {
+        const matchesSearch = !searchVal || (item.name && item.name.toLowerCase().includes(searchVal)) || (item.category && item.category.toLowerCase().includes(searchVal));
+        const itemCatNorm = normalizeCategory(item.category || deriveCategory(item.image, item.name));
+        const filterCatNorm = normalizeCategory(catVal);
+        const matchesCat = (catVal === 'ALL') || (itemCatNorm === filterCatNorm);
+        return matchesSearch && matchesCat;
+    });
+
+    if (sortBy === 'sold-desc') {
+        filtered.sort((a, b) => b.unitsSold - a.unitsSold);
+    } else if (sortBy === 'revenue-desc') {
+        filtered.sort((a, b) => b.totalRevenue - a.totalRevenue);
+    } else if (sortBy === 'name-asc') {
+        filtered.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    } else if (sortBy === 'stock-asc') {
+        filtered.sort((a, b) => (a.stock ?? 10) - (b.stock ?? 10));
+    }
+
+    if (filtered.length === 0) {
+        container.innerHTML = '<p style="color:#666; padding:1rem;">No items found matching filter criteria.</p>';
+        return;
+    }
+
+    container.innerHTML = filtered.map(item => {
+        const stock = (item.stock !== undefined) ? item.stock : 10;
+        const stockBadgeHtml = renderStockBadge(stock);
+        return `
+            <div style="background:#fff; border:1px solid #ffd1dc; border-radius:12px; padding:1rem; display:flex; flex-direction:column; gap:0.6rem; box-shadow:0 2px 6px rgba(0,0,0,0.04);">
+                <div style="display:flex; gap:0.75rem; align-items:center;">
+                    <img src="${item.image}" alt="${item.name}" style="width:60px; height:60px; object-fit:cover; border-radius:8px; border:1px solid #eee;">
+                    <div>
+                        <div style="font-weight:bold; font-size:0.95rem; color:#333;">${item.name}</div>
+                        <div style="font-size:0.78rem; color:#888;">${item.category || deriveCategory(item.image, item.name)} · ₹${item.price}</div>
+                    </div>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; background:#fafafa; padding:0.5rem 0.75rem; border-radius:8px; font-size:0.85rem;">
+                    <div>
+                        <span style="color:#ff1493; font-weight:bold;">📦 ${item.unitsSold || 0} sold</span>
+                    </div>
+                    <div>
+                        <span style="color:#28a745; font-weight:bold;">💰 ₹${(item.totalRevenue || 0).toLocaleString('en-IN')}</span>
+                    </div>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.8rem;">
+                    <span>Stock:</span>
+                    <div>${stockBadgeHtml}</div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
 
 // ==========================================
 // 2. STOCK MANAGEMENT
