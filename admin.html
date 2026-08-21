@@ -203,9 +203,11 @@
         </div>
     </nav>
 
-    <div class="admin-tabs" style="max-width:1400px; margin:1.5rem auto 0 auto; padding:0 1rem; display:flex; gap:1rem;">
+    <div class="admin-tabs" style="max-width:1400px; margin:1.5rem auto 0 auto; padding:0 1rem; display:flex; gap:1rem; flex-wrap:wrap;">
         <button id="tabOrdersBtn" class="admin-tab-btn active" style="padding:0.8rem 1.5rem; background:#ff1493; color:white; border:none; border-radius:20px; font-weight:bold; cursor:pointer;">All Orders 📜</button>
         <button id="tabStockBtn" class="admin-tab-btn" style="padding:0.8rem 1.5rem; background:#fff0f5; color:#ff1493; border:2px solid #ffb6c1; border-radius:20px; font-weight:bold; cursor:pointer;">Stock Management 📦</button>
+        <button id="tabCouponsBtn" class="admin-tab-btn" style="padding:0.8rem 1.5rem; background:#fff0f5; color:#ff1493; border:2px solid #ffb6c1; border-radius:20px; font-weight:bold; cursor:pointer;">Coupons 🎟️</button>
+        <button id="tabOffersBtn" class="admin-tab-btn" style="padding:0.8rem 1.5rem; background:#fff0f5; color:#ff1493; border:2px solid #ffb6c1; border-radius:20px; font-weight:bold; cursor:pointer;">Offers & Pricing 🏷️</button>
     </div>
 
     <div id="adminSaveMsg">Update Saved!</div>
@@ -253,7 +255,10 @@
                         <h3>Order Items</h3>
                         <div id="admItems"></div>
                         <div style="margin-top:1rem; padding-top:0.8rem; border-top:1px dashed #ccc; font-size:0.95rem; line-height:1.6;">
+                            <p><strong>Original Subtotal:</strong> <span id="admOriginalSubtotal">₹0</span></p>
+                            <p id="admRingBundleRow" style="display:none; color:#28a745;"><strong>Ring Bundle Discount:</strong> <span id="admRingBundleDiscount">-₹0</span></p>
                             <p><strong>Subtotal:</strong> <span id="admSubtotal">₹0</span></p>
+                            <p id="admCouponRow" style="display:none; color:#28a745;"><strong>Coupon (<span id="admCouponCode"></span>):</strong> <span id="admCouponDiscount">-₹0</span></p>
                             <p><strong>Shipping:</strong> <span id="admShipping">₹0</span> (<span id="admShippingService">India Post</span>)</p>
                             <p><strong>Parcel Weight:</strong> <span id="admTotalWeight">0g</span></p>
                             <h3 style="margin-top:0.5rem; font-size:1.4rem;">Total: <span id="admTotal" style="color:#28a745;">₹0</span></h3>
@@ -343,9 +348,146 @@
         </div>
     </div>
 
+    <!-- Coupons Management Panel -->
+    <div id="adminCouponsView" style="display:none; max-width:1400px; margin:2rem auto; padding:0 1rem;">
+        <div style="background:white; border-radius:10px; padding:1.5rem; box-shadow:0 2px 10px rgba(0,0,0,0.1);">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem; border-bottom:2px solid #fff0f5; padding-bottom:1rem;">
+                <h2 style="font-family:'Pacifico', cursive; color:#ff1493; margin:0; font-size:1.8rem;">Coupon Management 🎟️</h2>
+                <button id="btnCreateCoupon" style="padding:0.7rem 1.4rem; background:#ff1493; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">+ Create New Coupon</button>
+            </div>
+
+            <!-- Coupon Create/Edit Form (Hidden by default) -->
+            <div id="couponFormContainer" style="display:none; background:#fff0f5; padding:1.5rem; border-radius:10px; border:2px solid #ffb6c1; margin-bottom:2rem;">
+                <h3 id="couponFormTitle" style="color:#ff1493; margin-top:0;">Create New Coupon</h3>
+                <form id="couponForm">
+                    <input type="hidden" id="couponOriginalCode" value="">
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:1rem;">
+                        <div class="admin-form-group">
+                            <label>Coupon Code *</label>
+                            <input type="text" id="inpCouponCode" required placeholder="WELCOME10" style="text-transform:uppercase;">
+                        </div>
+                        <div class="admin-form-group">
+                            <label>Discount Type *</label>
+                            <select id="inpDiscountType" required>
+                                <option value="percentage">Percentage (%)</option>
+                                <option value="fixed">Fixed Amount (₹)</option>
+                            </select>
+                        </div>
+                        <div class="admin-form-group">
+                            <label>Discount Value *</label>
+                            <input type="number" id="inpDiscountValue" required min="1" placeholder="10">
+                        </div>
+                        <div class="admin-form-group">
+                            <label>Minimum Order Value (₹)</label>
+                            <input type="number" id="inpMinOrder" min="0" placeholder="500" value="0">
+                        </div>
+                        <div class="admin-form-group" id="maxDiscountGroup">
+                            <label>Maximum Discount Amount (₹)</label>
+                            <input type="number" id="inpMaxDiscount" min="0" placeholder="200 (for % coupons)">
+                        </div>
+                        <div class="admin-form-group">
+                            <label>Start Date & Time (Optional)</label>
+                            <input type="datetime-local" id="inpStartDate">
+                        </div>
+                        <div class="admin-form-group">
+                            <label>Expiry Date & Time (Optional)</label>
+                            <input type="datetime-local" id="inpExpiryDate">
+                        </div>
+                        <div class="admin-form-group">
+                            <label>Total Usage Limit (Optional)</label>
+                            <input type="number" id="inpUsageLimit" min="1" placeholder="e.g. 100 (Leave blank for unlimited)">
+                        </div>
+                        <div class="admin-form-group">
+                            <label>Per-Customer Limit</label>
+                            <input type="number" id="inpPerCustomerLimit" min="1" value="1">
+                        </div>
+                        <div class="admin-form-group" style="display:flex; align-items:center; gap:0.5rem; margin-top:1.8rem;">
+                            <input type="checkbox" id="inpCouponActive" checked style="width:auto;">
+                            <label for="inpCouponActive" style="margin:0; cursor:pointer;">Active / Enabled</label>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:1rem; margin-top:1.5rem;">
+                        <button type="submit" id="btnSaveCoupon" style="padding:0.7rem 1.5rem; background:#28a745; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">Save Coupon</button>
+                        <button type="button" id="btnCancelCoupon" style="padding:0.7rem 1.5rem; background:#6c757d; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">Cancel</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Coupons List Grid -->
+            <div id="couponsListGrid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap:1.25rem;">
+                <p>Loading coupons...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Offers & Pricing Configuration Panel -->
+    <div id="adminOffersView" style="display:none; max-width:1400px; margin:2rem auto; padding:0 1rem;">
+        <div style="background:white; border-radius:10px; padding:1.5rem; box-shadow:0 2px 10px rgba(0,0,0,0.1);">
+            <div style="border-bottom:2px solid #fff0f5; padding-bottom:1rem; margin-bottom:1.5rem;">
+                <h2 style="font-family:'Pacifico', cursive; color:#ff1493; margin:0; font-size:1.8rem;">Mix-and-Match Ring Pricing Configuration 🏷️</h2>
+                <p style="color:#666; margin-top:0.4rem; font-size:0.95rem;">Configure dynamic tiered bundle discounts for eligible ₹150 rings across the cart.</p>
+            </div>
+
+            <form id="ringPricingForm" style="max-width:700px; background:#f9f9f9; padding:1.5rem; border-radius:10px; border-left:4px solid #ff1493;">
+                <div class="admin-form-group" style="display:flex; align-items:center; gap:0.5rem;">
+                    <input type="checkbox" id="inpRingRuleEnabled" checked style="width:auto;">
+                    <label for="inpRingRuleEnabled" style="margin:0; font-size:1.1rem; cursor:pointer;">Enable ₹150 Ring Mix & Match Offer</label>
+                </div>
+                
+                <div class="admin-form-group">
+                    <label>Offer Name</label>
+                    <input type="text" id="inpRingRuleName" value="₹150 Ring Mix & Match" required>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                    <div class="admin-form-group">
+                        <label>Target Category</label>
+                        <input type="text" id="inpRingCategory" value="ring" readonly style="background:#eee;">
+                    </div>
+                    <div class="admin-form-group">
+                        <label>Base Price Target (₹)</label>
+                        <input type="number" id="inpRingBasePrice" value="150" required>
+                    </div>
+                </div>
+
+                <h3 style="color:#333; font-size:1.1rem; margin-top:1.5rem; border-bottom:1px solid #ddd; padding-bottom:0.4rem;">Pricing Tiers</h3>
+
+                <div style="background:white; padding:1rem; border-radius:8px; border:1px solid #eee; margin-bottom:1rem;">
+                    <h4 style="margin:0 0 0.5rem 0; color:#ff1493;">Tier 1 (1 Ring)</h4>
+                    <div style="display:flex; gap:1rem; align-items:center;">
+                        <span>Min Quantity: <strong>1</strong></span>
+                        <label style="margin:0;">Price Each: ₹</label>
+                        <input type="number" id="inpTier1Price" value="150" required style="width:100px; padding:0.4rem;">
+                    </div>
+                </div>
+
+                <div style="background:white; padding:1rem; border-radius:8px; border:1px solid #eee; margin-bottom:1rem;">
+                    <h4 style="margin:0 0 0.5rem 0; color:#ff1493;">Tier 2 (2 Rings)</h4>
+                    <div style="display:flex; gap:1rem; align-items:center;">
+                        <span>Min Quantity: <strong>2</strong></span>
+                        <label style="margin:0;">Price Each: ₹</label>
+                        <input type="number" id="inpTier2Price" value="130" required style="width:100px; padding:0.4rem;">
+                    </div>
+                </div>
+
+                <div style="background:white; padding:1rem; border-radius:8px; border:1px solid #eee; margin-bottom:1.5rem;">
+                    <h4 style="margin:0 0 0.5rem 0; color:#ff1493;">Tier 3 (3+ Rings)</h4>
+                    <div style="display:flex; gap:1rem; align-items:center;">
+                        <span>Min Quantity: <strong>3+</strong></span>
+                        <label style="margin:0;">Price Each: ₹</label>
+                        <input type="number" id="inpTier3Price" value="110" required style="width:100px; padding:0.4rem;">
+                    </div>
+                </div>
+
+                <button type="submit" id="btnSaveRingPricing" class="btn-update" style="margin-top:0;">Save Pricing Rule</button>
+            </form>
+        </div>
+    </div>
+
     <script src="stock-utils.js" type="module"></script>
     <script src="product-utils.js" type="module"></script>
     <script src="shipping-config.js" type="module"></script>
     <script type="module" src="admin.js"></script>
 </body>
 </html>
+

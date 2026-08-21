@@ -102,8 +102,31 @@
     
     <div class="summary-totals">
       <div class="summary-row">
+        <span>Original Subtotal</span>
+        <span id="checkoutOriginalSubtotal">₹0</span>
+      </div>
+      <div id="checkoutBundleRow" class="summary-row" style="display:none; color:#28a745; font-size:0.95rem;">
+        <span>Ring Bundle Discount</span>
+        <span id="checkoutBundleDiscount">-₹0</span>
+      </div>
+      <div id="checkoutSubtotalRow" class="summary-row" style="font-weight:600;">
         <span>Subtotal</span>
         <span id="checkoutSubtotal">₹0</span>
+      </div>
+
+      <!-- COUPON CODE AREA IN CHECKOUT -->
+      <div class="coupon-section" style="margin: 1rem 0; padding: 0.8rem; background: #fff0f5; border-radius: 8px; border: 1px solid #ffb6c1;">
+        <div style="font-size: 0.9rem; font-weight: bold; color: #ff1493; margin-bottom: 0.5rem;">Have a coupon? 🎟️</div>
+        <div id="checkoutCouponContainer" style="display: flex; gap: 0.5rem;">
+          <input type="text" id="checkoutCouponInput" placeholder="Enter coupon code" style="flex: 1; padding: 0.5rem 0.8rem; border: 1px solid #ccc; border-radius: 5px; text-transform: uppercase; font-size: 0.9rem;">
+          <button id="checkoutApplyCouponBtn" type="button" style="padding: 0.5rem 1rem; background: #ff1493; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 0.9rem;">APPLY</button>
+        </div>
+        <div id="checkoutCouponMessage" style="font-size: 0.85rem; margin-top: 0.4rem; display: none;"></div>
+      </div>
+
+      <div id="checkoutCouponRow" class="summary-row" style="display:none; color:#28a745; font-size:0.95rem;">
+        <span>Coupon Discount (<span id="checkoutAppliedCode"></span>)</span>
+        <span id="checkoutCouponDiscount">-₹0</span>
       </div>
       <div class="summary-row" style="font-size:0.95rem; color:var(--text-muted);">
         <span>Parcel Weight</span>
@@ -118,6 +141,7 @@
         <span id="checkoutTotal">₹0</span>
       </div>
     </div>
+
 
     <h2 style="margin-top: 2rem;">Payment 💸</h2>
     <div class="payment-instructions">

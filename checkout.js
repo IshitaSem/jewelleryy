@@ -1,7 +1,8 @@
 import { db, auth, serverTimestamp } from './firebase.js';
-import { collection, doc, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { collection, doc, getDoc, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 import { getItemWeight, calculateShipping, PACKAGING_WEIGHT_GRAMS, SHIPPING_SERVICE_NAME } from './shipping-config.js';
 import { getProductId } from './stock-utils.js';
+import { calculateRingBundleDiscount, calculateCouponDiscount, isEligibleRing } from './product-utils.js';
 
 // ==========================================
 // ⚠️ IMPORTANT CLOUDINARY CONFIGURATION ⚠️
@@ -11,11 +12,28 @@ const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET |
 // ==========================================
 
 let cart = JSON.parse(localStorage.getItem('glamaura_cart')) || [];
-let totalSubtotal = 0;
+let activeCoupon = JSON.parse(localStorage.getItem('glamaura_coupon')) || null;
+let ringPricingRule = null;
+
+let originalSubtotal = 0;
+let ringBundleDiscount = 0;
+let subtotalAfterBundle = 0;
+let couponDiscount = 0;
 let totalProdWeight = 0;
 let totalParcelWeight = 0;
 let shippingCharge = 0;
 let grandTotal = 0;
+
+async function loadPricingRule() {
+    try {
+        const snap = await getDoc(doc(db, "pricingRules", "ring150Bundle"));
+        if (snap.exists()) {
+            ringPricingRule = snap.data();
+        }
+    } catch (e) {
+        console.warn("Could not fetch pricing rules from Firestore:", e);
+    }
+}
 
 function getItemTitle(item) {
     if (item && item.name && item.name.trim()) {
@@ -32,58 +50,211 @@ function recalculateTotals() {
     const customerState = document.getElementById('customerState') ? document.getElementById('customerState').value.trim() : '';
     const customerCity = document.getElementById('customerCity') ? document.getElementById('customerCity').value.trim() : '';
 
+    originalSubtotal = 0;
+    totalProdWeight = 0;
+
+    cart.forEach(item => {
+        const weight = getItemWeight(item);
+        item.weight = weight;
+        originalSubtotal += item.price * item.quantity;
+        totalProdWeight += weight * item.quantity;
+    });
+
+    const bundleRes = calculateRingBundleDiscount(cart, ringPricingRule);
+    ringBundleDiscount = bundleRes.bundleDiscount;
+    subtotalAfterBundle = originalSubtotal - ringBundleDiscount;
+
+    activeCoupon = JSON.parse(localStorage.getItem('glamaura_coupon')) || null;
+    couponDiscount = 0;
+
+    if (activeCoupon) {
+        const evalRes = calculateCouponDiscount(activeCoupon, subtotalAfterBundle);
+        if (evalRes.valid) {
+            couponDiscount = evalRes.discount;
+        } else {
+            couponDiscount = 0;
+        }
+    }
+
     const packagingWeight = cart.length > 0 ? PACKAGING_WEIGHT_GRAMS : 0;
     totalParcelWeight = totalProdWeight + packagingWeight;
     shippingCharge = calculateShipping(totalParcelWeight, customerState, customerCity);
-    grandTotal = totalSubtotal + shippingCharge;
+    grandTotal = Math.max(0, subtotalAfterBundle - couponDiscount) + shippingCharge;
 
+    const checkoutOriginalSubtotal = document.getElementById('checkoutOriginalSubtotal');
+    const checkoutBundleRow = document.getElementById('checkoutBundleRow');
+    const checkoutBundleDiscount = document.getElementById('checkoutBundleDiscount');
     const checkoutSubtotal = document.getElementById('checkoutSubtotal');
+    const checkoutCouponRow = document.getElementById('checkoutCouponRow');
+    const checkoutAppliedCode = document.getElementById('checkoutAppliedCode');
+    const checkoutCouponDiscount = document.getElementById('checkoutCouponDiscount');
     const checkoutWeight = document.getElementById('checkoutWeight');
     const checkoutShipping = document.getElementById('checkoutShipping');
     const checkoutTotal = document.getElementById('checkoutTotal');
     const paymentAmount = document.getElementById('paymentAmount');
 
-    if (checkoutSubtotal) checkoutSubtotal.textContent = `₹${totalSubtotal}`;
+    if (checkoutOriginalSubtotal) checkoutOriginalSubtotal.textContent = `₹${originalSubtotal}`;
+    
+    if (ringBundleDiscount > 0) {
+        if (checkoutBundleRow) checkoutBundleRow.style.display = 'flex';
+        if (checkoutBundleDiscount) checkoutBundleDiscount.textContent = `-₹${ringBundleDiscount}`;
+    } else {
+        if (checkoutBundleRow) checkoutBundleRow.style.display = 'none';
+    }
+
+    if (checkoutSubtotal) checkoutSubtotal.textContent = `₹${subtotalAfterBundle}`;
+
+    if (couponDiscount > 0 && activeCoupon) {
+        if (checkoutCouponRow) checkoutCouponRow.style.display = 'flex';
+        if (checkoutAppliedCode) checkoutAppliedCode.textContent = activeCoupon.code;
+        if (checkoutCouponDiscount) checkoutCouponDiscount.textContent = `-₹${couponDiscount}`;
+    } else {
+        if (checkoutCouponRow) checkoutCouponRow.style.display = 'none';
+    }
+
     if (checkoutWeight) checkoutWeight.textContent = `${totalParcelWeight}g (${totalProdWeight}g items + ${packagingWeight}g pkg)`;
     if (checkoutShipping) checkoutShipping.textContent = `₹${shippingCharge}`;
     if (checkoutTotal) checkoutTotal.textContent = `₹${grandTotal}`;
     if (paymentAmount) paymentAmount.textContent = `₹${grandTotal}`;
+
+    renderCheckoutCouponUI();
 }
 
-function initCheckout() {
+function renderCheckoutCouponUI() {
+    const container = document.getElementById('checkoutCouponContainer');
+    const msgDiv = document.getElementById('checkoutCouponMessage');
+    if (!container) return;
+
+    activeCoupon = JSON.parse(localStorage.getItem('glamaura_coupon')) || null;
+
+    if (activeCoupon) {
+        const evalRes = calculateCouponDiscount(activeCoupon, subtotalAfterBundle);
+        if (evalRes.valid) {
+            container.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; width:100%; background:#e6f7ff; border:1px solid #91d5ff; padding:0.5rem 0.8rem; border-radius:5px;">
+                    <span style="font-weight:bold; color:#1890ff; font-size:0.9rem;">✓ ${activeCoupon.code} Applied (-₹${evalRes.discount})</span>
+                    <button type="button" onclick="removeCheckoutCoupon()" style="background:none; border:none; color:#ff4d4f; font-weight:bold; cursor:pointer; font-size:0.9rem;">Remove ✕</button>
+                </div>
+            `;
+            if (msgDiv) msgDiv.style.display = 'none';
+        } else {
+            container.innerHTML = `
+                <input type="text" id="checkoutCouponInput" value="${activeCoupon.code}" placeholder="Enter coupon code" style="flex: 1; padding: 0.5rem 0.8rem; border: 1px solid #ccc; border-radius: 5px; text-transform: uppercase; font-size: 0.9rem;">
+                <button id="checkoutApplyCouponBtn" type="button" onclick="applyCheckoutCoupon()" style="padding: 0.5rem 1rem; background: #ff1493; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 0.9rem;">APPLY</button>
+            `;
+            if (msgDiv) {
+                msgDiv.style.display = 'block';
+                msgDiv.style.color = '#ff4d4f';
+                msgDiv.textContent = `✕ ${evalRes.reason}`;
+            }
+        }
+    } else {
+        container.innerHTML = `
+            <input type="text" id="checkoutCouponInput" placeholder="Enter coupon code" style="flex: 1; padding: 0.5rem 0.8rem; border: 1px solid #ccc; border-radius: 5px; text-transform: uppercase; font-size: 0.9rem;">
+            <button id="checkoutApplyCouponBtn" type="button" onclick="applyCheckoutCoupon()" style="padding: 0.5rem 1rem; background: #ff1493; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 0.9rem;">APPLY</button>
+        `;
+        if (msgDiv) msgDiv.style.display = 'none';
+    }
+}
+
+async function applyCheckoutCoupon() {
+    const input = document.getElementById('checkoutCouponInput');
+    const msgDiv = document.getElementById('checkoutCouponMessage');
+    const btn = document.getElementById('checkoutApplyCouponBtn');
+
+    if (!input || !msgDiv) return;
+    const code = input.value.trim().toUpperCase();
+
+    if (!code) {
+        msgDiv.style.display = 'block';
+        msgDiv.style.color = '#ff4d4f';
+        msgDiv.textContent = '✕ Please enter a coupon code.';
+        return;
+    }
+
+    if (btn) btn.disabled = true;
+    msgDiv.style.display = 'block';
+    msgDiv.style.color = '#666';
+    msgDiv.textContent = 'Checking coupon... ⏳';
+
+    try {
+        const couponRef = doc(db, "coupons", code);
+        const snap = await getDoc(couponRef);
+
+        if (!snap.exists()) {
+            msgDiv.style.color = '#ff4d4f';
+            msgDiv.textContent = '✕ Invalid or expired coupon code.';
+            return;
+        }
+
+        const couponData = { id: snap.id, ...snap.data() };
+        const evalRes = calculateCouponDiscount(couponData, subtotalAfterBundle);
+
+        if (!evalRes.valid) {
+            msgDiv.style.color = '#ff4d4f';
+            msgDiv.textContent = `✕ ${evalRes.reason}`;
+            return;
+        }
+
+        activeCoupon = couponData;
+        localStorage.setItem('glamaura_coupon', JSON.stringify(activeCoupon));
+        recalculateTotals();
+
+    } catch (e) {
+        console.error("Error applying coupon in checkout:", e);
+        msgDiv.style.color = '#ff4d4f';
+        msgDiv.textContent = '✕ Error applying coupon: ' + e.message;
+    } finally {
+        if (btn) btn.disabled = false;
+    }
+}
+
+function removeCheckoutCoupon() {
+    activeCoupon = null;
+    localStorage.removeItem('glamaura_coupon');
+    recalculateTotals();
+}
+
+window.applyCheckoutCoupon = applyCheckoutCoupon;
+window.removeCheckoutCoupon = removeCheckoutCoupon;
+
+async function initCheckout() {
     if (cart.length === 0) {
         alert("Your cart is empty! Redirecting to catalogue...");
         window.location.href = 'index.html';
         return;
     }
 
-    const checkoutItemsDiv = document.getElementById('checkoutItems');
-    totalSubtotal = 0;
-    totalProdWeight = 0;
+    await loadPricingRule();
 
-    cart.forEach(item => {
-        const weight = getItemWeight(item);
-        item.weight = weight;
-        
-        const itemTotal = item.price * item.quantity;
-        totalSubtotal += itemTotal;
-        totalProdWeight += weight * item.quantity;
-        
-        const displayName = getItemTitle(item);
-        
-        if (checkoutItemsDiv) {
+    const checkoutItemsDiv = document.getElementById('checkoutItems');
+    if (checkoutItemsDiv) {
+        checkoutItemsDiv.innerHTML = '';
+        const bundleRes = calculateRingBundleDiscount(cart, ringPricingRule);
+
+        cart.forEach(item => {
+            const weight = getItemWeight(item);
+            item.weight = weight;
+            
+            const isEligible = isEligibleRing(item, ringPricingRule);
+            const hasBundleDiscount = isEligible && bundleRes.bundleDiscount > 0;
+            const appliedPrice = hasBundleDiscount ? bundleRes.appliedTierPrice : item.price;
+            const itemTotal = appliedPrice * item.quantity;
+            
+            const displayName = getItemTitle(item);
+            
             checkoutItemsDiv.innerHTML += `
                 <div class="order-summary-item">
                     <img src="${item.image}" alt="${displayName}">
                     <div class="order-summary-details">
                         <h4>${displayName}</h4>
-                        <p>Qty: ${item.quantity} x ₹${item.price} • ${weight}g</p>
+                        <p>Qty: ${item.quantity} x ${hasBundleDiscount ? `<span style="text-decoration:line-through;">₹${item.price}</span> ₹${appliedPrice}` : `₹${item.price}`} • ${weight}g</p>
                     </div>
                     <div style="font-weight: bold; color: #ff1493;">₹${itemTotal}</div>
                 </div>
             `;
-        }
-    });
+        });
+    }
 
     recalculateTotals();
 
@@ -159,7 +330,7 @@ async function handleOrderSubmission(e) {
             throw new Error("Failed to get image URL from Cloudinary.");
         }
 
-        // STEP 2: Atomic Firestore Transaction (Validate stock + Decrement stock + Create Order)
+        // STEP 2: Atomic Firestore Transaction
         uploadStatus.textContent = "Validating inventory & securing your order... ✨";
         
         const dateStr = new Date().toISOString().split('T')[0].replace(/-/g, '');
@@ -193,7 +364,7 @@ async function handleOrderSubmission(e) {
                 stockSnapshots.push({ ...pr, snap });
             }
 
-            // 2. Validate sufficient stock for every product
+            // 2. Validate stock
             for (const ss of stockSnapshots) {
                 const currentStock = ss.snap.exists() ? (typeof ss.snap.data().stock === 'number' ? ss.snap.data().stock : 10) : 10;
                 if (currentStock < ss.item.quantity) {
@@ -201,7 +372,37 @@ async function handleOrderSubmission(e) {
                 }
             }
 
-            // 3. Atomically decrement stock
+            // 3. Re-validate coupon in transaction & increment usage count if coupon applied
+            let finalCouponCode = null;
+            let finalCouponDiscount = 0;
+
+            if (activeCoupon && activeCoupon.code) {
+                const couponRef = doc(db, "coupons", activeCoupon.code.toUpperCase());
+                const couponSnap = await transaction.get(couponRef);
+
+                if (!couponSnap.exists()) {
+                    throw new Error(`Coupon "${activeCoupon.code}" is no longer valid.`);
+                }
+
+                const couponData = { id: couponSnap.id, ...couponSnap.data() };
+                const evalRes = calculateCouponDiscount(couponData, subtotalAfterBundle);
+
+                if (!evalRes.valid) {
+                    throw new Error(`Coupon error: ${evalRes.reason}`);
+                }
+
+                finalCouponCode = couponData.code;
+                finalCouponDiscount = evalRes.discount;
+
+                // Atomically increment coupon usageCount
+                const currentUsageCount = typeof couponData.usageCount === 'number' ? couponData.usageCount : 0;
+                transaction.update(couponRef, {
+                    usageCount: currentUsageCount + 1,
+                    updatedAt: serverTimestamp()
+                });
+            }
+
+            // 4. Atomically decrement product stock
             for (const ss of stockSnapshots) {
                 const currentStock = ss.snap.exists() ? (typeof ss.snap.data().stock === 'number' ? ss.snap.data().stock : 10) : 10;
                 const newStock = currentStock - ss.item.quantity;
@@ -223,18 +424,32 @@ async function handleOrderSubmission(e) {
                 }
             }
 
-            // 4. Create Order document
+            const bundleRes = calculateRingBundleDiscount(cart, ringPricingRule);
+
+            // 5. Create Order document with detailed discount metadata
             const orderData = {
                 orderNumber: orderNumber,
                 customer: customer,
-                items: cart.map(item => ({
-                    ...item,
-                    name: getItemTitle(item),
-                    weight: getItemWeight(item)
-                })),
-                subtotal: totalSubtotal,
+                items: cart.map(item => {
+                    const isEligible = isEligibleRing(item, ringPricingRule);
+                    const hasBundle = isEligible && bundleRes.bundleDiscount > 0;
+                    const appliedPrice = hasBundle ? bundleRes.appliedTierPrice : item.price;
+                    return {
+                        ...item,
+                        name: getItemTitle(item),
+                        originalPrice: item.price,
+                        appliedPrice: appliedPrice,
+                        bundleDiscount: hasBundle ? (item.price - appliedPrice) * item.quantity : 0,
+                        weight: getItemWeight(item)
+                    };
+                }),
+                originalSubtotal: originalSubtotal,
+                ringBundleDiscount: ringBundleDiscount,
+                subtotal: subtotalAfterBundle,
+                couponCode: finalCouponCode,
+                couponDiscount: finalCouponDiscount,
                 shipping: shippingCharge,
-                total: grandTotal,
+                total: Math.max(0, subtotalAfterBundle - finalCouponDiscount) + shippingCharge,
                 totalWeight: totalParcelWeight,
                 shippingService: SHIPPING_SERVICE_NAME,
                 paymentMethod: "UPI",
@@ -262,6 +477,7 @@ async function handleOrderSubmission(e) {
 
         // STEP 3: Success!
         localStorage.removeItem('glamaura_cart');
+        localStorage.removeItem('glamaura_coupon');
         
         document.getElementById('checkoutFlow').style.display = 'none';
         document.getElementById('successMessage').style.display = 'flex';
@@ -298,3 +514,4 @@ async function uploadToCloudinary(file) {
     const data = await response.json();
     return data.secure_url;
 }
+

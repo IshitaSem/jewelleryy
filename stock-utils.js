@@ -57,9 +57,9 @@ export function normalizeCategory(cat) {
 export function deriveCategory(imagePath = '', name = '') {
   const str = (String(imagePath) + ' ' + String(name)).toLowerCase();
   if (str.includes('handmade')) return 'Handmade Jewellery';
+  if (str.includes('earring')) return 'Earrings';
   if (str.includes('ring')) return 'Rings';
   if (str.includes('necklace') || str.includes('pendant')) return 'Pendants';
-  if (str.includes('earring')) return 'Earrings';
   if (str.includes('bracelet')) return 'Bracelets';
   if (str.includes('charm')) return 'Charms';
   if (str.includes('brooch')) return 'Brooches';

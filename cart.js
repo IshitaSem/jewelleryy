@@ -1,7 +1,26 @@
 import { getItemWeight, calculateShipping, PACKAGING_WEIGHT_GRAMS } from './shipping-config.js';
 import { getProductId, renderStockBadge } from './stock-utils.js';
+import { calculateRingBundleDiscount, calculateCouponDiscount, isEligibleRing } from './product-utils.js';
+import { db } from './firebase.js';
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 let cart = JSON.parse(localStorage.getItem('glamaura_cart')) || [];
+let activeCoupon = JSON.parse(localStorage.getItem('glamaura_coupon')) || null;
+let ringPricingRule = null;
+
+// Load pricing rule asynchronously from Firestore if available
+async function loadPricingRule() {
+    try {
+        const snap = await getDoc(doc(db, "pricingRules", "ring150Bundle"));
+        if (snap.exists()) {
+            ringPricingRule = snap.data();
+            window.ring150PricingRule = ringPricingRule;
+        }
+    } catch (e) {
+        console.warn("Could not fetch pricing rules from Firestore, using default:", e);
+    }
+}
+loadPricingRule();
 
 function saveCart() {
     localStorage.setItem('glamaura_cart', JSON.stringify(cart));
@@ -121,10 +140,92 @@ function toggleCart() {
     if(sidebar) sidebar.classList.toggle('active');
 }
 
+async function applyCartCoupon() {
+    const input = document.getElementById('cartCouponInput');
+    const msgDiv = document.getElementById('cartCouponMessage');
+    const btn = document.getElementById('cartApplyCouponBtn');
+    
+    if (!input || !msgDiv) return;
+    const code = input.value.trim().toUpperCase();
+
+    if (!code) {
+        msgDiv.style.display = 'block';
+        msgDiv.style.color = '#ff4d4f';
+        msgDiv.textContent = '✕ Please enter a coupon code.';
+        return;
+    }
+
+    if (btn) btn.disabled = true;
+    msgDiv.style.display = 'block';
+    msgDiv.style.color = '#666';
+    msgDiv.textContent = 'Checking coupon... ⏳';
+
+    try {
+        const couponRef = doc(db, "coupons", code);
+        const snap = await getDoc(couponRef);
+
+        if (!snap.exists()) {
+            msgDiv.style.color = '#ff4d4f';
+            msgDiv.textContent = '✕ Invalid or expired coupon code.';
+            return;
+        }
+
+        const couponData = { id: snap.id, ...snap.data() };
+        
+        // Calculate current subtotal after ring bundle discount
+        let originalSubtotal = 0;
+        cart.forEach(item => { originalSubtotal += item.price * item.quantity; });
+        const bundleRes = calculateRingBundleDiscount(cart, ringPricingRule || window.ring150PricingRule);
+        const subtotalAfterBundle = originalSubtotal - bundleRes.bundleDiscount;
+
+        const evalRes = calculateCouponDiscount(couponData, subtotalAfterBundle);
+        if (!evalRes.valid) {
+            msgDiv.style.color = '#ff4d4f';
+            msgDiv.textContent = `✕ ${evalRes.reason}`;
+            return;
+        }
+
+        // Save active coupon to localStorage
+        activeCoupon = couponData;
+        localStorage.setItem('glamaura_coupon', JSON.stringify(activeCoupon));
+        
+        msgDiv.style.color = '#28a745';
+        msgDiv.textContent = `✓ ${activeCoupon.code} applied! (-₹${evalRes.discount})`;
+        updateCartUI();
+
+    } catch (e) {
+        console.error("Error applying coupon:", e);
+        msgDiv.style.color = '#ff4d4f';
+        msgDiv.textContent = '✕ Error applying coupon: ' + e.message;
+    } finally {
+        if (btn) btn.disabled = false;
+    }
+}
+
+function removeCartCoupon() {
+    activeCoupon = null;
+    localStorage.removeItem('glamaura_coupon');
+    const input = document.getElementById('cartCouponInput');
+    const msgDiv = document.getElementById('cartCouponMessage');
+    if (input) input.value = '';
+    if (msgDiv) {
+        msgDiv.style.display = 'none';
+        msgDiv.textContent = '';
+    }
+    updateCartUI();
+}
+
 function updateCartUI() {
     const cartItemsDiv = document.getElementById('cartItems');
     const cartCountSpan = document.getElementById('cartCount');
     const cartSubtotalValue = document.getElementById('cartSubtotalValue');
+    const cartBundleRow = document.getElementById('cartBundleRow');
+    const cartBundleDiscountValue = document.getElementById('cartBundleDiscountValue');
+    const cartPostBundleRow = document.getElementById('cartPostBundleRow');
+    const cartPostBundleValue = document.getElementById('cartPostBundleValue');
+    const cartCouponRow = document.getElementById('cartCouponRow');
+    const cartAppliedCouponCode = document.getElementById('cartAppliedCouponCode');
+    const cartCouponDiscountValue = document.getElementById('cartCouponDiscountValue');
     const cartProdWeightValue = document.getElementById('cartProdWeightValue');
     const cartPkgWeightValue = document.getElementById('cartPkgWeightValue');
     const cartWeightValue = document.getElementById('cartWeightValue');
@@ -134,7 +235,7 @@ function updateCartUI() {
     
     if (!cartItemsDiv) return;
 
-    // Deduplicate cart array by getProductId so duplicate entries (e.g. title with vs without emoji) merge cleanly
+    // Deduplicate cart array
     if (cart.length > 1) {
         const mergedCart = [];
         const seenMap = {};
@@ -154,9 +255,12 @@ function updateCartUI() {
     }
     
     let totalCount = 0;
-    let totalSubtotal = 0;
+    let totalOriginalSubtotal = 0;
     let totalProdWeight = 0;
     let hasStockIssue = false;
+
+    // Ring bundle calculation
+    const bundleRes = calculateRingBundleDiscount(cart, ringPricingRule || window.ring150PricingRule);
     
     cartItemsDiv.innerHTML = '';
     
@@ -168,7 +272,6 @@ function updateCartUI() {
             const weight = getItemWeight(item);
             item.weight = weight;
             
-            // Auto-repair stale item names saved as "Gallery" for non-gallery items
             if (item.name === 'Gallery' && item.image && !item.image.includes('gallery (')) {
                 if (typeof window.getProductNameFromImage === 'function') {
                     const repairedName = window.getProductNameFromImage(item.image);
@@ -182,7 +285,6 @@ function updateCartUI() {
             const displayName = getItemTitle(item.image, item.name);
             const availableStock = getAvailableStock(displayName, item.image);
 
-            // Re-validate against latest available stock
             if (availableStock <= 0) {
                 hasStockIssue = true;
             } else if (item.quantity > availableStock) {
@@ -191,17 +293,24 @@ function updateCartUI() {
             }
 
             totalCount += item.quantity;
-            totalSubtotal += item.price * item.quantity;
+            totalOriginalSubtotal += item.price * item.quantity;
             totalProdWeight += weight * item.quantity;
             
             const isOutOfStock = availableStock <= 0;
+            const isEligible = isEligibleRing(item, ringPricingRule || window.ring150PricingRule);
+            const hasBundleDiscount = isEligible && bundleRes.bundleDiscount > 0;
+
+            const priceDisplay = hasBundleDiscount 
+                ? `<span style="text-decoration:line-through; color:#aaa; margin-right:0.3rem;">₹${item.price}</span><strong style="color:#28a745;">₹${bundleRes.appliedTierPrice}</strong>`
+                : `₹${item.price}`;
 
             cartItemsDiv.innerHTML += `
                 <div class="cart-item" style="${isOutOfStock ? 'opacity:0.65; border:1px solid #ff4d4f; background:#fff2f0;' : ''}">
                     <img src="${item.image}" alt="${displayName}">
                     <div class="cart-item-details">
                         <h4>${displayName}</h4>
-                        <p>₹${item.price} • ${weight}g</p>
+                        <p>${priceDisplay} • ${weight}g</p>
+                        ${hasBundleDiscount ? `<div style="font-size:0.75rem; color:#28a745; font-weight:bold;">💍 Ring Offer (-₹${(item.price - bundleRes.appliedTierPrice)}/item)</div>` : ''}
                         <div style="font-size:0.75rem; margin-top:0.2rem; color:${isOutOfStock ? '#ff4d4f' : (availableStock <= 2 ? '#d46b08' : '#666')}; font-weight:${isOutOfStock ? 'bold' : 'normal'};">
                             ${isOutOfStock ? 'Out of Stock ❌' : `Stock: ${availableStock}`}
                         </div>
@@ -232,14 +341,80 @@ function updateCartUI() {
         if (warningNotice) warningNotice.style.display = 'none';
         if (checkoutBtn) checkoutBtn.disabled = totalCount <= 0;
     }
+
+    const subtotalAfterBundle = totalOriginalSubtotal - bundleRes.bundleDiscount;
+
+    // Handle Coupon Calculation & UI
+    let couponDiscount = 0;
+    const couponInputContainer = document.getElementById('couponInputContainer');
+    const cartCouponInput = document.getElementById('cartCouponInput');
+    const cartCouponMessage = document.getElementById('cartCouponMessage');
+
+    activeCoupon = JSON.parse(localStorage.getItem('glamaura_coupon')) || null;
+
+    if (activeCoupon && totalCount > 0) {
+        const evalRes = calculateCouponDiscount(activeCoupon, subtotalAfterBundle);
+        if (evalRes.valid) {
+            couponDiscount = evalRes.discount;
+            if (cartCouponRow) {
+                cartCouponRow.style.display = 'flex';
+                if (cartAppliedCouponCode) cartAppliedCouponCode.textContent = activeCoupon.code;
+                if (cartCouponDiscountValue) cartCouponDiscountValue.textContent = `-₹${couponDiscount}`;
+            }
+            if (couponInputContainer) {
+                couponInputContainer.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center; width:100%; background:#e6f7ff; border:1px solid #91d5ff; padding:0.4rem 0.6rem; border-radius:5px;">
+                        <span style="font-weight:bold; color:#1890ff; font-size:0.85rem;">✓ ${activeCoupon.code} Applied (-₹${couponDiscount})</span>
+                        <button type="button" onclick="removeCartCoupon()" style="background:none; border:none; color:#ff4d4f; font-weight:bold; cursor:pointer; font-size:0.85rem;">Remove ✕</button>
+                    </div>
+                `;
+            }
+            if (cartCouponMessage) {
+                cartCouponMessage.style.display = 'none';
+            }
+        } else {
+            // Coupon invalid due to cart changes
+            if (cartCouponRow) cartCouponRow.style.display = 'none';
+            if (couponInputContainer) {
+                couponInputContainer.innerHTML = `
+                    <input type="text" id="cartCouponInput" value="${activeCoupon.code}" placeholder="Enter coupon code" style="flex: 1; padding: 0.45rem 0.6rem; border: 1px solid #ccc; border-radius: 5px; text-transform: uppercase; font-size: 0.85rem;">
+                    <button id="cartApplyCouponBtn" type="button" onclick="applyCartCoupon()" style="padding: 0.45rem 0.8rem; background: #ff1493; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 0.85rem;">APPLY</button>
+                `;
+            }
+            if (cartCouponMessage) {
+                cartCouponMessage.style.display = 'block';
+                cartCouponMessage.style.color = '#ff4d4f';
+                cartCouponMessage.textContent = `✕ ${evalRes.reason}`;
+            }
+        }
+    } else {
+        if (cartCouponRow) cartCouponRow.style.display = 'none';
+        if (couponInputContainer && !document.getElementById('cartCouponInput')) {
+            couponInputContainer.innerHTML = `
+                <input type="text" id="cartCouponInput" placeholder="Enter coupon code" style="flex: 1; padding: 0.45rem 0.6rem; border: 1px solid #ccc; border-radius: 5px; text-transform: uppercase; font-size: 0.85rem;">
+                <button id="cartApplyCouponBtn" type="button" onclick="applyCartCoupon()" style="padding: 0.45rem 0.8rem; background: #ff1493; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 0.85rem;">APPLY</button>
+            `;
+        }
+    }
     
     const packagingWeight = cart.length > 0 ? PACKAGING_WEIGHT_GRAMS : 0;
     const totalParcelWeight = totalProdWeight + packagingWeight;
     const shippingCharge = calculateShipping(totalParcelWeight);
-    const grandTotal = totalSubtotal + shippingCharge;
+    const grandTotal = Math.max(0, subtotalAfterBundle - couponDiscount) + shippingCharge;
     
     if (cartCountSpan) cartCountSpan.textContent = totalCount;
-    if (cartSubtotalValue) cartSubtotalValue.textContent = `₹${totalSubtotal}`;
+    if (cartSubtotalValue) cartSubtotalValue.textContent = `₹${totalOriginalSubtotal}`;
+    
+    if (bundleRes.bundleDiscount > 0) {
+        if (cartBundleRow) cartBundleRow.style.display = 'flex';
+        if (cartBundleDiscountValue) cartBundleDiscountValue.textContent = `-₹${bundleRes.bundleDiscount}`;
+        if (cartPostBundleRow) cartPostBundleRow.style.display = 'flex';
+        if (cartPostBundleValue) cartPostBundleValue.textContent = `₹${subtotalAfterBundle}`;
+    } else {
+        if (cartBundleRow) cartBundleRow.style.display = 'none';
+        if (cartPostBundleRow) cartPostBundleRow.style.display = 'none';
+    }
+
     if (cartProdWeightValue) cartProdWeightValue.textContent = `${totalProdWeight}g`;
     if (cartPkgWeightValue) cartPkgWeightValue.textContent = `${packagingWeight}g`;
     if (cartWeightValue) cartWeightValue.textContent = `${totalParcelWeight}g`;
@@ -252,6 +427,8 @@ window.removeFromCart = removeFromCart;
 window.updateQuantity = updateQuantity;
 window.toggleCart = toggleCart;
 window.updateCartUI = updateCartUI;
+window.applyCartCoupon = applyCartCoupon;
+window.removeCartCoupon = removeCartCoupon;
 
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => updateCartUI());

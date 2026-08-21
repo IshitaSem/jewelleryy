@@ -153,9 +153,141 @@ export const STOREFRONT_PRODUCTS = [
   { name: 'Gothic Black Cromeheart', price: 300, image: 'images/Handmade jewellery/gothic black cromeheart (1).jpg', category: 'Handmade Jewellery' }
 ];
 
+export function isEligibleRing(item, ruleConfig = null) {
+  const targetBasePrice = ruleConfig?.basePrice || 150;
+  const itemPrice = typeof item.originalPrice === 'number' ? item.originalPrice : item.price;
+  if (itemPrice !== targetBasePrice) return false;
+  
+  if (typeof window !== 'undefined' && typeof window.normalizeCategory === 'function') {
+    const derived = typeof window.deriveCategory === 'function' ? window.deriveCategory(item.image, item.name) : '';
+    const normCat = window.normalizeCategory(item.category || derived);
+    if (normCat) {
+      return normCat === 'ring';
+    }
+  }
+
+  const cat = (item.category || '').toLowerCase();
+  if (cat.includes('earring')) return false;
+  if (cat.includes('ring')) return true;
+  
+  const imgAndName = ((item.image || '') + ' ' + (item.name || '')).toLowerCase();
+  if (imgAndName.includes('earring')) return false;
+  return imgAndName.includes('/rings/') || imgAndName.includes('ring');
+}
+
+
+export function calculateRingBundleDiscount(cartItems = [], ruleConfig = null) {
+  if (ruleConfig && ruleConfig.enabled === false) {
+    return { bundleDiscount: 0, totalEligibleQty: 0, appliedTierPrice: 150, basePrice: 150, eligibleItems: [] };
+  }
+
+  const defaultTiers = [
+    { minQuantity: 1, pricePerItem: 150 },
+    { minQuantity: 2, pricePerItem: 130 },
+    { minQuantity: 3, pricePerItem: 110 }
+  ];
+
+  const tiers = (ruleConfig && Array.isArray(ruleConfig.tiers) && ruleConfig.tiers.length > 0)
+    ? ruleConfig.tiers
+    : defaultTiers;
+
+  const eligibleItems = [];
+  let totalEligibleQty = 0;
+
+  cartItems.forEach(item => {
+    if (isEligibleRing(item, ruleConfig)) {
+      eligibleItems.push(item);
+      totalEligibleQty += (item.quantity || 1);
+    }
+  });
+
+  if (totalEligibleQty === 0) {
+    return { bundleDiscount: 0, totalEligibleQty: 0, appliedTierPrice: 150, basePrice: 150, eligibleItems: [] };
+  }
+
+  const sortedTiers = [...tiers].sort((a, b) => b.minQuantity - a.minQuantity);
+  let appliedTierPrice = 150;
+  for (const tier of sortedTiers) {
+    if (totalEligibleQty >= tier.minQuantity) {
+      appliedTierPrice = tier.pricePerItem;
+      break;
+    }
+  }
+
+  const basePrice = ruleConfig?.basePrice || 150;
+  const bundleDiscount = Math.max(0, (basePrice - appliedTierPrice) * totalEligibleQty);
+
+  return {
+    bundleDiscount,
+    totalEligibleQty,
+    appliedTierPrice,
+    basePrice,
+    eligibleItems
+  };
+}
+
+export function calculateCouponDiscount(coupon, subtotalAfterBundle) {
+  if (!coupon || !coupon.code || coupon.active === false) {
+    return { valid: false, discount: 0, reason: "Coupon is inactive or invalid." };
+  }
+
+  const now = new Date();
+  if (coupon.startDate) {
+    const start = new Date(coupon.startDate);
+    if (!isNaN(start.getTime()) && now < start) {
+      return { valid: false, discount: 0, reason: "Coupon promotion has not started yet." };
+    }
+  }
+
+  if (coupon.expiryDate) {
+    const expiry = new Date(coupon.expiryDate);
+    if (!isNaN(expiry.getTime()) && now > expiry) {
+      return { valid: false, discount: 0, reason: "Coupon code has expired." };
+    }
+  }
+
+  const minOrder = Number(coupon.minimumOrder) || 0;
+  if (subtotalAfterBundle < minOrder) {
+    return { valid: false, discount: 0, reason: `Minimum order value of ₹${minOrder} required for this coupon.` };
+  }
+
+  if (typeof coupon.usageLimit === 'number' && coupon.usageLimit > 0) {
+    const usageCount = Number(coupon.usageCount) || 0;
+    if (usageCount >= coupon.usageLimit) {
+      return { valid: false, discount: 0, reason: "Coupon usage limit has been reached." };
+    }
+  }
+
+  let discount = 0;
+  const val = Number(coupon.discountValue) || 0;
+  if (coupon.discountType === 'percentage') {
+    discount = Math.round((subtotalAfterBundle * val) / 100);
+    const maxDiscount = Number(coupon.maximumDiscount) || 0;
+    if (maxDiscount > 0 && discount > maxDiscount) {
+      discount = maxDiscount;
+    }
+  } else if (coupon.discountType === 'fixed') {
+    discount = val;
+  }
+
+  discount = Math.min(discount, subtotalAfterBundle);
+  discount = Math.max(0, discount);
+
+  return {
+    valid: true,
+    discount,
+    code: coupon.code,
+    reason: ""
+  };
+}
+
 if (typeof window !== 'undefined') {
   window.getProductNameFromImage = getProductNameFromImage;
   window.STOREFRONT_PRODUCTS = STOREFRONT_PRODUCTS;
+  window.isEligibleRing = isEligibleRing;
+  window.calculateRingBundleDiscount = calculateRingBundleDiscount;
+  window.calculateCouponDiscount = calculateCouponDiscount;
 }
+
 
 

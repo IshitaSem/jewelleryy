@@ -1185,8 +1185,31 @@
       <span style="font-size:0.75rem; color:var(--text-muted);">(Items: <span id="cartProdWeightValue">0g</span> + Packaging: <span id="cartPkgWeightValue">20g</span>)</span>
     </div>
     <div class="cart-total" style="display:flex; justify-content:space-between; font-size:0.95rem; margin-bottom:0.3rem;">
-      <span>Subtotal:</span>
+      <span>Original Subtotal:</span>
       <span id="cartSubtotalValue">₹0</span>
+    </div>
+    <div id="cartBundleRow" class="cart-total" style="display:none; justify-content:space-between; font-size:0.95rem; color:#28a745; margin-bottom:0.3rem;">
+      <span>Ring Bundle Discount:</span>
+      <span id="cartBundleDiscountValue">-₹0</span>
+    </div>
+    <div id="cartPostBundleRow" class="cart-total" style="display:none; justify-content:space-between; font-size:0.95rem; font-weight:600; margin-bottom:0.3rem;">
+      <span>Subtotal:</span>
+      <span id="cartPostBundleValue">₹0</span>
+    </div>
+
+    <!-- COUPON CODE AREA -->
+    <div class="coupon-section" style="margin: 0.8rem 0; padding: 0.6rem; background: #fff0f5; border-radius: 8px; border: 1px solid #ffb6c1;">
+      <div style="font-size: 0.85rem; font-weight: bold; color: #ff1493; margin-bottom: 0.4rem;">Have a coupon? 🎟️</div>
+      <div id="couponInputContainer" style="display: flex; gap: 0.4rem;">
+        <input type="text" id="cartCouponInput" placeholder="Enter coupon code" style="flex: 1; padding: 0.45rem 0.6rem; border: 1px solid #ccc; border-radius: 5px; text-transform: uppercase; font-size: 0.85rem;">
+        <button id="cartApplyCouponBtn" type="button" style="padding: 0.45rem 0.8rem; background: #ff1493; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 0.85rem;">APPLY</button>
+      </div>
+      <div id="cartCouponMessage" style="font-size: 0.8rem; margin-top: 0.4rem; display: none;"></div>
+    </div>
+
+    <div id="cartCouponRow" class="cart-total" style="display:none; justify-content:space-between; font-size:0.95rem; color:#28a745; margin-bottom:0.3rem;">
+      <span>Coupon Discount (<span id="cartAppliedCouponCode"></span>):</span>
+      <span id="cartCouponDiscountValue">-₹0</span>
     </div>
     <div class="cart-total" style="display:flex; justify-content:space-between; font-size:0.95rem; color:var(--rosewood); margin-bottom:0.5rem;">
       <span>Shipping (India Post):</span>
@@ -1196,6 +1219,7 @@
       Total: <span id="cartTotalValue">₹0</span>
     </div>
     <button onclick="window.location.href='checkout.html'" class="checkout-btn" id="checkoutBtn" disabled>Proceed to Checkout</button>
+
   </div>
 </div>
 

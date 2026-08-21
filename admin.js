@@ -1,11 +1,12 @@
 import { auth, db, serverTimestamp } from './firebase.js';
 import { onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-import { collection, getDocs, doc, updateDoc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { collection, getDocs, doc, updateDoc, setDoc, deleteDoc, getDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 import { getProductId, renderStockBadge, normalizeCategory, deriveCategory, combineProducts } from './stock-utils.js';
 
 let allOrders = [];
 let currentOrder = null;
 let allProducts = [];
+let allCoupons = [];
 
 const googleProvider = new GoogleAuthProvider();
 const googleLoginBtn = document.getElementById('googleLoginBtn');
@@ -60,6 +61,8 @@ onAuthStateChanged(auth, async (user) => {
         document.getElementById('adminEmail').textContent = user.email;
         loadOrders();
         initStockManagement();
+        initCouponManagement();
+        initOffersManagement();
     } else {
         if (user && userEmail !== ADMIN_EMAIL) {
             if (loginErrorMsg) {
@@ -80,28 +83,41 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
 // Tab Switcher
 const tabOrdersBtn = document.getElementById('tabOrdersBtn');
 const tabStockBtn = document.getElementById('tabStockBtn');
+const tabCouponsBtn = document.getElementById('tabCouponsBtn');
+const tabOffersBtn = document.getElementById('tabOffersBtn');
+
 const adminOrdersView = document.getElementById('adminOrdersView');
 const adminStockView = document.getElementById('adminStockView');
+const adminCouponsView = document.getElementById('adminCouponsView');
+const adminOffersView = document.getElementById('adminOffersView');
 
-if (tabOrdersBtn && tabStockBtn) {
-    tabOrdersBtn.addEventListener('click', () => {
-        tabOrdersBtn.style.background = '#ff1493';
-        tabOrdersBtn.style.color = 'white';
-        tabStockBtn.style.background = '#fff0f5';
-        tabStockBtn.style.color = '#ff1493';
-        adminOrdersView.style.display = 'grid';
-        adminStockView.style.display = 'none';
-    });
+function setActiveTab(activeBtn, activeView) {
+    const tabs = [
+        { btn: tabOrdersBtn, view: adminOrdersView },
+        { btn: tabStockBtn, view: adminStockView },
+        { btn: tabCouponsBtn, view: adminCouponsView },
+        { btn: tabOffersBtn, view: adminOffersView }
+    ];
 
-    tabStockBtn.addEventListener('click', () => {
-        tabStockBtn.style.background = '#ff1493';
-        tabStockBtn.style.color = 'white';
-        tabOrdersBtn.style.background = '#fff0f5';
-        tabOrdersBtn.style.color = '#ff1493';
-        adminOrdersView.style.display = 'none';
-        adminStockView.style.display = 'block';
+    tabs.forEach(t => {
+        if (t.btn && t.view) {
+            if (t.btn === activeBtn) {
+                t.btn.style.background = '#ff1493';
+                t.btn.style.color = 'white';
+                t.view.style.display = (t.view === adminOrdersView) ? 'grid' : 'block';
+            } else {
+                t.btn.style.background = '#fff0f5';
+                t.btn.style.color = '#ff1493';
+                t.view.style.display = 'none';
+            }
+        }
     });
 }
+
+if (tabOrdersBtn) tabOrdersBtn.addEventListener('click', () => setActiveTab(tabOrdersBtn, adminOrdersView));
+if (tabStockBtn) tabStockBtn.addEventListener('click', () => setActiveTab(tabStockBtn, adminStockView));
+if (tabCouponsBtn) tabCouponsBtn.addEventListener('click', () => setActiveTab(tabCouponsBtn, adminCouponsView));
+if (tabOffersBtn) tabOffersBtn.addEventListener('click', () => setActiveTab(tabOffersBtn, adminOffersView));
 
 // ==========================================
 // 1. ORDERS MANAGEMENT
@@ -210,7 +226,7 @@ function openOrderDetails(order) {
     
     const itemsEl = document.getElementById('admItems');
     itemsEl.innerHTML = '';
-    let calculatedSubtotal = 0;
+    let calculatedOriginalSubtotal = 0;
     let calculatedWeight = 0;
     if(order.items) {
         order.items.forEach(item => {
@@ -218,21 +234,52 @@ function openOrderDetails(order) {
                 ? window.getProductNameFromImage(item.image)
                 : (item.name || '');
             const itemWeight = (typeof window.getItemWeight === 'function') ? window.getItemWeight(item) : (item.weight || 20);
-            calculatedSubtotal += (item.price * item.quantity);
+            const origPrice = item.originalPrice || item.price;
+            calculatedOriginalSubtotal += (origPrice * item.quantity);
             calculatedWeight += (itemWeight * item.quantity);
 
+            const hasBundle = typeof item.appliedPrice === 'number' && item.appliedPrice < origPrice;
+
             itemsEl.innerHTML += `<div style="padding:0.5rem 0; border-bottom:1px solid #ddd;">
-                ${item.quantity}x <strong>${displayName}</strong> (${itemWeight}g) - ₹${item.price * item.quantity}
+                ${item.quantity}x <strong>${displayName}</strong> (${itemWeight}g) - 
+                ${hasBundle ? `<span style="text-decoration:line-through; color:#aaa;">₹${origPrice * item.quantity}</span> <strong style="color:#28a745;">₹${item.appliedPrice * item.quantity}</strong>` : `₹${origPrice * item.quantity}`}
             </div>`;
         });
     }
 
-    const subtotal = (typeof order.subtotal === 'number') ? order.subtotal : calculatedSubtotal;
-    const shipping = (typeof order.shipping === 'number') ? order.shipping : Math.max(0, (order.total || 0) - subtotal);
+    const origSubtotal = (typeof order.originalSubtotal === 'number') ? order.originalSubtotal : calculatedOriginalSubtotal;
+    const ringBundleDiscount = (typeof order.ringBundleDiscount === 'number') ? order.ringBundleDiscount : 0;
+    const subtotal = (typeof order.subtotal === 'number') ? order.subtotal : (origSubtotal - ringBundleDiscount);
+    const couponDiscount = (typeof order.couponDiscount === 'number') ? order.couponDiscount : 0;
+    const couponCode = order.couponCode || null;
+    const shipping = (typeof order.shipping === 'number') ? order.shipping : Math.max(0, (order.total || 0) - subtotal + couponDiscount);
     const totalWeight = (typeof order.totalWeight === 'number') ? order.totalWeight : (calculatedWeight + 20);
     const shippingService = order.shippingService || "India Post Parcel Retail";
 
+    if (document.getElementById('admOriginalSubtotal')) document.getElementById('admOriginalSubtotal').textContent = `₹${origSubtotal}`;
+    
+    const ringBundleRow = document.getElementById('admRingBundleRow');
+    const ringBundleDiscSpan = document.getElementById('admRingBundleDiscount');
+    if (ringBundleDiscount > 0) {
+        if (ringBundleRow) ringBundleRow.style.display = 'block';
+        if (ringBundleDiscSpan) ringBundleDiscSpan.textContent = `-₹${ringBundleDiscount}`;
+    } else {
+        if (ringBundleRow) ringBundleRow.style.display = 'none';
+    }
+
     if (document.getElementById('admSubtotal')) document.getElementById('admSubtotal').textContent = `₹${subtotal}`;
+    
+    const couponRow = document.getElementById('admCouponRow');
+    const couponCodeSpan = document.getElementById('admCouponCode');
+    const couponDiscSpan = document.getElementById('admCouponDiscount');
+    if (couponDiscount > 0 && couponCode) {
+        if (couponRow) couponRow.style.display = 'block';
+        if (couponCodeSpan) couponCodeSpan.textContent = couponCode;
+        if (couponDiscSpan) couponDiscSpan.textContent = `-₹${couponDiscount}`;
+    } else {
+        if (couponRow) couponRow.style.display = 'none';
+    }
+
     if (document.getElementById('admShipping')) document.getElementById('admShipping').textContent = `₹${shipping}`;
     if (document.getElementById('admShippingService')) document.getElementById('admShippingService').textContent = shippingService;
     if (document.getElementById('admTotalWeight')) document.getElementById('admTotalWeight').textContent = `${totalWeight}g`;
@@ -254,6 +301,7 @@ function openOrderDetails(order) {
     document.getElementById('inpCourier').value = order.courier || "";
     document.getElementById('inpTracking').value = order.trackingNumber || "";
 }
+
 
 // Handle Order Update & Idempotent Stock Restoration on Cancellation/Rejection
 document.getElementById('btnSaveUpdate').addEventListener('click', async () => {
@@ -545,3 +593,327 @@ async function updateStock(productId, newStock) {
         }
     }
 }
+
+// ==========================================
+// 3. COUPONS MANAGEMENT
+// ==========================================
+
+function initCouponManagement() {
+    const btnCreate = document.getElementById('btnCreateCoupon');
+    const formContainer = document.getElementById('couponFormContainer');
+    const formTitle = document.getElementById('couponFormTitle');
+    const form = document.getElementById('couponForm');
+    const btnCancel = document.getElementById('btnCancelCoupon');
+    const discountTypeSelect = document.getElementById('inpDiscountType');
+    const maxDiscountGroup = document.getElementById('maxDiscountGroup');
+
+    if (btnCreate) {
+        btnCreate.addEventListener('click', () => {
+            resetCouponForm();
+            formTitle.textContent = "Create New Coupon";
+            formContainer.style.display = 'block';
+        });
+    }
+
+    if (btnCancel) {
+        btnCancel.addEventListener('click', () => {
+            formContainer.style.display = 'none';
+            resetCouponForm();
+        });
+    }
+
+    if (discountTypeSelect) {
+        discountTypeSelect.addEventListener('change', () => {
+            if (discountTypeSelect.value === 'percentage') {
+                maxDiscountGroup.style.display = 'block';
+            } else {
+                maxDiscountGroup.style.display = 'none';
+            }
+        });
+    }
+
+    if (form) {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btnSave = document.getElementById('btnSaveCoupon');
+            btnSave.disabled = true;
+            btnSave.textContent = 'Saving...';
+
+            const originalCode = document.getElementById('couponOriginalCode').value;
+            const code = document.getElementById('inpCouponCode').value.trim().toUpperCase();
+            const discountType = document.getElementById('inpDiscountType').value;
+            const discountValue = Number(document.getElementById('inpDiscountValue').value) || 0;
+            const minimumOrder = Number(document.getElementById('inpMinOrder').value) || 0;
+            const maximumDiscount = Number(document.getElementById('inpMaxDiscount').value) || 0;
+            const startDate = document.getElementById('inpStartDate').value || null;
+            const expiryDate = document.getElementById('inpExpiryDate').value || null;
+            const usageLimitVal = document.getElementById('inpUsageLimit').value;
+            const usageLimit = usageLimitVal ? (Number(usageLimitVal) || 0) : null;
+            const perCustomerLimit = Number(document.getElementById('inpPerCustomerLimit').value) || 1;
+            const active = document.getElementById('inpCouponActive').checked;
+
+            try {
+                const couponRef = doc(db, "coupons", code);
+                const existingSnap = await getDoc(couponRef);
+                const isNew = !existingSnap.exists();
+
+                const payload = {
+                    code,
+                    discountType,
+                    discountValue,
+                    minimumOrder,
+                    maximumDiscount: discountType === 'percentage' ? maximumDiscount : 0,
+                    startDate,
+                    expiryDate,
+                    usageLimit,
+                    perCustomerLimit,
+                    active,
+                    updatedAt: serverTimestamp(),
+                    ...(isNew ? { usageCount: 0, createdAt: serverTimestamp() } : {})
+                };
+
+                await setDoc(couponRef, payload, { merge: true });
+
+                const msg = document.getElementById('adminSaveMsg');
+                if (msg) {
+                    msg.textContent = `Coupon ${code} saved successfully! 🎟️`;
+                    msg.style.display = 'block';
+                    setTimeout(() => msg.style.display = 'none', 2500);
+                }
+
+                formContainer.style.display = 'none';
+                resetCouponForm();
+            } catch (err) {
+                console.error("Error saving coupon:", err);
+                alert("Failed to save coupon: " + err.message);
+            } finally {
+                btnSave.disabled = false;
+                btnSave.textContent = 'Save Coupon';
+            }
+        });
+    }
+
+    // Real-time listener for coupons
+    try {
+        onSnapshot(collection(db, "coupons"), (snapshot) => {
+            allCoupons = [];
+            snapshot.forEach(doc => {
+                allCoupons.push({ id: doc.id, ...doc.data() });
+            });
+            renderCouponsGrid();
+        }, (err) => {
+            console.error("Coupons snapshot error:", err);
+            const grid = document.getElementById('couponsListGrid');
+            if (grid) grid.innerHTML = `<p style="color:red;">Error loading coupons: ${err.message}</p>`;
+        });
+    } catch (err) {
+        console.error("Failed to initialize coupons listener:", err);
+    }
+}
+
+function resetCouponForm() {
+    document.getElementById('couponOriginalCode').value = '';
+    document.getElementById('inpCouponCode').value = '';
+    document.getElementById('inpCouponCode').readOnly = false;
+    document.getElementById('inpDiscountType').value = 'percentage';
+    document.getElementById('inpDiscountValue').value = '';
+    document.getElementById('inpMinOrder').value = '0';
+    document.getElementById('inpMaxDiscount').value = '';
+    document.getElementById('inpStartDate').value = '';
+    document.getElementById('inpExpiryDate').value = '';
+    document.getElementById('inpUsageLimit').value = '';
+    document.getElementById('inpPerCustomerLimit').value = '1';
+    document.getElementById('inpCouponActive').checked = true;
+    document.getElementById('maxDiscountGroup').style.display = 'block';
+}
+
+function renderCouponsGrid() {
+    const grid = document.getElementById('couponsListGrid');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    if (allCoupons.length === 0) {
+        grid.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:#666; padding:2rem;">No coupons found. Click "+ Create New Coupon" above to create one!</p>';
+        return;
+    }
+
+    allCoupons.forEach(coupon => {
+        const card = document.createElement('div');
+        card.style.background = '#f9f9f9';
+        card.style.border = coupon.active ? '2px solid #ffb6c1' : '1px solid #ddd';
+        card.style.borderRadius = '10px';
+        card.style.padding = '1.2rem';
+        card.style.display = 'flex';
+        card.style.flexDirection = 'column';
+        card.style.gap = '0.6rem';
+        card.style.opacity = coupon.active ? '1' : '0.7';
+
+        const discountText = coupon.discountType === 'percentage'
+            ? `${coupon.discountValue}% OFF${coupon.maximumDiscount ? ` (Max ₹${coupon.maximumDiscount})` : ''}`
+            : `₹${coupon.discountValue} OFF`;
+
+        const usageStr = (typeof coupon.usageLimit === 'number' && coupon.usageLimit > 0)
+            ? `${coupon.usageCount || 0} / ${coupon.usageLimit}`
+            : `${coupon.usageCount || 0} (Unlimited)`;
+
+        const startStr = coupon.startDate ? new Date(coupon.startDate).toLocaleString() : 'Immediate';
+        const expiryStr = coupon.expiryDate ? new Date(coupon.expiryDate).toLocaleString() : 'No expiry';
+
+        card.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h3 style="margin:0; font-size:1.3rem; color:#ff1493; letter-spacing:1px;">${coupon.code}</h3>
+                <span style="padding:0.2rem 0.6rem; border-radius:12px; font-weight:bold; font-size:0.8rem; background:${coupon.active ? '#e6f7ff; color:#1890ff;' : '#fff1f0; color:#f5222d;'}">
+                    ${coupon.active ? 'ACTIVE' : 'INACTIVE'}
+                </span>
+            </div>
+            <div style="font-size:1rem; font-weight:bold; color:#333;">${discountText}</div>
+            <div style="font-size:0.85rem; color:#666; line-height:1.5;">
+                <p style="margin:0;">Minimum Order: <strong>₹${coupon.minimumOrder || 0}</strong></p>
+                <p style="margin:0;">Usage Count: <strong>${usageStr}</strong></p>
+                <p style="margin:0;">Per Customer Limit: <strong>${coupon.perCustomerLimit || 1}</strong></p>
+                <p style="margin:0;">Starts: <small>${startStr}</small></p>
+                <p style="margin:0;">Expires: <small>${expiryStr}</small></p>
+            </div>
+            <div style="display:flex; gap:0.5rem; margin-top:0.5rem; flex-wrap:wrap;">
+                <button class="btn-edit-coupon" data-code="${coupon.code}" style="padding:0.4rem 0.8rem; background:#007bff; color:white; border:none; border-radius:5px; font-weight:bold; cursor:pointer; font-size:0.85rem;">Edit</button>
+                <button class="btn-toggle-coupon" data-code="${coupon.code}" data-active="${coupon.active}" style="padding:0.4rem 0.8rem; background:${coupon.active ? '#ff9c6e' : '#28a745'}; color:white; border:none; border-radius:5px; font-weight:bold; cursor:pointer; font-size:0.85rem;">
+                    ${coupon.active ? 'Deactivate' : 'Activate'}
+                </button>
+                <button class="btn-delete-coupon" data-code="${coupon.code}" style="padding:0.4rem 0.8rem; background:#dc3545; color:white; border:none; border-radius:5px; font-weight:bold; cursor:pointer; font-size:0.85rem;">Delete</button>
+            </div>
+        `;
+
+        grid.appendChild(card);
+    });
+
+    document.querySelectorAll('.btn-edit-coupon').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const code = e.target.getAttribute('data-code');
+            const coupon = allCoupons.find(c => c.code === code);
+            if (!coupon) return;
+
+            document.getElementById('couponOriginalCode').value = coupon.code;
+            document.getElementById('inpCouponCode').value = coupon.code;
+            document.getElementById('inpCouponCode').readOnly = true;
+            document.getElementById('inpDiscountType').value = coupon.discountType || 'percentage';
+            document.getElementById('inpDiscountValue').value = coupon.discountValue || '';
+            document.getElementById('inpMinOrder').value = coupon.minimumOrder || 0;
+            document.getElementById('inpMaxDiscount').value = coupon.maximumDiscount || '';
+            document.getElementById('inpStartDate').value = coupon.startDate ? coupon.startDate.substring(0, 16) : '';
+            document.getElementById('inpExpiryDate').value = coupon.expiryDate ? coupon.expiryDate.substring(0, 16) : '';
+            document.getElementById('inpUsageLimit').value = coupon.usageLimit || '';
+            document.getElementById('inpPerCustomerLimit').value = coupon.perCustomerLimit || 1;
+            document.getElementById('inpCouponActive').checked = Boolean(coupon.active);
+
+            document.getElementById('maxDiscountGroup').style.display = coupon.discountType === 'percentage' ? 'block' : 'none';
+            document.getElementById('couponFormTitle').textContent = `Edit Coupon: ${coupon.code}`;
+            document.getElementById('couponFormContainer').style.display = 'block';
+        });
+    });
+
+    document.querySelectorAll('.btn-toggle-coupon').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const code = e.target.getAttribute('data-code');
+            const currentActive = e.target.getAttribute('data-active') === 'true';
+            try {
+                await updateDoc(doc(db, "coupons", code), {
+                    active: !currentActive,
+                    updatedAt: serverTimestamp()
+                });
+            } catch (err) {
+                console.error("Error toggling coupon status:", err);
+                alert("Failed to update coupon status: " + err.message);
+            }
+        });
+    });
+
+    document.querySelectorAll('.btn-delete-coupon').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const code = e.target.getAttribute('data-code');
+            if (confirm(`Are you sure you want to delete coupon "${code}"?`)) {
+                try {
+                    await deleteDoc(doc(db, "coupons", code));
+                } catch (err) {
+                    console.error("Error deleting coupon:", err);
+                    alert("Failed to delete coupon: " + err.message);
+                }
+            }
+        });
+    });
+}
+
+// ==========================================
+// 4. OFFERS & PRICING CONFIGURATION MANAGEMENT
+// ==========================================
+
+async function initOffersManagement() {
+    const form = document.getElementById('ringPricingForm');
+
+    // Load initial values from Firestore
+    try {
+        const snap = await getDoc(doc(db, "pricingRules", "ring150Bundle"));
+        if (snap.exists()) {
+            const data = snap.data();
+            document.getElementById('inpRingRuleEnabled').checked = data.enabled !== false;
+            document.getElementById('inpRingRuleName').value = data.name || "₹150 Ring Mix & Match";
+            document.getElementById('inpRingBasePrice').value = data.basePrice || 150;
+            
+            if (Array.isArray(data.tiers)) {
+                const t1 = data.tiers.find(t => t.minQuantity === 1);
+                const t2 = data.tiers.find(t => t.minQuantity === 2);
+                const t3 = data.tiers.find(t => t.minQuantity === 3);
+                if (t1) document.getElementById('inpTier1Price').value = t1.pricePerItem;
+                if (t2) document.getElementById('inpTier2Price').value = t2.pricePerItem;
+                if (t3) document.getElementById('inpTier3Price').value = t3.pricePerItem;
+            }
+        }
+    } catch (err) {
+        console.warn("Could not load pricing rules:", err);
+    }
+
+    if (form) {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btnSave = document.getElementById('btnSaveRingPricing');
+            btnSave.disabled = true;
+            btnSave.textContent = 'Saving...';
+
+            const enabled = document.getElementById('inpRingRuleEnabled').checked;
+            const name = document.getElementById('inpRingRuleName').value.trim() || "₹150 Ring Mix & Match";
+            const basePrice = Number(document.getElementById('inpRingBasePrice').value) || 150;
+            const tier1 = Number(document.getElementById('inpTier1Price').value) || 150;
+            const tier2 = Number(document.getElementById('inpTier2Price').value) || 130;
+            const tier3 = Number(document.getElementById('inpTier3Price').value) || 110;
+
+            const payload = {
+                name,
+                enabled,
+                productType: "ring",
+                basePrice,
+                tiers: [
+                    { minQuantity: 1, pricePerItem: tier1 },
+                    { minQuantity: 2, pricePerItem: tier2 },
+                    { minQuantity: 3, pricePerItem: tier3 }
+                ],
+                updatedAt: serverTimestamp()
+            };
+
+            try {
+                await setDoc(doc(db, "pricingRules", "ring150Bundle"), payload, { merge: true });
+                const msg = document.getElementById('adminSaveMsg');
+                if (msg) {
+                    msg.textContent = `Ring Mix & Match pricing rule updated! ✨`;
+                    msg.style.display = 'block';
+                    setTimeout(() => msg.style.display = 'none', 2500);
+                }
+            } catch (err) {
+                console.error("Error saving pricing rule:", err);
+                alert("Failed to save pricing rule: " + err.message);
+            } finally {
+                btnSave.disabled = false;
+                btnSave.textContent = 'Save Pricing Rule';
+            }
+        });
+    }
+}
+

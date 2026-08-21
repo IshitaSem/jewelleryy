@@ -40,6 +40,20 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    match /coupons/{couponId} {
+      allow read: if true;
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() || (
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['usageCount', 'updatedAt'])
+        && request.resource.data.usageCount == resource.data.usageCount + 1
+      );
+    }
+
+    match /pricingRules/{ruleId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
     match /orders/{orderId} {
 
       allow create: if
@@ -69,7 +83,8 @@ service cloud.firestore {
         && request.resource.data.total is number
         && request.resource.data.totalWeight is number
         && request.resource.data.shippingService is string
-        && request.resource.data.total == request.resource.data.subtotal + request.resource.data.shipping
+        && request.resource.data.total == request.resource.data.subtotal - (('couponDiscount' in request.resource.data && request.resource.data.couponDiscount is number) ? request.resource.data.couponDiscount : 0) + request.resource.data.shipping
+        && request.resource.data.total >= 0
         && request.resource.data.orderStatus == 'Order Received'
         && request.resource.data.paymentStatus == 'Payment Pending'
         && request.resource.data.paymentMethod == 'UPI'
@@ -89,3 +104,4 @@ service cloud.firestore {
     }
   }
 }
+
