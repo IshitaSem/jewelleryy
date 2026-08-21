@@ -45,6 +45,7 @@ export function normalizeCategory(cat) {
   if (cleaned === 'earrings' || cleaned === 'earring') return 'earring';
   if (cleaned === 'bracelets' || cleaned === 'bracelet') return 'bracelet';
   if (cleaned === 'charms' || cleaned === 'charm') return 'charm';
+  if (cleaned === 'keychains' || cleaned === 'keychain') return 'keychain';
   if (cleaned === 'brooches' || cleaned === 'brooch') return 'brooch';
   if (cleaned === 'rings' || cleaned === 'ring') return 'ring';
   if (cleaned === 'handmade jewellery' || cleaned === 'handmade' || cleaned === 'handmade_jewellery') return 'handmade jewellery';
@@ -57,6 +58,7 @@ export function normalizeCategory(cat) {
 export function deriveCategory(imagePath = '', name = '') {
   const str = (String(imagePath) + ' ' + String(name)).toLowerCase();
   if (str.includes('handmade')) return 'Handmade Jewellery';
+  if (str.includes('keychain')) return 'Keychains';
   if (str.includes('earring')) return 'Earrings';
   if (str.includes('ring')) return 'Rings';
   if (str.includes('necklace') || str.includes('pendant')) return 'Pendants';

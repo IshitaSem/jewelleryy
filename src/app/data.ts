@@ -92,6 +92,9 @@ export const PRODUCTS: Product[] = [
   { id: 'st4', name: 'Botanical Bookmarks', price: 149, category: 'Stationery', description: 'Set of 5 hand-illustrated pressed-flower bookmarks.', image: IMG('photo-1456735190827-d1262f71b8a3') },
   { id: 'st5', name: 'Greeting Cards Set', price: 249, category: 'Stationery', description: '6 letterpress greeting cards with envelopes.', image: IMG('photo-1456735190827-d1262f71b8a3'), popular: true },
 
+  // Keychains & Accessories
+  { id: 'kc1', name: 'Batmobile Keychain', price: 199, category: 'Keychains', description: 'Dark Knight Batmobile die-cast metal keychain.', image: 'images/keychains/batmobile 1.0.png', popular: true },
+
   // Bracelets & Accessories
   { id: 'b1', name: 'Car Guys Italian Charm Bracelet', price: 215, category: 'Bracelets', description: 'Italian charm bracelet with 3 brand options: BMW, Volkswagen, Porsche.', image: 'images/Bracelet/itelian bracelets.png', popular: true },
   { id: 'b2', name: 'Bestie Bnw Bracelet', price: 180, category: 'Bracelets', description: 'Matching bestie black & white bracelet set.', image: 'images/Bracelet/bestie bnw (1).jpg' },
@@ -111,6 +114,7 @@ export const PRODUCTS: Product[] = [
 ];
 
 export const CATEGORIES = [
+  { name: 'Keychains', emoji: '🔑', description: 'Batmobile & aesthetic keychains', image: 'images/keychains/batmobile 1.0.png' },
   { name: 'Bracelets', emoji: '✨', description: 'Italian charm & handmade bracelets', image: 'images/Bracelet/itelian bracelets.png' },
   { name: 'Rings', emoji: '💍', description: 'Gothic & statement rings', image: 'images/rings/Bloodclutch.png' },
   { name: 'Chocolates', emoji: '🍫', description: 'Handcrafted artisan chocolates', image: IMG('photo-1599599810769-bcde5a160d32', 600, 600) },

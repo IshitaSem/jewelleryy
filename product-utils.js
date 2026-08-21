@@ -42,7 +42,7 @@ export function getProductNameFromImage(imagePath) {
   } else {
     // Remove multi-angle indices like (1), (2), (3) or 2.0
     baseName = baseName.replace(/\s*\(([0-9]+)\)/g, '');
-    baseName = baseName.replace(/\s+2\.0$/i, '');
+    baseName = baseName.replace(/\s+[0-9]\.0$/i, '');
   }
 
   // 5. Replace hyphens and underscores with spaces
@@ -51,19 +51,25 @@ export function getProductNameFromImage(imagePath) {
   // 6. Clean unnecessary repeated spaces
   baseName = baseName.replace(/\s+/g, ' ').trim();
 
-  // 7. Format into clean Title Case while preserving special identifiers
-  return baseName.split(' ').map(word => {
+  let formatted = baseName.split(' ').map(word => {
     if (!word) return '';
     if (/^\d+(\.\d+)?$/.test(word)) return word;
     if (word.toUpperCase() === 'Y2K') return 'Y2K';
     return word.charAt(0).toUpperCase() + word.slice(1);
   }).join(' ');
+
+  if (imagePath && imagePath.toLowerCase().includes('keychain') && !formatted.toLowerCase().includes('keychain')) {
+    formatted = `${formatted} Keychain`;
+  }
+  return formatted;
 }
 
 /**
  * Single source of truth for the storefront jewellery product catalog.
  */
 export const STOREFRONT_PRODUCTS = [
+  // KEYCHAINS (1)
+  { name: 'Batmobile Keychain', price: 199, image: 'images/keychains/batmobile 1.0.png', category: 'Keychains' },
   // EARRINGS (15)
   { name: 'Butterfly Bloom', price: 69, image: 'images/earrings/Butterfly Bloom 🦋.jpg', category: 'Earrings' },
   { name: 'Cherry Heart Star', price: 99, image: 'images/earrings/Cherry Heart star🍒.jpg', category: 'Earrings' },
