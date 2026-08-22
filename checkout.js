@@ -451,23 +451,58 @@ async function handleOrderSubmission(e) {
 
             const bundleRes = calculateRingBundleDiscount(cart, ringPricingRule);
 
-            // 5. Create Order document with detailed discount metadata
+            // Create a costPrice lookup from transaction product snapshots
+            const costPriceMap = {};
+            for (const ss of stockSnapshots) {
+                if (ss.snap && ss.snap.exists()) {
+                    const pData = ss.snap.data();
+                    if (typeof pData.costPrice === 'number' && !isNaN(pData.costPrice)) {
+                        costPriceMap[ss.pId] = pData.costPrice;
+                    }
+                }
+            }
+
+            let orderProductCost = 0;
+            let hasMissingCostInOrder = false;
+
+            const processedItems = cart.map(item => {
+                const isEligible = isEligibleRing(item, ringPricingRule);
+                const hasBundle = isEligible && bundleRes.bundleDiscount > 0;
+                const appliedPrice = hasBundle ? bundleRes.appliedTierPrice : item.price;
+                const title = getItemTitle(item);
+                const pId = getProductId(title, item.image);
+                const itemQty = item.quantity || 1;
+                const costPrice = (typeof costPriceMap[pId] === 'number') ? costPriceMap[pId] : null;
+                const costTotal = costPrice !== null ? costPrice * itemQty : null;
+
+                if (costTotal !== null) {
+                    orderProductCost += costTotal;
+                } else {
+                    hasMissingCostInOrder = true;
+                }
+
+                return {
+                    ...item,
+                    productId: pId,
+                    name: title,
+                    productName: title,
+                    quantity: itemQty,
+                    sellingPrice: appliedPrice,
+                    originalPrice: item.price,
+                    appliedPrice: appliedPrice,
+                    costPrice: costPrice,
+                    total: appliedPrice * itemQty,
+                    costTotal: costTotal,
+                    bundleDiscount: hasBundle ? (item.price - appliedPrice) * itemQty : 0,
+                    weight: getItemWeight(item)
+                };
+            });
+
+            // 5. Create Order document with detailed discount & cost metadata
             const orderData = {
                 orderNumber: orderNumber,
                 customer: customer,
-                items: cart.map(item => {
-                    const isEligible = isEligibleRing(item, ringPricingRule);
-                    const hasBundle = isEligible && bundleRes.bundleDiscount > 0;
-                    const appliedPrice = hasBundle ? bundleRes.appliedTierPrice : item.price;
-                    return {
-                        ...item,
-                        name: getItemTitle(item),
-                        originalPrice: item.price,
-                        appliedPrice: appliedPrice,
-                        bundleDiscount: hasBundle ? (item.price - appliedPrice) * item.quantity : 0,
-                        weight: getItemWeight(item)
-                    };
-                }),
+                items: processedItems,
                 originalSubtotal: originalSubtotal,
                 ringBundleDiscount: ringBundleDiscount,
                 subtotal: subtotalAfterBundle,
@@ -475,6 +510,8 @@ async function handleOrderSubmission(e) {
                 couponDiscount: finalCouponDiscount,
                 shipping: shippingCharge,
                 total: Math.max(0, subtotalAfterBundle - finalCouponDiscount) + shippingCharge,
+                productCost: hasMissingCostInOrder ? null : orderProductCost,
+                shippingCost: null, // Admin actual shipping expense (to be entered by admin)
                 totalWeight: totalParcelWeight,
                 shippingService: SHIPPING_SERVICE_NAME,
                 paymentMethod: "UPI",
@@ -489,6 +526,7 @@ async function handleOrderSubmission(e) {
                 }],
                 stockDeducted: true,
                 stockRestored: false,
+                isCostFrozen: false,
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp()
             };

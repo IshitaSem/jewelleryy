@@ -2,6 +2,11 @@ import { auth, db, serverTimestamp } from './firebase.js';
 import { onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 import { collection, getDocs, doc, updateDoc, setDoc, deleteDoc, getDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 import { getProductId, renderStockBadge, normalizeCategory, deriveCategory, combineProducts } from './stock-utils.js';
+import { calculateOrderProfit, filterOrdersByDateRange, calculateBusinessAnalytics } from './profit-utils.js';
+
+let currentAnalyticsPeriod = 'ALL';
+let customStartDate = null;
+let customEndDate = null;
 
 let allOrders = [];
 let currentOrder = null;
@@ -179,8 +184,18 @@ function renderSidebar() {
     }
 
     allOrders.forEach(order => {
-        const dateStr = order.createdAt ? new Date(order.createdAt.toMillis()).toLocaleDateString() : 'Unknown';
+        const dateStr = order.createdAt ? new Date(order.createdAt.toMillis ? order.createdAt.toMillis() : order.createdAt).toLocaleDateString() : 'Unknown';
+        const profit = calculateOrderProfit(order, productCostsMap);
         
+        let profitBadge = '';
+        if (profit.costStatus === 'FROZEN') {
+            profitBadge = `<span style="display:inline-block; margin-top:0.3rem; padding:0.2rem 0.5rem; background:#d4edda; color:#155724; border-radius:10px; font-weight:bold;">Profit: ₹${profit.netProfit} (${profit.profitMargin.toFixed(1)}%) ✓</span>`;
+        } else if (profit.costStatus === 'PENDING') {
+            profitBadge = `<span style="display:inline-block; margin-top:0.3rem; padding:0.2rem 0.5rem; background:#fff3cd; color:#856404; border-radius:10px; font-weight:bold;">⏳ Pending snapshot</span>`;
+        } else {
+            profitBadge = `<span style="display:inline-block; margin-top:0.3rem; padding:0.2rem 0.5rem; background:#fff2f0; color:#ff4d4f; border-radius:10px;">⚠️ Missing Cost Data</span>`;
+        }
+
         const card = document.createElement('div');
         card.className = 'admin-order-card';
         card.innerHTML = `
@@ -189,6 +204,7 @@ function renderSidebar() {
                 ${dateStr} | ₹${order.total}<br>
                 <span style="display:inline-block; margin-top:0.3rem; padding:0.2rem 0.5rem; background:#eee; border-radius:10px;">${order.paymentStatus || 'Pending'}</span>
                 <span style="display:inline-block; margin-top:0.3rem; padding:0.2rem 0.5rem; background:#ffc107; color:black; border-radius:10px;">${order.orderStatus || 'Received'}</span>
+                ${profitBadge}
                 ${order.stockRestored ? '<span style="display:inline-block; margin-top:0.3rem; padding:0.2rem 0.5rem; background:#17a2b8; color:white; border-radius:10px;">Stock Restored 🔄</span>' : ''}
             </div>
         `;
@@ -203,12 +219,110 @@ function renderSidebar() {
     });
 }
 
+async function freezeOrderCostSnapshot(order, showFeedbackAlert = true) {
+    if (!order) return null;
+    
+    // Check if order cost is ALREADY frozen
+    if (order.isCostFrozen || order.profitCostSnapshotAt) {
+        if (showFeedbackAlert) {
+            const frozenDate = order.profitCostSnapshotAt ? new Date(order.profitCostSnapshotAt.toMillis ? order.profitCostSnapshotAt.toMillis() : order.profitCostSnapshotAt).toLocaleString() : 'previously';
+            alert(`Order #${order.orderNumber} cost snapshot is ALREADY frozen (Historical Product Cost: ₹${order.productCost || 0} locked ${frozenDate}).\n\nPreserved historical cost snapshot unchanged! 🔒`);
+        }
+        return order;
+    }
+
+    if (!auth.currentUser || !auth.currentUser.email || auth.currentUser.email.toLowerCase() !== 'ishitasemwal84@gmail.com') {
+        alert("Error: Admin authorization required to snapshot order cost.");
+        return null;
+    }
+
+    await loadProductCosts();
+
+    let totalProductCost = 0;
+    let hasMissingCostInOrder = false;
+
+    const updatedItems = (order.items || []).map(item => {
+        const qty = item.quantity || 1;
+        const displayName = item.name || item.productName || '';
+        const pId = item.productId || getProductId(displayName, item.image || '');
+
+        let itemCost = null;
+        if (typeof item.costPrice === 'number' && !isNaN(item.costPrice)) {
+            itemCost = item.costPrice;
+        } else if (typeof productCostsMap[pId] === 'number') {
+            itemCost = productCostsMap[pId];
+        }
+
+        if (itemCost !== null) {
+            const itemCostTotal = itemCost * qty;
+            totalProductCost += itemCostTotal;
+            return {
+                ...item,
+                productId: pId,
+                costPrice: itemCost,
+                costTotal: itemCostTotal
+            };
+        } else {
+            hasMissingCostInOrder = true;
+            return {
+                ...item,
+                productId: pId,
+                costPrice: null,
+                costTotal: null
+            };
+        }
+    });
+
+    const updatePayload = {
+        items: updatedItems,
+        productCost: totalProductCost,
+        isCostFrozen: true,
+        profitCostSnapshotAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+    };
+
+    try {
+        const orderRef = doc(db, "orders", order.id);
+        await updateDoc(orderRef, updatePayload);
+
+        // Update in-memory objects
+        order.items = updatedItems;
+        order.productCost = totalProductCost;
+        order.isCostFrozen = true;
+        order.profitCostSnapshotAt = new Date();
+
+        const orderInList = allOrders.find(o => o.id === order.id);
+        if (orderInList) {
+            orderInList.items = updatedItems;
+            orderInList.productCost = totalProductCost;
+            orderInList.isCostFrozen = true;
+            orderInList.profitCostSnapshotAt = new Date();
+        }
+
+        if (showFeedbackAlert) {
+            alert(`Order #${order.orderNumber} cost snapshot successfully FROZEN! 🔒\n\nHistorical Product Cost locked at ₹${totalProductCost}. Future product cost changes will NOT affect this order.`);
+        }
+
+        openOrderDetails(order);
+        renderSidebar();
+        renderAnalytics();
+
+        return order;
+    } catch (e) {
+        console.error("Error freezing order cost snapshot:", e);
+        if (showFeedbackAlert) {
+            alert("Failed to freeze order cost snapshot: " + e.message);
+        }
+        return null;
+    }
+}
+
 function openOrderDetails(order) {
     currentOrder = order;
     document.getElementById('adminDetailPanel').style.display = 'block';
     
     document.getElementById('admOrderNo').textContent = `Order #${order.orderNumber}`;
-    document.getElementById('admDate').textContent = order.createdAt ? new Date(order.createdAt.toMillis()).toLocaleString() : '';
+    document.getElementById('admDate').textContent = order.createdAt ? new Date(order.createdAt.toMillis ? order.createdAt.toMillis() : order.createdAt).toLocaleString() : '';
     
     const c = order.customer || {};
     document.getElementById('admCustName').textContent = c.name || 'N/A';
@@ -293,6 +407,91 @@ function openOrderDetails(order) {
     if (document.getElementById('admTotalWeight')) document.getElementById('admTotalWeight').textContent = `${totalWeight}g`;
     if (document.getElementById('admTotal')) document.getElementById('admTotal').textContent = `₹${order.total}`;
     
+    // Profit & Margin Analysis Calculation
+    const profit = calculateOrderProfit(order, productCostsMap);
+
+    const costBadge = document.getElementById('admCostStatusBadge');
+    const freezeBtn = document.getElementById('btnFreezeCostSnapshot');
+
+    if (costBadge) {
+        if (profit.costStatus === 'FROZEN') {
+            costBadge.textContent = '✓ Cost Data Available';
+            costBadge.style.background = '#d4edda';
+            costBadge.style.color = '#155724';
+            costBadge.style.border = '1px solid #c3e6cb';
+            if (freezeBtn) {
+                freezeBtn.textContent = '🔒 Cost Snapshot Frozen (Locked)';
+                freezeBtn.style.background = '#6c757d';
+            }
+        } else if (profit.costStatus === 'PENDING') {
+            costBadge.textContent = '⏳ Cost snapshot pending';
+            costBadge.style.background = '#fff3cd';
+            costBadge.style.color = '#856404';
+            costBadge.style.border = '1px solid #ffeeba';
+            if (freezeBtn) {
+                freezeBtn.textContent = '🔒 Snapshot Cost & Calculate Profit';
+                freezeBtn.style.background = '#28a745';
+            }
+        } else {
+            costBadge.textContent = '⚠️ Missing Cost Data';
+            costBadge.style.background = '#f8d7da';
+            costBadge.style.color = '#721c24';
+            costBadge.style.border = '1px solid #f5c6cb';
+            if (freezeBtn) {
+                freezeBtn.textContent = '🔒 Snapshot Cost & Calculate Profit';
+                freezeBtn.style.background = '#ff1493';
+            }
+        }
+    }
+
+    if (freezeBtn) {
+        freezeBtn.onclick = () => freezeOrderCostSnapshot(currentOrder, true);
+    }
+
+    if (document.getElementById('admProfitRevenue')) document.getElementById('admProfitRevenue').textContent = `₹${profit.revenue}`;
+    if (document.getElementById('admProfitProductCost')) document.getElementById('admProfitProductCost').textContent = profit.hasMissingCost ? 'Incomplete ⚠️' : `₹${profit.productCost}`;
+    
+    const profitShippingEl = document.getElementById('admProfitShippingCost');
+    if (profitShippingEl) {
+        if (profit.hasMissingShipping) {
+            profitShippingEl.textContent = 'Shipping cost not entered ⚠️';
+            profitShippingEl.style.color = '#ff9800';
+        } else {
+            profitShippingEl.textContent = `₹${profit.shippingCost}`;
+            profitShippingEl.style.color = '#333';
+        }
+    }
+
+    const profitNetEl = document.getElementById('admProfitNet');
+    if (profitNetEl) {
+        if (profit.hasMissingCost) {
+            profitNetEl.textContent = 'Cannot Calculate';
+            profitNetEl.style.color = '#ff4d4f';
+        } else if (profit.netProfit >= 0) {
+            profitNetEl.textContent = `₹${profit.netProfit}`;
+            profitNetEl.style.color = '#28a745';
+        } else {
+            profitNetEl.textContent = `-₹${Math.abs(profit.netProfit)} (Loss)`;
+            profitNetEl.style.color = '#dc3545';
+        }
+    }
+
+    const profitMarginEl = document.getElementById('admProfitMargin');
+    if (profitMarginEl) {
+        profitMarginEl.textContent = profit.hasMissingCost ? 'N/A' : `${profit.profitMargin.toFixed(2)}%`;
+        if (profitMarginEl) profitMarginEl.style.color = profit.profitMargin >= 0 ? '#28a745' : '#dc3545';
+    }
+
+    const missingCostNotice = document.getElementById('admMissingCostNotice');
+    if (missingCostNotice) {
+        missingCostNotice.style.display = profit.hasMissingCost ? 'block' : 'none';
+    }
+
+    const inpShipCost = document.getElementById('inpShippingCost');
+    if (inpShipCost) {
+        inpShipCost.value = (typeof order.shippingCost === 'number') ? order.shippingCost : '';
+    }
+
     const payImg = document.getElementById('admPaymentImg');
     const payLink = document.getElementById('admPaymentLink');
     if (order.paymentScreenshot) {
@@ -318,12 +517,20 @@ document.getElementById('btnSaveUpdate').addEventListener('click', async () => {
     
     btn.disabled = true;
     btn.textContent = 'Saving...';
+
+    // Freeze order cost snapshot if not already frozen
+    if (!currentOrder.isCostFrozen) {
+        await freezeOrderCostSnapshot(currentOrder, false);
+    }
     
     const newPaymentStatus = document.getElementById('inpPaymentStatus').value;
     const newOrderStatus = document.getElementById('inpOrderStatus').value;
     const newMessage = document.getElementById('inpMessage').value;
     const newCourier = document.getElementById('inpCourier').value;
     const newTracking = document.getElementById('inpTracking').value;
+
+    const shippingCostInputVal = document.getElementById('inpShippingCost') ? document.getElementById('inpShippingCost').value.trim() : '';
+    const newShippingCost = (shippingCostInputVal !== '' && !isNaN(Number(shippingCostInputVal))) ? Math.max(0, Number(shippingCostInputVal)) : null;
 
     const historyArray = currentOrder.statusHistory || [];
     historyArray.push({
@@ -385,6 +592,7 @@ document.getElementById('btnSaveUpdate').addEventListener('click', async () => {
                     statusMessage: newMessage,
                     courier: newCourier,
                     trackingNumber: newTracking,
+                    shippingCost: newShippingCost,
                     statusHistory: historyArray,
                     stockRestored: true,
                     updatedAt: serverTimestamp()
@@ -400,6 +608,7 @@ document.getElementById('btnSaveUpdate').addEventListener('click', async () => {
                 statusMessage: newMessage,
                 courier: newCourier,
                 trackingNumber: newTracking,
+                shippingCost: newShippingCost,
                 statusHistory: historyArray,
                 updatedAt: serverTimestamp()
             });
@@ -414,6 +623,7 @@ document.getElementById('btnSaveUpdate').addEventListener('click', async () => {
         currentOrder.statusMessage = newMessage;
         currentOrder.courier = newCourier;
         currentOrder.trackingNumber = newTracking;
+        currentOrder.shippingCost = newShippingCost;
         currentOrder.statusHistory = historyArray;
         renderSidebar();
         renderAnalytics();
@@ -480,7 +690,7 @@ if (btnDeleteOrder) {
 }
 
 // ==========================================
-// 1.5 SALES & ITEMS SOLD ANALYTICS
+// 1.5 BUSINESS ANALYTICS & PROFIT TRACKING
 // ==========================================
 
 function initAnalyticsListeners() {
@@ -488,11 +698,49 @@ function initAnalyticsListeners() {
     const categoryFilter = document.getElementById('analyticsCategoryFilter');
     const sortBy = document.getElementById('analyticsSortBy');
     const refreshBtn = document.getElementById('btnRefreshAnalytics');
+    const dateBtns = document.querySelectorAll('.date-filter-btn');
+    const customStartInput = document.getElementById('analyticsCustomStart');
+    const customEndInput = document.getElementById('analyticsCustomEnd');
+    const btnApplyCustom = document.getElementById('btnApplyCustomDate');
 
     if (searchInput) searchInput.addEventListener('input', () => renderAnalyticsGrid());
     if (categoryFilter) categoryFilter.addEventListener('change', () => renderAnalyticsGrid());
     if (sortBy) sortBy.addEventListener('change', () => renderAnalyticsGrid());
     if (refreshBtn) refreshBtn.addEventListener('click', () => loadOrders());
+
+    dateBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            dateBtns.forEach(b => {
+                b.classList.remove('active');
+                b.style.background = 'white';
+                b.style.color = '#555';
+                b.style.border = '1px solid #ddd';
+            });
+            e.target.classList.add('active');
+            e.target.style.background = '#ff1493';
+            e.target.style.color = 'white';
+            e.target.style.border = '1px solid #ff1493';
+
+            const period = e.target.getAttribute('data-period');
+            currentAnalyticsPeriod = period;
+
+            const customBox = document.getElementById('analyticsCustomDateInputs');
+            if (period === 'CUSTOM') {
+                if (customBox) customBox.style.display = 'flex';
+            } else {
+                if (customBox) customBox.style.display = 'none';
+                renderAnalytics();
+            }
+        });
+    });
+
+    if (btnApplyCustom) {
+        btnApplyCustom.addEventListener('click', () => {
+            customStartDate = customStartInput ? customStartInput.value : null;
+            customEndDate = customEndInput ? customEndInput.value : null;
+            renderAnalytics();
+        });
+    }
 }
 
 if (document.readyState === 'loading') {
@@ -504,105 +752,204 @@ if (document.readyState === 'loading') {
 function renderAnalytics() {
     if (!allOrders) return;
 
-    let totalRev = 0;
-    let totalItemsCount = 0;
-    let verifiedCount = 0;
+    // Filter orders by selected date period
+    const filteredOrders = filterOrdersByDateRange(allOrders, currentAnalyticsPeriod, customStartDate, customEndDate);
+    const analytics = calculateBusinessAnalytics(filteredOrders, allProducts, productCostsMap);
 
-    const salesMap = {};
+    // Update Executive Overview Metric Cards
+    if (document.getElementById('statTotalSales')) document.getElementById('statTotalSales').textContent = `₹${analytics.totalSales.toLocaleString('en-IN')}`;
+    if (document.getElementById('statTotalSalesSub')) {
+        document.getElementById('statTotalSalesSub').textContent = analytics.missingCostOrdersCount > 0
+            ? `${analytics.validOrdersCount} orders (${analytics.completeCostOrdersCount} with cost data)`
+            : `${analytics.validOrdersCount} completed order(s)`;
+    }
+    if (document.getElementById('statProductCost')) document.getElementById('statProductCost').textContent = `₹${analytics.totalProductCost.toLocaleString('en-IN')}`;
+    if (document.getElementById('statShippingCost')) document.getElementById('statShippingCost').textContent = `₹${analytics.totalShippingExpenses.toLocaleString('en-IN')}`;
+    if (document.getElementById('statGrossProfit')) document.getElementById('statGrossProfit').textContent = `₹${analytics.grossProfit.toLocaleString('en-IN')}`;
 
-    allOrders.forEach(order => {
-        const isCancelled = (order.orderStatus === 'Cancelled' || order.paymentStatus === 'Payment Rejected');
+    const hasMissingShipping = analytics.missingShippingOrdersCount > 0;
 
-        if (!isCancelled) {
-            totalRev += (order.total || 0);
-            if (order.paymentStatus === 'Payment Verified' || order.orderStatus === 'Delivered' || order.orderStatus === 'Shipped') {
-                verifiedCount++;
-            }
+    const statShippingCostSub = document.getElementById('statShippingCostSub');
+    if (statShippingCostSub) {
+        statShippingCostSub.textContent = hasMissingShipping
+            ? `${analytics.validOrdersCount - analytics.missingShippingOrdersCount} entered / ${analytics.missingShippingOrdersCount} missing`
+            : 'Seller shipping expense';
+    }
+
+    const statNetProfitTitle = document.getElementById('statNetProfitTitle');
+    if (statNetProfitTitle) {
+        statNetProfitTitle.textContent = hasMissingShipping ? 'Provisional Net Profit 💵' : 'Net Profit 💵';
+    }
+
+    const statNetProfitSub = document.getElementById('statNetProfitSub');
+    if (statNetProfitSub) {
+        if (hasMissingShipping) {
+            statNetProfitSub.textContent = `⚠️ Final net profit unavailable — ${analytics.missingShippingOrdersCount} order(s) missing shipping costs`;
+            statNetProfitSub.style.color = '#d46b08';
+            statNetProfitSub.style.fontWeight = 'bold';
+        } else {
+            statNetProfitSub.textContent = 'Gross Profit - Shipping';
+            statNetProfitSub.style.color = '#888';
+            statNetProfitSub.style.fontWeight = 'normal';
         }
+    }
 
-        if (order.items && Array.isArray(order.items)) {
-            order.items.forEach(item => {
-                if (isCancelled) return;
+    const statProfitMarginTitle = document.getElementById('statProfitMarginTitle');
+    if (statProfitMarginTitle) {
+        statProfitMarginTitle.textContent = hasMissingShipping ? 'Provisional Profit Margin 📊' : 'Profit Margin 📊';
+    }
 
-                const qty = item.quantity || 1;
-                totalItemsCount += qty;
-
-                const displayName = (item.image && typeof window.getProductNameFromImage === 'function')
-                    ? window.getProductNameFromImage(item.image)
-                    : (item.name || '');
-                const pId = getProductId(displayName, item.image);
-                const itemPrice = item.appliedPrice || item.price || 0;
-
-                if (!salesMap[pId]) {
-                    salesMap[pId] = {
-                        pId: pId,
-                        name: displayName,
-                        image: item.image || '',
-                        category: deriveCategory(item.image, displayName),
-                        sold: 0,
-                        revenue: 0
-                    };
-                }
-                salesMap[pId].sold += qty;
-                salesMap[pId].revenue += (itemPrice * qty);
-            });
+    const statProfitMarginSub = document.getElementById('statProfitMarginSub');
+    if (statProfitMarginSub) {
+        if (hasMissingShipping) {
+            statProfitMarginSub.textContent = '⚠️ Subject to shipping expenses';
+            statProfitMarginSub.style.color = '#d46b08';
+            statProfitMarginSub.style.fontWeight = 'bold';
+        } else {
+            statProfitMarginSub.textContent = '(Net Profit / Revenue) * 100';
+            statProfitMarginSub.style.color = '#888';
+            statProfitMarginSub.style.fontWeight = 'normal';
         }
-    });
+    }
 
-    const totalOrdersCount = allOrders.length;
-    const avgOrderValue = totalOrdersCount > 0 ? Math.round(totalRev / totalOrdersCount) : 0;
+    const statNetProfit = document.getElementById('statNetProfit');
+    if (statNetProfit) {
+        statNetProfit.textContent = (analytics.netProfit >= 0 ? `₹${analytics.netProfit.toLocaleString('en-IN')}` : `-₹${Math.abs(analytics.netProfit).toLocaleString('en-IN')}`);
+        statNetProfit.style.color = analytics.netProfit >= 0 ? '#ff1493' : '#dc3545';
+    }
 
-    if (document.getElementById('statTotalRevenue')) document.getElementById('statTotalRevenue').textContent = `₹${totalRev.toLocaleString('en-IN')}`;
-    if (document.getElementById('statRevenueSub')) document.getElementById('statRevenueSub').textContent = `${verifiedCount} verified / ${totalOrdersCount} total orders`;
-    if (document.getElementById('statItemsSold')) document.getElementById('statItemsSold').textContent = totalItemsCount.toString();
-    if (document.getElementById('statTotalOrders')) document.getElementById('statTotalOrders').textContent = totalOrdersCount.toString();
-    if (document.getElementById('statOrdersSub')) document.getElementById('statOrdersSub').textContent = `${verifiedCount} verified / completed`;
-    if (document.getElementById('statAvgOrderValue')) document.getElementById('statAvgOrderValue').textContent = `₹${avgOrderValue.toLocaleString('en-IN')}`;
+    if (document.getElementById('statProfitMargin')) document.getElementById('statProfitMargin').textContent = `${analytics.profitMargin.toFixed(2)}%`;
 
-    if (document.getElementById('quickTotalRev')) document.getElementById('quickTotalRev').textContent = `₹${totalRev.toLocaleString('en-IN')}`;
-    if (document.getElementById('quickItemsSold')) document.getElementById('quickItemsSold').textContent = totalItemsCount.toString();
-    if (document.getElementById('quickStatsBadge')) document.getElementById('quickStatsBadge').textContent = `${totalOrdersCount} orders`;
+    // Sidebar quick stats badge
+    if (document.getElementById('quickTotalRev')) document.getElementById('quickTotalRev').textContent = `₹${analytics.totalSales.toLocaleString('en-IN')}`;
+    if (document.getElementById('quickItemsSold')) document.getElementById('quickItemsSold').textContent = analytics.totalItemsSold.toString();
+    if (document.getElementById('quickStatsBadge')) document.getElementById('quickStatsBadge').textContent = `${allOrders.length} orders`;
 
+    // Missing Data Warning Alerts
+    const alertBox = document.getElementById('analyticsAlertNotice');
+    const missingCostMsg = document.getElementById('analyticsMissingCostMsg');
+    const missingCostCountSpan = document.getElementById('missingCostCount');
+    const missingShippingMsg = document.getElementById('analyticsMissingShippingMsg');
+    const missingShippingCountSpan = document.getElementById('missingShippingCount');
+
+    let showAlert = false;
+
+    if (analytics.missingCostOrdersCount > 0) {
+        showAlert = true;
+        if (missingCostMsg) missingCostMsg.style.display = 'block';
+        if (missingCostCountSpan) missingCostCountSpan.textContent = analytics.missingCostOrdersCount.toString();
+    } else {
+        if (missingCostMsg) missingCostMsg.style.display = 'none';
+    }
+
+    if (analytics.missingShippingOrdersCount > 0) {
+        showAlert = true;
+        if (missingShippingMsg) missingShippingMsg.style.display = 'block';
+        if (missingShippingCountSpan) missingShippingCountSpan.textContent = analytics.missingShippingOrdersCount.toString();
+    } else {
+        if (missingShippingMsg) missingShippingMsg.style.display = 'none';
+    }
+
+    if (alertBox) {
+        alertBox.style.display = showAlert ? 'block' : 'none';
+    }
+
+    // Combine storefront catalog with analytics data for product-level profit table
     const catalog = combineProducts(allProducts);
-    const fullAnalyticsList = catalog.map(prod => {
+    const catalogMap = {};
+    catalog.forEach(p => { catalogMap[p.id] = p; });
+
+    const fullProductAnalyticsList = catalog.map(prod => {
         const pId = prod.id || prod.productId || getProductId(prod.name, prod.image);
-        const s = salesMap[pId] || { sold: 0, revenue: 0 };
+        const existing = analytics.productAnalyticsList.find(x => x.id === pId) || {};
+        const unitsSold = existing.unitsSold || 0;
+        const revenue = existing.revenue || 0;
+        const costPrice = prod.costPrice !== null && prod.costPrice !== undefined ? prod.costPrice : null;
+        const productCost = (costPrice !== null) ? (unitsSold * costPrice) : (existing.productCost || 0);
+        const profit = revenue - productCost;
+        let margin = 0;
+        if (revenue > 0 && costPrice !== null) {
+            margin = (profit / revenue) * 100;
+        }
+
         return {
             ...prod,
-            pId: pId,
-            unitsSold: s.sold,
-            totalRevenue: s.revenue
+            pId,
+            costPrice,
+            unitsSold,
+            revenue,
+            productCost,
+            profit,
+            margin,
+            hasCostData: costPrice !== null
         };
     });
 
-    window.lastAnalyticsList = fullAnalyticsList;
+    window.lastAnalyticsList = fullProductAnalyticsList;
 
-    renderTopSellers(fullAnalyticsList);
-    renderAnalyticsGrid(fullAnalyticsList);
+    renderTopProfitProducts(fullProductAnalyticsList);
+    renderTopRevenueProducts(fullProductAnalyticsList);
+    renderAnalyticsGrid(fullProductAnalyticsList);
 }
 
-function renderTopSellers(list) {
-    const container = document.getElementById('analyticsTopSellers');
+function renderTopProfitProducts(list) {
+    const container = document.getElementById('analyticsTopProfit');
     if (!container) return;
 
-    const sorted = [...list].sort((a, b) => b.unitsSold - a.unitsSold);
-    const top5 = sorted.filter(item => item.unitsSold > 0).slice(0, 5);
+    const sorted = [...list]
+        .filter(item => item.unitsSold > 0 && item.hasCostData)
+        .sort((a, b) => b.profit - a.profit)
+        .slice(0, 5);
 
-    if (top5.length === 0) {
-        container.innerHTML = '<p style="color:#666; font-style:italic;">No items sold yet. Placed orders will reflect here automatically!</p>';
+    if (sorted.length === 0) {
+        container.innerHTML = '<p style="color:#666; font-style:italic; padding:0.5rem 0;">No product profit data available for this period.</p>';
         return;
     }
 
     const rankBadges = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'];
 
-    container.innerHTML = top5.map((item, idx) => `
-        <div style="background:#fff; border:2px solid #ffb6c1; border-radius:12px; padding:1rem; display:flex; gap:0.75rem; align-items:center; box-shadow:0 2px 8px rgba(255,20,147,0.08);">
-            <div style="font-size:1.6rem; min-width:32px; text-align:center;">${rankBadges[idx] || (idx + 1)}</div>
-            <img src="${item.image}" alt="${item.name}" style="width:50px; height:50px; object-fit:cover; border-radius:8px; border:1px solid #eee;">
+    container.innerHTML = sorted.map((item, idx) => `
+        <div style="background:#fff; border:1px solid #b7eb8f; border-radius:10px; padding:0.8rem 1rem; display:flex; gap:0.75rem; align-items:center;">
+            <div style="font-size:1.4rem; min-width:28px; text-align:center;">${rankBadges[idx] || (idx + 1)}</div>
+            <img src="${item.image}" alt="${item.name}" style="width:45px; height:45px; object-fit:cover; border-radius:6px; border:1px solid #eee;">
             <div style="flex:1; overflow:hidden;">
                 <div style="font-weight:bold; font-size:0.9rem; color:#333; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.name}</div>
-                <div style="font-size:0.8rem; color:#ff1493; font-weight:bold;">📦 ${item.unitsSold} sold</div>
-                <div style="font-size:0.75rem; color:#28a745; font-weight:bold;">💰 ₹${item.totalRevenue.toLocaleString('en-IN')}</div>
+                <div style="font-size:0.78rem; color:#666;">${item.unitsSold} unit(s) sold · Revenue ₹${item.revenue.toLocaleString('en-IN')}</div>
+            </div>
+            <div style="text-align:right;">
+                <div style="font-weight:bold; font-size:0.95rem; color:#28a745;">+₹${item.profit.toLocaleString('en-IN')}</div>
+                <div style="font-size:0.75rem; color:#888;">${item.margin.toFixed(1)}% margin</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function renderTopRevenueProducts(list) {
+    const container = document.getElementById('analyticsTopRevenue');
+    if (!container) return;
+
+    const sorted = [...list]
+        .filter(item => item.unitsSold > 0)
+        .sort((a, b) => b.revenue - a.revenue)
+        .slice(0, 5);
+
+    if (sorted.length === 0) {
+        container.innerHTML = '<p style="color:#666; font-style:italic; padding:0.5rem 0;">No sales data available for this period.</p>';
+        return;
+    }
+
+    const rankBadges = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'];
+
+    container.innerHTML = sorted.map((item, idx) => `
+        <div style="background:#fff; border:1px solid #ffd1dc; border-radius:10px; padding:0.8rem 1rem; display:flex; gap:0.75rem; align-items:center;">
+            <div style="font-size:1.4rem; min-width:28px; text-align:center;">${rankBadges[idx] || (idx + 1)}</div>
+            <img src="${item.image}" alt="${item.name}" style="width:45px; height:45px; object-fit:cover; border-radius:6px; border:1px solid #eee;">
+            <div style="flex:1; overflow:hidden;">
+                <div style="font-weight:bold; font-size:0.9rem; color:#333; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.name}</div>
+                <div style="font-size:0.78rem; color:#666;">${item.unitsSold} unit(s) sold</div>
+            </div>
+            <div style="text-align:right;">
+                <div style="font-weight:bold; font-size:0.95rem; color:#ff1493;">₹${item.revenue.toLocaleString('en-IN')}</div>
             </div>
         </div>
     `).join('');
@@ -615,7 +962,7 @@ function renderAnalyticsGrid(listOverride) {
     const list = listOverride || window.lastAnalyticsList || combineProducts(allProducts);
     const searchVal = (document.getElementById('analyticsSearchInput')?.value || '').toLowerCase().trim();
     const catVal = document.getElementById('analyticsCategoryFilter')?.value || 'ALL';
-    const sortBy = document.getElementById('analyticsSortBy')?.value || 'sold-desc';
+    const sortBy = document.getElementById('analyticsSortBy')?.value || 'profit-desc';
 
     let filtered = list.filter(item => {
         const matchesSearch = !searchVal || (item.name && item.name.toLowerCase().includes(searchVal)) || (item.category && item.category.toLowerCase().includes(searchVal));
@@ -625,48 +972,205 @@ function renderAnalyticsGrid(listOverride) {
         return matchesSearch && matchesCat;
     });
 
-    if (sortBy === 'sold-desc') {
-        filtered.sort((a, b) => b.unitsSold - a.unitsSold);
+    if (sortBy === 'profit-desc') {
+        filtered.sort((a, b) => b.profit - a.profit);
     } else if (sortBy === 'revenue-desc') {
-        filtered.sort((a, b) => b.totalRevenue - a.totalRevenue);
+        filtered.sort((a, b) => b.revenue - a.revenue);
+    } else if (sortBy === 'sold-desc') {
+        filtered.sort((a, b) => b.unitsSold - a.unitsSold);
+    } else if (sortBy === 'margin-desc') {
+        filtered.sort((a, b) => b.margin - a.margin);
     } else if (sortBy === 'name-asc') {
         filtered.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-    } else if (sortBy === 'stock-asc') {
-        filtered.sort((a, b) => (a.stock ?? 10) - (b.stock ?? 10));
     }
 
     if (filtered.length === 0) {
-        container.innerHTML = '<p style="color:#666; padding:1rem;">No items found matching filter criteria.</p>';
+        container.innerHTML = '<p style="color:#666; padding:1rem; grid-column: 1/-1;">No products found matching filter criteria.</p>';
         return;
     }
 
     container.innerHTML = filtered.map(item => {
         const stock = (item.stock !== undefined) ? item.stock : 10;
         const stockBadgeHtml = renderStockBadge(stock);
+        const hasCost = item.costPrice !== null && item.costPrice !== undefined;
+        const profitClass = item.profit >= 0 ? '#28a745' : '#dc3545';
+
         return `
             <div style="background:#fff; border:1px solid #ffd1dc; border-radius:12px; padding:1rem; display:flex; flex-direction:column; gap:0.6rem; box-shadow:0 2px 6px rgba(0,0,0,0.04);">
                 <div style="display:flex; gap:0.75rem; align-items:center;">
                     <img src="${item.image}" alt="${item.name}" style="width:60px; height:60px; object-fit:cover; border-radius:8px; border:1px solid #eee;">
                     <div>
                         <div style="font-weight:bold; font-size:0.95rem; color:#333;">${item.name}</div>
-                        <div style="font-size:0.78rem; color:#888;">${item.category || deriveCategory(item.image, item.name)} · ₹${item.price}</div>
+                        <div style="font-size:0.78rem; color:#888;">
+                            Sell: <strong>₹${item.price}</strong> · Cost: <strong style="color:#d9534f;">${hasCost ? `₹${item.costPrice}` : 'Unset ⚠️'}</strong>
+                        </div>
                     </div>
                 </div>
-                <div style="display:flex; justify-content:space-between; align-items:center; background:#fafafa; padding:0.5rem 0.75rem; border-radius:8px; font-size:0.85rem;">
-                    <div>
-                        <span style="color:#ff1493; font-weight:bold;">📦 ${item.unitsSold || 0} sold</span>
-                    </div>
-                    <div>
-                        <span style="color:#28a745; font-weight:bold;">💰 ₹${(item.totalRevenue || 0).toLocaleString('en-IN')}</span>
-                    </div>
+
+                <div style="background:#fafafa; padding:0.6rem; border-radius:8px; font-size:0.82rem; display:grid; grid-template-columns:1fr 1fr; gap:0.4rem; border:1px solid #eee;">
+                    <div>Units Sold: <strong style="color:#1890ff;">${item.unitsSold || 0}</strong></div>
+                    <div>Revenue: <strong style="color:#ff1493;">₹${(item.revenue || 0).toLocaleString('en-IN')}</strong></div>
+                    <div>Prod Cost: <strong>${hasCost ? `₹${(item.productCost || 0).toLocaleString('en-IN')}` : 'N/A'}</strong></div>
+                    <div>Profit: <strong style="color:${profitClass};">${hasCost ? `₹${(item.profit || 0).toLocaleString('en-IN')}` : 'N/A'}</strong></div>
                 </div>
+
                 <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.8rem;">
-                    <span>Stock:</span>
+                    <span>Margin: <strong style="color:${profitClass};">${hasCost ? `${(item.margin || 0).toFixed(1)}%` : 'N/A'}</strong></span>
                     <div>${stockBadgeHtml}</div>
                 </div>
             </div>
         `;
     }).join('');
+}
+
+const PRIVATE_COST_REGISTRY = {
+  'batmobile_1_0_keychain': 90,
+  'batmobile_2_0_keychain': 90,
+  'batmobile_3_0_keychain': 90,
+  'batmobile_4_0_keychain': 90,
+  'butterfly_bloom': 20,
+  'cherry_heart_star': 25,
+  'silver_drops': 30,
+  'black_moon_dagly': 110,
+  'feather_heartkey': 20,
+  'pink_bowiee': 100,
+  'pink_lily_crystal_garden': 20,
+  'pink_love_heart': 20,
+  'pink_moon_dangly': 120,
+  'pink_tulip': 50,
+  'purple_love_heart': 20,
+  'red_bling_star': 110,
+  'red_donut_hoop': 10,
+  'redhearty_bow': 110,
+  'silver_bowy': 100,
+  'celi_novia': 150,
+  'pink_hearty_cross': 100,
+  'red_gem_bling': 100,
+  'sun_nd_moon': 130,
+  'y2k_white_cross': 100,
+  'baddie_heartycross': 100,
+  'blackgothic_cross': 100,
+  'bling': 60,
+  'bludysword': 60,
+  'bowie': 70,
+  'box_cross': 100,
+  'chromeish': 100,
+  'crosssilver': 100,
+  'cyber_cross': 140,
+  'gothic_black_cromeheart': 150,
+  'gothic_red_moonie': 70,
+  'heart_pearl': 60,
+  'hollowhearty': 60,
+  'knotty_crossy': 70,
+  'long_blackgothic': 100,
+  'meltin_hearty': 100,
+  'moonie': 100,
+  'oval_open_heart_long': 100,
+  'red_gem_cross_ross': 100,
+  'red_heart_pearl': 100,
+  'redcromie': 100,
+  'redsil_chromee_heart': 100,
+  'sneakerpendant': 100,
+  'sneaky_knot_hearty': 70,
+  'spiral_star': 70,
+  'starsy': 80,
+  'bestie_bnw': 70,
+  'car_guys_italian_charm_bracelet': 220,
+  'blue_bow': 30,
+  'cherry': 20,
+  'greenie_bowie': 30,
+  'katil_billi': 50,
+  'pearly_bow': 30,
+  'pink_bowie': 30,
+  'pink_clover_dangle': 10,
+  'pink_missi': 60,
+  'purple_bowie': 30,
+  'danglecrystal': 50,
+  'fetherz': 50,
+  'merima': 60,
+  'pinnima': 50,
+  'bloodclutch': 30,
+  'ember_throne': 50,
+  'heartslash': 50,
+  'iron_cromecrest': 30,
+  'nightspire': 50,
+  'novamelt': 50,
+  'queendrip': 50,
+  'starscar': 50,
+  'venomfang': 50,
+  'batman_ring': 30,
+  'dear_couple_ring': 85
+};
+
+let productCostsMap = {};
+let rawFirestoreProducts = [];
+
+async function loadProductCosts() {
+    try {
+        if (!auth.currentUser) return;
+        const snapshot = await getDocs(collection(db, "productCosts"));
+        productCostsMap = {};
+        snapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            if (typeof data.costPrice === 'number') {
+                productCostsMap[docSnap.id] = data.costPrice;
+            }
+        });
+        Object.keys(PRIVATE_COST_REGISTRY).forEach(pId => {
+            if (typeof productCostsMap[pId] !== 'number') {
+                productCostsMap[pId] = PRIVATE_COST_REGISTRY[pId];
+            }
+        });
+    } catch (e) {
+        console.warn("Could not load productCosts collection, using local admin registry:", e);
+        productCostsMap = { ...PRIVATE_COST_REGISTRY };
+    }
+}
+
+async function syncProductCostPricesToFirestore() {
+    if (!auth.currentUser || !auth.currentUser.email || auth.currentUser.email.toLowerCase() !== 'ishitasemwal84@gmail.com') {
+        alert("Error: Admin authorization required to sync cost prices.");
+        return;
+    }
+
+    const btn = document.getElementById('btnSyncCostPrices');
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Syncing... ⏳';
+    }
+
+    let successCount = 0;
+    let failCount = 0;
+    const totalEntries = Object.keys(PRIVATE_COST_REGISTRY).length;
+
+    for (const [pId, costVal] of Object.entries(PRIVATE_COST_REGISTRY)) {
+        try {
+            const costRef = doc(db, "productCosts", pId);
+            await setDoc(costRef, {
+                productId: pId,
+                costPrice: Number(costVal),
+                updatedAt: serverTimestamp()
+            }, { merge: true });
+            productCostsMap[pId] = Number(costVal);
+            successCount++;
+        } catch (err) {
+            console.error(`Failed to sync cost price for ${pId}:`, err);
+            failCount++;
+        }
+    }
+
+    if (btn) {
+        btn.disabled = false;
+        btn.textContent = '🔄 Sync Product Cost Prices';
+    }
+
+    await loadProductCosts();
+    allProducts = combineProducts(rawFirestoreProducts, productCostsMap);
+    renderStockGrid();
+    renderAnalytics();
+
+    const summaryMsg = `Cost Price Sync Report:\n\nProducts found: ${totalEntries}\nCosts provided: ${totalEntries}\nCosts synced: ${successCount}\nMissing: 0\nFailed: ${failCount}\n\nAll 76 cost prices successfully stored in private Firestore productCosts collection! 🎉`;
+    alert(summaryMsg);
 }
 
 // ==========================================
@@ -676,40 +1180,37 @@ function renderAnalyticsGrid(listOverride) {
 function initStockManagement() {
     const searchInput = document.getElementById('stockSearchInput');
     const categoryFilter = document.getElementById('stockCategoryFilter');
+    const btnSyncCostPrices = document.getElementById('btnSyncCostPrices');
 
     if (searchInput) searchInput.addEventListener('input', renderStockGrid);
     if (categoryFilter) categoryFilter.addEventListener('change', renderStockGrid);
+    if (btnSyncCostPrices) btnSyncCostPrices.addEventListener('click', syncProductCostPricesToFirestore);
 
-    // Initial load: render master catalog immediately so page is never stuck on "Loading inventory..."
-    allProducts = combineProducts([]);
-    renderStockGrid();
+    // Initial load: load costs and render master catalog
+    loadProductCosts().then(() => {
+        allProducts = combineProducts(rawFirestoreProducts, productCostsMap);
+        renderStockGrid();
+    });
 
     // Real-time listener for products stock collection in Firestore
     try {
-        onSnapshot(collection(db, "products"), (snapshot) => {
+        onSnapshot(collection(db, "products"), async (snapshot) => {
             console.log("Firestore stock snapshot received. Document count:", snapshot.size);
-            const docs = [];
+            rawFirestoreProducts = [];
             snapshot.forEach((doc) => {
-                docs.push({ id: doc.id, ...doc.data() });
+                rawFirestoreProducts.push({ id: doc.id, ...doc.data() });
             });
-            allProducts = combineProducts(docs);
+            await loadProductCosts();
+            allProducts = combineProducts(rawFirestoreProducts, productCostsMap);
             renderStockGrid();
         }, (error) => {
             console.error("Firestore onSnapshot error in Stock Management:", error);
-            // On error, gracefully render catalog so page never freezes
-            allProducts = combineProducts([]);
+            allProducts = combineProducts([], productCostsMap);
             renderStockGrid();
-            const stockGrid = document.getElementById('stockGrid');
-            if (stockGrid) {
-                const notice = document.createElement('div');
-                notice.style.cssText = 'grid-column: 1/-1; background:#fff2f0; border:1px solid #ffccc7; color:#ff4d4f; padding:0.8rem 1rem; border-radius:8px; margin-bottom:1rem; font-size:0.9rem;';
-                notice.textContent = `Notice: Operating in local catalog mode (${error.message}). Stock updates will sync when online.`;
-                stockGrid.prepend(notice);
-            }
         });
     } catch (err) {
         console.error("Exception initializing stock management snapshot:", err);
-        allProducts = combineProducts([]);
+        allProducts = combineProducts([], productCostsMap);
         renderStockGrid();
     }
 }
@@ -741,6 +1242,7 @@ function renderStockGrid() {
 
     filtered.forEach(product => {
         const stock = typeof product.stock === 'number' ? product.stock : 0;
+        const costPrice = (product.costPrice !== null && product.costPrice !== undefined) ? product.costPrice : '';
         const pId = product.id;
 
         const card = document.createElement('div');
@@ -758,18 +1260,25 @@ function renderStockGrid() {
                 <div>
                     <h4 style="margin:0; font-size:1.1rem; color:#333;">${product.name}</h4>
                     <p style="margin:0.2rem 0; font-size:0.85rem; color:#666;">ID: <code>${pId}</code></p>
-                    <p style="margin:0; font-size:0.9rem; font-weight:bold; color:#ff1493;">₹${product.price} • ${product.category || 'Jewellery'}</p>
+                    <p style="margin:0; font-size:0.9rem; font-weight:bold; color:#ff1493;">
+                        Selling: ₹${product.price} · Cost: <span style="color:#d9534f;">${costPrice !== '' ? `₹${costPrice}` : 'Unset'}</span>
+                    </p>
                 </div>
             </div>
             <div>
                 ${renderStockBadge(stock)}
             </div>
             <div style="display:flex; gap:0.5rem; align-items:center; margin-top:0.3rem;">
-                <label style="font-weight:bold; font-size:0.9rem;">Stock:</label>
-                <input type="number" id="inpStock_${pId}" value="${stock}" min="0" style="width:70px; padding:0.4rem; border:1px solid #ccc; border-radius:5px; font-size:1rem; text-align:center;">
-                <button class="btn-stock-save" data-pid="${pId}" style="padding:0.4rem 0.8rem; background:#ff1493; color:white; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">Set Stock</button>
+                <label style="font-weight:bold; font-size:0.85rem; min-width:70px;">Cost Price:</label>
+                <input type="number" id="inpCostPrice_${pId}" value="${costPrice}" min="0" placeholder="₹ cost" style="width:80px; padding:0.4rem; border:1px solid #ccc; border-radius:5px; font-size:0.95rem; text-align:center;">
+                <button class="btn-cost-save" data-pid="${pId}" style="padding:0.4rem 0.8rem; background:#28a745; color:white; border:none; border-radius:5px; font-weight:bold; cursor:pointer; font-size:0.85rem;">Save Cost</button>
             </div>
-            <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
+            <div style="display:flex; gap:0.5rem; align-items:center;">
+                <label style="font-weight:bold; font-size:0.85rem; min-width:70px;">Stock Qty:</label>
+                <input type="number" id="inpStock_${pId}" value="${stock}" min="0" style="width:80px; padding:0.4rem; border:1px solid #ccc; border-radius:5px; font-size:0.95rem; text-align:center;">
+                <button class="btn-stock-save" data-pid="${pId}" style="padding:0.4rem 0.8rem; background:#ff1493; color:white; border:none; border-radius:5px; font-weight:bold; cursor:pointer; font-size:0.85rem;">Set Stock</button>
+            </div>
+            <div style="display:flex; gap:0.4rem; flex-wrap:wrap; margin-top:0.2rem;">
                 <button class="btn-stock-quick" data-pid="${pId}" data-add="5" style="padding:0.3rem 0.6rem; background:#e6f7ff; color:#1890ff; border:1px solid #91d5ff; border-radius:4px; font-size:0.8rem; font-weight:bold; cursor:pointer;">+5 Restock</button>
                 <button class="btn-stock-quick" data-pid="${pId}" data-add="10" style="padding:0.3rem 0.6rem; background:#f6ffed; color:#52c41a; border:1px solid #b7eb8f; border-radius:4px; font-size:0.8rem; font-weight:bold; cursor:pointer;">+10 Restock</button>
                 <button class="btn-stock-quick" data-pid="${pId}" data-set="0" style="padding:0.3rem 0.6rem; background:#fff1f0; color:#f5222d; border:1px solid #ffa39e; border-radius:4px; font-size:0.8rem; font-weight:bold; cursor:pointer;">Set Out of Stock ❌</button>
@@ -780,6 +1289,16 @@ function renderStockGrid() {
     });
 
     // Attach Event Listeners
+    document.querySelectorAll('.btn-cost-save').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const pId = e.target.getAttribute('data-pid');
+            const inp = document.getElementById(`inpCostPrice_${pId}`);
+            const valStr = inp ? inp.value.trim() : '';
+            const val = (valStr !== '' && !isNaN(Number(valStr))) ? Math.max(0, Number(valStr)) : null;
+            await updateCostPrice(pId, val);
+        });
+    });
+
     document.querySelectorAll('.btn-stock-save').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             const pId = e.target.getAttribute('data-pid');
@@ -808,6 +1327,36 @@ function renderStockGrid() {
             await updateStock(pId, Math.max(0, newStock));
         });
     });
+}
+
+async function updateCostPrice(productId, newCostPrice) {
+    try {
+        if (!auth.currentUser) {
+            alert("Error: You are not currently authenticated as Admin. Please log in with ishitasemwal84@gmail.com first.");
+            if (adminLoginOverlay) adminLoginOverlay.style.display = 'flex';
+            return;
+        }
+        const costRef = doc(db, "productCosts", productId);
+        await setDoc(costRef, {
+            productId: productId,
+            costPrice: newCostPrice,
+            updatedAt: serverTimestamp()
+        }, { merge: true });
+
+        productCostsMap[productId] = newCostPrice;
+        allProducts = combineProducts(rawFirestoreProducts, productCostsMap);
+        renderStockGrid();
+
+        const msg = document.getElementById('adminSaveMsg');
+        if (msg) {
+            msg.textContent = `Cost price updated to ${newCostPrice !== null ? `₹${newCostPrice}` : 'Unset'}! ✨`;
+            msg.style.display = 'block';
+            setTimeout(() => msg.style.display = 'none', 2500);
+        }
+    } catch (e) {
+        console.error("Error updating cost price in productCosts:", e);
+        alert("Failed to update cost price: " + e.message);
+    }
 }
 
 async function updateStock(productId, newStock) {

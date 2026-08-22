@@ -91,27 +91,31 @@ export function parseNumberValue(val) {
 /**
  * Merge storefront product catalog with Firestore inventory snapshot records cleanly without duplicates.
  */
-export function combineProducts(firestoreDocs = []) {
-  const fsMap = {};
-  firestoreDocs.forEach(d => {
-    const id = d.id || d.productId || getProductId(d.name, d.image);
-    if (id) fsMap[id] = d;
-  });
-
+export function combineProducts(firestoreProducts = [], productCostsMap = {}) {
   const result = [];
   const seenIds = new Set();
+  const fsMap = {};
 
-  const sourceCatalog = (typeof window !== 'undefined' && window.STOREFRONT_PRODUCTS) || STOREFRONT_PRODUCTS || [];
+  if (Array.isArray(firestoreProducts)) {
+    firestoreProducts.forEach(p => {
+      const id = p.id || p.productId || getProductId(p.name, p.image);
+      fsMap[id] = p;
+    });
+  }
 
-  sourceCatalog.forEach(dp => {
+  STOREFRONT_PRODUCTS.forEach(dp => {
     const pId = getProductId(dp.name, dp.image);
     seenIds.add(pId);
 
     const fsData = fsMap[pId] || {};
     const rawStock = parseNumberValue(fsData.stock);
     const rawPrice = parseNumberValue(fsData.price);
+    const rawCostPrice = parseNumberValue(fsData.costPrice);
+    const costFromMap = (productCostsMap && typeof productCostsMap[pId] === 'number') ? productCostsMap[pId] : null;
+
     const finalStock = (rawStock !== null) ? rawStock : DEFAULT_INITIAL_STOCK;
     const finalPrice = (rawPrice !== null) ? rawPrice : dp.price;
+    const finalCostPrice = (rawCostPrice !== null) ? rawCostPrice : costFromMap;
     const fsName = typeof fsData.name === 'object' && fsData.name ? fsData.name.stringValue : fsData.name;
     const fsImage = typeof fsData.image === 'object' && fsData.image ? fsData.image.stringValue : fsData.image;
     const fsCategory = typeof fsData.category === 'object' && fsData.category ? fsData.category.stringValue : fsData.category;
@@ -121,6 +125,7 @@ export function combineProducts(firestoreDocs = []) {
       id: pId,
       name: fsName || dp.name,
       price: finalPrice,
+      costPrice: finalCostPrice,
       category: finalCategory,
       image: fsImage || dp.image,
       stock: finalStock,
@@ -134,6 +139,8 @@ export function combineProducts(firestoreDocs = []) {
       const fsData = fsMap[fsId];
       const rawStock = parseNumberValue(fsData.stock);
       const rawPrice = parseNumberValue(fsData.price);
+      const rawCostPrice = parseNumberValue(fsData.costPrice);
+      const costFromMap = (productCostsMap && typeof productCostsMap[fsId] === 'number') ? productCostsMap[fsId] : null;
       const fsName = typeof fsData.name === 'object' && fsData.name ? fsData.name.stringValue : fsData.name;
       const fsImage = typeof fsData.image === 'object' && fsData.image ? fsData.image.stringValue : fsData.image;
       const fsCategory = typeof fsData.category === 'object' && fsData.category ? fsData.category.stringValue : fsData.category;
@@ -142,6 +149,7 @@ export function combineProducts(firestoreDocs = []) {
         id: fsId,
         name: fsName || fsId,
         price: (rawPrice !== null) ? rawPrice : 0,
+        costPrice: (rawCostPrice !== null) ? rawCostPrice : costFromMap,
         category: fsCategory || deriveCategory(fsImage, fsName),
         image: fsImage || '',
         stock: (rawStock !== null) ? rawStock : DEFAULT_INITIAL_STOCK,

@@ -205,7 +205,7 @@
 
     <div class="admin-tabs" style="max-width:1400px; margin:1.5rem auto 0 auto; padding:0 1rem; display:flex; gap:1rem; flex-wrap:wrap;">
         <button id="tabOrdersBtn" class="admin-tab-btn active" style="padding:0.8rem 1.5rem; background:#ff1493; color:white; border:none; border-radius:20px; font-weight:bold; cursor:pointer;">All Orders 📜</button>
-        <button id="tabAnalyticsBtn" class="admin-tab-btn" style="padding:0.8rem 1.5rem; background:#fff0f5; color:#ff1493; border:2px solid #ffb6c1; border-radius:20px; font-weight:bold; cursor:pointer;">Sales & Analytics 📊</button>
+        <button id="tabAnalyticsBtn" class="admin-tab-btn" style="padding:0.8rem 1.5rem; background:#fff0f5; color:#ff1493; border:2px solid #ffb6c1; border-radius:20px; font-weight:bold; cursor:pointer;">Business Analytics 📊</button>
         <button id="tabStockBtn" class="admin-tab-btn" style="padding:0.8rem 1.5rem; background:#fff0f5; color:#ff1493; border:2px solid #ffb6c1; border-radius:20px; font-weight:bold; cursor:pointer;">Stock Management 📦</button>
         <button id="tabCouponsBtn" class="admin-tab-btn" style="padding:0.8rem 1.5rem; background:#fff0f5; color:#ff1493; border:2px solid #ffb6c1; border-radius:20px; font-weight:bold; cursor:pointer;">Coupons 🎟️</button>
         <button id="tabOffersBtn" class="admin-tab-btn" style="padding:0.8rem 1.5rem; background:#fff0f5; color:#ff1493; border:2px solid #ffb6c1; border-radius:20px; font-weight:bold; cursor:pointer;">Offers & Pricing 🏷️</button>
@@ -266,9 +266,39 @@
                             <p id="admRingBundleRow" style="display:none; color:#28a745;"><strong>Ring Bundle Discount:</strong> <span id="admRingBundleDiscount">-₹0</span></p>
                             <p><strong>Subtotal:</strong> <span id="admSubtotal">₹0</span></p>
                             <p id="admCouponRow" style="display:none; color:#28a745;"><strong>Coupon (<span id="admCouponCode"></span>):</strong> <span id="admCouponDiscount">-₹0</span></p>
-                            <p><strong>Shipping:</strong> <span id="admShipping">₹0</span> (<span id="admShippingService">India Post</span>)</p>
+                            <p><strong>Shipping Charged to Customer:</strong> <span id="admShipping">₹0</span> (<span id="admShippingService">India Post</span>)</p>
                             <p><strong>Parcel Weight:</strong> <span id="admTotalWeight">0g</span></p>
                             <h3 style="margin-top:0.5rem; font-size:1.4rem;">Total: <span id="admTotal" style="color:#28a745;">₹0</span></h3>
+                        </div>
+                    </div>
+
+                    <!-- Profit Analysis Box -->
+                    <div class="info-box" style="border-left-color: #28a745; background:#f4fbf7;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.5rem;">
+                            <h3 style="margin:0;">Profit & Margin Breakdown 💰</h3>
+                            <span id="admCostStatusBadge" style="font-size:0.8rem; font-weight:bold; padding:0.2rem 0.6rem; border-radius:12px; background:#fff3cd; color:#856404; border:1px solid #ffeeba;">
+                                ⏳ Cost snapshot pending
+                            </span>
+                        </div>
+                        <div style="font-size: 0.95rem; line-height: 1.8;">
+                            <p><strong>Revenue:</strong> <span id="admProfitRevenue" style="font-weight:bold; color:#28a745;">₹0</span></p>
+                            <p><strong>Product Cost:</strong> <span id="admProfitProductCost" style="font-weight:bold; color:#d9534f;">₹0</span></p>
+                            <p><strong>Actual Shipping Cost:</strong> <span id="admProfitShippingCost" style="font-weight:bold; color:#ff9800;">Shipping cost not entered ⚠️</span></p>
+                            <div style="margin-top:0.5rem; padding-top:0.5rem; border-top:1px solid #c8e6c9;">
+                                <h4 style="margin:0; font-size:1.2rem; display:flex; justify-content:space-between; align-items:center;">
+                                    <span>Net Profit:</span>
+                                    <span id="admProfitNet" style="font-weight:bold; color:#28a745;">₹0</span>
+                                </h4>
+                                <p style="margin:0.2rem 0 0 0; text-align:right; font-size:0.88rem; color:#555;">
+                                    Margin: <strong id="admProfitMargin" style="color:#28a745;">0.00%</strong>
+                                </p>
+                            </div>
+                            <div id="admMissingCostNotice" style="display:none; margin-top:0.6rem; background:#fff2f0; border:1px solid #ffccc7; color:#ff4d4f; padding:0.4rem 0.6rem; border-radius:5px; font-size:0.8rem; font-weight:bold;">
+                                ⚠️ Missing cost-price data for some items in this order.
+                            </div>
+                            <button id="btnFreezeCostSnapshot" style="margin-top:0.75rem; width:100%; padding:0.5rem 1rem; background:#28a745; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer; font-size:0.85rem; display:flex; align-items:center; justify-content:center; gap:0.4rem;">
+                                🔒 Snapshot Cost & Calculate Profit
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -294,6 +324,11 @@
                     <div class="info-box" style="border-left-color: #ffc107;">
                         <h3>Order Management</h3>
                         
+                        <div class="admin-form-group">
+                            <label>Actual Shipping Cost Paid by Seller (₹)</label>
+                            <input type="number" id="inpShippingCost" min="0" placeholder="e.g. 50 (Leave blank if not entered)">
+                        </div>
+
                         <div class="admin-form-group">
                             <label>Order Status</label>
                             <select id="inpOrderStatus">
@@ -333,52 +368,111 @@
         </div>
     </div>
 
-    <!-- Sales & Analytics Panel -->
+    <!-- Business Analytics Panel -->
     <div id="adminAnalyticsView" style="display:none; max-width:1400px; margin:2rem auto; padding:0 1rem;">
         <div style="background:white; border-radius:10px; padding:1.5rem; box-shadow:0 2px 10px rgba(0,0,0,0.1);">
+            
+            <!-- Dashboard Title & Date Filters Bar -->
             <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem; border-bottom:2px solid #fff0f5; padding-bottom:1rem;">
-                <h2 style="font-family:'Pacifico', cursive; color:#ff1493; margin:0; font-size:1.8rem;">Sales & Items Sold Analytics 📊</h2>
-                <button id="btnRefreshAnalytics" style="background:#fff0f5; color:#ff1493; border:1.5px solid #ffb6c1; padding:0.5rem 1rem; border-radius:12px; font-weight:bold; cursor:pointer;">🔄 Refresh Analytics</button>
+                <div>
+                    <h2 style="font-family:'Pacifico', cursive; color:#ff1493; margin:0; font-size:1.8rem;">📊 Business Analytics & Profit Tracking</h2>
+                    <p style="color:#666; margin:0.2rem 0 0 0; font-size:0.88rem;">Track revenue, product costs, shipping expenses, net profit, and profit margins.</p>
+                </div>
+                <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+                    <button id="btnRefreshAnalytics" style="background:#fff0f5; color:#ff1493; border:1.5px solid #ffb6c1; padding:0.5rem 1rem; border-radius:12px; font-weight:bold; cursor:pointer;">🔄 Refresh Analytics</button>
+                </div>
             </div>
 
-            <!-- Top Metric Cards -->
-            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:1.25rem; margin-bottom:2rem;">
+            <!-- Date Filter Controls -->
+            <div style="background:#fafafa; border:1px solid #eee; border-radius:12px; padding:1rem; margin-bottom:1.5rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+                <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
+                    <span style="font-weight:bold; color:#444; font-size:0.9rem; margin-right:0.3rem;">📅 Period:</span>
+                    <button class="date-filter-btn active" data-period="ALL" style="padding:0.4rem 0.9rem; border-radius:20px; font-weight:bold; font-size:0.85rem; cursor:pointer; border:1px solid #ff1493; background:#ff1493; color:white;">All Time</button>
+                    <button class="date-filter-btn" data-period="TODAY" style="padding:0.4rem 0.9rem; border-radius:20px; font-weight:bold; font-size:0.85rem; cursor:pointer; border:1px solid #ddd; background:white; color:#555;">Today</button>
+                    <button class="date-filter-btn" data-period="YESTERDAY" style="padding:0.4rem 0.9rem; border-radius:20px; font-weight:bold; font-size:0.85rem; cursor:pointer; border:1px solid #ddd; background:white; color:#555;">Yesterday</button>
+                    <button class="date-filter-btn" data-period="THIS_WEEK" style="padding:0.4rem 0.9rem; border-radius:20px; font-weight:bold; font-size:0.85rem; cursor:pointer; border:1px solid #ddd; background:white; color:#555;">This Week</button>
+                    <button class="date-filter-btn" data-period="THIS_MONTH" style="padding:0.4rem 0.9rem; border-radius:20px; font-weight:bold; font-size:0.85rem; cursor:pointer; border:1px solid #ddd; background:white; color:#555;">This Month</button>
+                    <button class="date-filter-btn" data-period="LAST_MONTH" style="padding:0.4rem 0.9rem; border-radius:20px; font-weight:bold; font-size:0.85rem; cursor:pointer; border:1px solid #ddd; background:white; color:#555;">Last Month</button>
+                    <button class="date-filter-btn" data-period="CUSTOM" style="padding:0.4rem 0.9rem; border-radius:20px; font-weight:bold; font-size:0.85rem; cursor:pointer; border:1px solid #ddd; background:white; color:#555;">Custom Range</button>
+                </div>
+                
+                <div id="analyticsCustomDateInputs" style="display:none; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+                    <input type="date" id="analyticsCustomStart" style="padding:0.4rem 0.6rem; border:1px solid #ccc; border-radius:6px; font-family:inherit; font-size:0.85rem;">
+                    <span style="color:#666;">to</span>
+                    <input type="date" id="analyticsCustomEnd" style="padding:0.4rem 0.6rem; border:1px solid #ccc; border-radius:6px; font-family:inherit; font-size:0.85rem;">
+                    <button id="btnApplyCustomDate" style="padding:0.4rem 0.8rem; background:#ff1493; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer; font-size:0.85rem;">Apply</button>
+                </div>
+            </div>
+
+            <!-- Missing Data Warnings Alert Box -->
+            <div id="analyticsAlertNotice" style="display:none; margin-bottom:1.5rem; background:#fff2f0; border:1px solid #ffccc7; border-radius:10px; padding:1rem; color:#ff4d4f; font-size:0.9rem;">
+                <div id="analyticsMissingCostMsg" style="display:none; margin-bottom:0.3rem;">
+                    ⚠️ <strong>Calculated with Missing Cost Data:</strong> <span id="missingCostCount">0</span> older order(s) do not have cost price snapshots. Profit calculations for these orders are incomplete.
+                </div>
+                <div id="analyticsMissingShippingMsg" style="display:none;">
+                    ⚠️ <strong>Missing Shipping Expense:</strong> <span id="missingShippingCount">0</span> order(s) do not have seller shipping costs entered.
+                </div>
+            </div>
+
+            <!-- Executive Business Summary Cards -->
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:1.25rem; margin-bottom:2.5rem;">
+                <div style="background:#f4fbf7; border:2px solid #a3e9c4; border-radius:12px; padding:1.25rem; text-align:center;">
+                    <div style="font-size:0.82rem; color:#666; font-weight:bold; text-transform:uppercase;">Total Sales (Revenue) 💰</div>
+                    <div id="statTotalSales" style="font-size:2rem; font-weight:bold; color:#28a745; margin-top:0.3rem;">₹0</div>
+                    <div id="statTotalSalesSub" style="font-size:0.78rem; color:#888; margin-top:0.2rem;">0 completed orders</div>
+                </div>
+                <div style="background:#fff1f0; border:2px solid #ffa39e; border-radius:12px; padding:1.25rem; text-align:center;">
+                    <div style="font-size:0.82rem; color:#666; font-weight:bold; text-transform:uppercase;">Product Cost 📦</div>
+                    <div id="statProductCost" style="font-size:2rem; font-weight:bold; color:#d9534f; margin-top:0.3rem;">₹0</div>
+                    <div style="font-size:0.78rem; color:#888; margin-top:0.2rem;">Total cost of items sold</div>
+                </div>
+                <div style="background:#fffbe6; border:2px solid #ffe58f; border-radius:12px; padding:1.25rem; text-align:center;">
+                    <div style="font-size:0.82rem; color:#666; font-weight:bold; text-transform:uppercase;">Shipping Cost 🚚</div>
+                    <div id="statShippingCost" style="font-size:2rem; font-weight:bold; color:#d46b08; margin-top:0.3rem;">₹0</div>
+                    <div id="statShippingCostSub" style="font-size:0.78rem; color:#888; margin-top:0.2rem;">Seller shipping expense</div>
+                </div>
+                <div style="background:#e6f7ff; border:2px solid #91d5ff; border-radius:12px; padding:1.25rem; text-align:center;">
+                    <div style="font-size:0.82rem; color:#666; font-weight:bold; text-transform:uppercase;">Gross Profit 📈</div>
+                    <div id="statGrossProfit" style="font-size:2rem; font-weight:bold; color:#1890ff; margin-top:0.3rem;">₹0</div>
+                    <div style="font-size:0.78rem; color:#888; margin-top:0.2rem;">Sales - Product Cost</div>
+                </div>
                 <div style="background:#fff0f5; border:2px solid #ffb6c1; border-radius:12px; padding:1.25rem; text-align:center;">
-                    <div style="font-size:0.85rem; color:#666; font-weight:bold; text-transform:uppercase;">Total Revenue 💰</div>
-                    <div id="statTotalRevenue" style="font-size:2rem; font-weight:bold; color:#28a745; margin-top:0.3rem;">₹0</div>
-                    <div id="statRevenueSub" style="font-size:0.78rem; color:#888; margin-top:0.2rem;">From all orders</div>
-                </div>
-                <div style="background:#e8f4f8; border:2px solid #bce8f1; border-radius:12px; padding:1.25rem; text-align:center;">
-                    <div style="font-size:0.85rem; color:#666; font-weight:bold; text-transform:uppercase;">Total Items Sold 📦</div>
-                    <div id="statItemsSold" style="font-size:2rem; font-weight:bold; color:#17a2b8; margin-top:0.3rem;">0</div>
-                    <div style="font-size:0.78rem; color:#888; margin-top:0.2rem;">Units purchased</div>
-                </div>
-                <div style="background:#fff8e7; border:2px solid #ffe8a1; border-radius:12px; padding:1.25rem; text-align:center;">
-                    <div style="font-size:0.85rem; color:#666; font-weight:bold; text-transform:uppercase;">Total Orders 📜</div>
-                    <div id="statTotalOrders" style="font-size:2rem; font-weight:bold; color:#ff9800; margin-top:0.3rem;">0</div>
-                    <div id="statOrdersSub" style="font-size:0.78rem; color:#888; margin-top:0.2rem;">Orders placed</div>
+                    <div id="statNetProfitTitle" style="font-size:0.82rem; color:#666; font-weight:bold; text-transform:uppercase;">Net Profit 💵</div>
+                    <div id="statNetProfit" style="font-size:2rem; font-weight:bold; color:#ff1493; margin-top:0.3rem;">₹0</div>
+                    <div id="statNetProfitSub" style="font-size:0.78rem; color:#888; margin-top:0.2rem;">Gross Profit - Shipping</div>
                 </div>
                 <div style="background:#f3e5f5; border:2px solid #e1bee7; border-radius:12px; padding:1.25rem; text-align:center;">
-                    <div style="font-size:0.85rem; color:#666; font-weight:bold; text-transform:uppercase;">Avg Order Value 🛍️</div>
-                    <div id="statAvgOrderValue" style="font-size:2rem; font-weight:bold; color:#9c27b0; margin-top:0.3rem;">₹0</div>
-                    <div style="font-size:0.78rem; color:#888; margin-top:0.2rem;">Per customer order</div>
+                    <div id="statProfitMarginTitle" style="font-size:0.82rem; color:#666; font-weight:bold; text-transform:uppercase;">Profit Margin 📊</div>
+                    <div id="statProfitMargin" style="font-size:2rem; font-weight:bold; color:#9c27b0; margin-top:0.3rem;">0.00%</div>
+                    <div id="statProfitMarginSub" style="font-size:0.78rem; color:#888; margin-top:0.2rem;">(Net Profit / Revenue) * 100</div>
                 </div>
             </div>
 
-            <!-- Top Best Sellers Section -->
-            <div style="margin-bottom:2.5rem;">
-                <h3 style="color:#ff1493; margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem; font-size:1.3rem;">
-                    🔥 Top 5 Best Selling Items
-                </h3>
-                <div id="analyticsTopSellers" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap:1rem;">
-                    <p style="color:#666;">Loading best sellers...</p>
+            <!-- Top Performing Products: Profit vs Revenue Comparison -->
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 480px), 1fr)); gap:1.5rem; margin-bottom:2.5rem;">
+                <div style="background:#fafafa; border:1px solid #eee; border-radius:12px; padding:1.25rem;">
+                    <h3 style="color:#28a745; margin-top:0; margin-bottom:1rem; font-size:1.2rem; display:flex; align-items:center; gap:0.4rem;">
+                        🏆 Top Products by Net Profit
+                    </h3>
+                    <div id="analyticsTopProfit" style="display:flex; flex-direction:column; gap:0.75rem;">
+                        <p style="color:#666; font-style:italic;">No sales data available for selected period.</p>
+                    </div>
+                </div>
+
+                <div style="background:#fafafa; border:1px solid #eee; border-radius:12px; padding:1.25rem;">
+                    <h3 style="color:#ff1493; margin-top:0; margin-bottom:1rem; font-size:1.2rem; display:flex; align-items:center; gap:0.4rem;">
+                        💰 Top Products by Revenue
+                    </h3>
+                    <div id="analyticsTopRevenue" style="display:flex; flex-direction:column; gap:0.75rem;">
+                        <p style="color:#666; font-style:italic;">No sales data available for selected period.</p>
+                    </div>
                 </div>
             </div>
 
-            <!-- Product Sales Breakdown Table / Grid -->
+            <!-- Product Level Profit Analytics Table / Grid -->
             <div>
                 <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1rem;">
-                    <h3 style="color:#333; margin:0; font-size:1.3rem;">Items Sold Breakdown 🛒</h3>
+                    <h3 style="color:#333; margin:0; font-size:1.3rem;">Product-Level Profit & Sales Table 🛒</h3>
                     <div style="display:flex; gap:0.75rem; flex-wrap:wrap; align-items:center;">
                         <input type="text" id="analyticsSearchInput" placeholder="Search product..." style="padding:0.6rem 1rem; border:1px solid #ccc; border-radius:8px; font-family:inherit;">
                         <select id="analyticsCategoryFilter" style="padding:0.6rem 1rem; border:1px solid #ccc; border-radius:8px; font-family:inherit;">
@@ -393,16 +487,17 @@
                             <option value="Handmade Jewellery">Handmade Jewellery</option>
                         </select>
                         <select id="analyticsSortBy" style="padding:0.6rem 1rem; border:1px solid #ccc; border-radius:8px; font-family:inherit;">
-                            <option value="sold-desc">Sort: Most Sold</option>
+                            <option value="profit-desc">Sort: Highest Profit</option>
                             <option value="revenue-desc">Sort: Highest Revenue</option>
+                            <option value="sold-desc">Sort: Most Units Sold</option>
+                            <option value="margin-desc">Sort: Highest Margin %</option>
                             <option value="name-asc">Sort: Name (A-Z)</option>
-                            <option value="stock-asc">Sort: Lowest Stock</option>
                         </select>
                     </div>
                 </div>
 
-                <div id="analyticsGrid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap:1.25rem;">
-                    <p>Loading items sold breakdown...</p>
+                <div id="analyticsGrid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap:1.25rem;">
+                    <p>Loading product profit analytics...</p>
                 </div>
             </div>
         </div>
@@ -426,6 +521,9 @@
                         <option value="Rings">Rings</option>
                         <option value="Handmade Jewellery">Handmade Jewellery</option>
                     </select>
+                    <button id="btnSyncCostPrices" style="padding:0.6rem 1.2rem; background:#28a745; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; font-size:0.9rem; display:flex; align-items:center; gap:0.4rem;">
+                        🔄 Sync Product Cost Prices
+                    </button>
                 </div>
             </div>
             <div id="stockGrid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap:1.25rem;">
@@ -573,6 +671,7 @@
     <script src="stock-utils.js" type="module"></script>
     <script src="product-utils.js" type="module"></script>
     <script src="shipping-config.js" type="module"></script>
+    <script src="profit-utils.js" type="module"></script>
     <script type="module" src="admin.js"></script>
 </body>
 </html>
