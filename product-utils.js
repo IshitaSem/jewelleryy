@@ -133,7 +133,7 @@ export const STOREFRONT_PRODUCTS = [
   { name: 'Blue Bow', price: 120, image: 'images/charms/blue bow.jpg', category: 'Charms' },
   { name: 'Cherry', price: 99, image: 'images/charms/cherry (1).jpg', category: 'Charms' },
   { name: 'Greenie Bowie', price: 120, image: 'images/charms/greenie bowie.jpg', category: 'Charms' },
-  { name: 'Katil Billi', price: 120, image: 'images/charms/katil billi (1).jpg', category: 'Charms' },
+  { name: 'Katil Billi', price: 120, image: 'images/charms/katil billi (1).jpg', category: 'Charms', options: ['Phone Charm', 'Keychain'] },
   { name: 'Pearly Bow', price: 120, image: 'images/charms/pearly bow.jpg', category: 'Charms' },
   { name: 'Pink Bowie', price: 120, image: 'images/charms/pink bowie.jpg', category: 'Charms' },
   { name: 'Pink Clover Dangle', price: 110, image: 'images/charms/pink clover dangle.jpg', category: 'Charms' },

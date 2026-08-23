@@ -807,13 +807,20 @@
     </div>
   </div>
 
-  <div class="product" data-product-id="katil_billi" onclick="openModal('Katil Billi', '₹120', ['images/charms/katil billi (1).jpg', 'images/charms/katil billi (2).jpg'])">
+  <div class="product" data-product-id="katil_billi" onclick="openModal('Katil Billi', '₹120', ['images/charms/katil billi (1).jpg', 'images/charms/katil billi (2).jpg'], ['Phone Charm', 'Keychain'])">
     <div class="product-img-wrapper">
       <img src="images/charms/katil billi (1).jpg" alt="Katil Billi">
     </div>
     <div class="product-info">
       <h3>Katil Billi</h3>
       <p>₹120</p>
+      <div class="card-brand-options" onclick="event.stopPropagation()">
+        <span class="card-brand-label">Option:</span>
+        <div class="card-brand-pills">
+          <button type="button" class="card-option-pill active" onclick="selectCardOption(this, 'Phone Charm')">Phone Charm</button>
+          <button type="button" class="card-option-pill" onclick="selectCardOption(this, 'Keychain')">Keychain</button>
+        </div>
+      </div>
       <button class="dm-btn add-to-cart-quick">Add to Cart 🛒</button>
     </div>
   </div>
@@ -1336,7 +1343,7 @@ function openModal(title, price, images, options = null) {
   if (optionsWrap) {
     if (window.currentModalOptions && window.currentModalOptions.length > 0) {
       optionsWrap.style.display = 'block';
-      let html = `<label class="product-options-label">Brand / Variant:</label><div class="option-pills-container" id="modalOptionPills">`;
+      let html = `<label class="product-options-label">Option / Variant:</label><div class="option-pills-container" id="modalOptionPills">`;
       window.currentModalOptions.forEach((opt, idx) => {
         const isActive = idx === 0 ? 'active' : '';
         html += `<button type="button" class="modal-option-btn ${isActive}" onclick="selectModalOption(this, '${opt}')">${opt}</button>`;
