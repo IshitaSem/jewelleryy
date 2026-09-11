@@ -1875,3 +1875,102 @@ footer p {
   box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 
+/* ===== PRE-ORDER STYLING ===== */
+.stock-badge.preorder-badge {
+  background: #fff0f5 !important;
+  color: #ff1493 !important;
+  border: 1px solid #ff69b4 !important;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.product-preorder-tag {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #ff1493;
+  color: #ffffff;
+  padding: 0.3rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  box-shadow: 0 3px 10px rgba(255, 20, 147, 0.4);
+  z-index: 5;
+}
+
+.preorder-info-box {
+  background: #fff0f5;
+  border: 1px solid #ffc0cb;
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1rem;
+  margin: 1rem 0;
+  font-size: 0.88rem;
+  color: #8b005d;
+  line-height: 1.5;
+}
+
+.preorder-info-box strong {
+  color: #ff1493;
+}
+
+.cart-preorder-tag {
+  display: inline-block;
+  background: #ff1493;
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  margin-left: 0.4rem;
+  vertical-align: middle;
+}
+
+.checkout-preorder-banner {
+  background: #fff0f5;
+  border: 1.5px solid #ff69b4;
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  color: #8b005d;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  box-shadow: 0 3px 10px rgba(255, 105, 180, 0.15);
+}
+
+/* ===== WEEKEND SHIPPING NOTICE ===== */
+.weekend-shipping-notice-banner {
+  background: linear-gradient(135deg, #fff0f5 0%, #ffe4e1 100%);
+  border: 1.5px solid #ff69b4;
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1.25rem;
+  margin: 1rem auto;
+  max-width: 1080px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #8b005d;
+  box-shadow: 0 2px 8px rgba(255, 105, 180, 0.12);
+}
+
+.weekend-shipping-notice-banner .notice-icon {
+  font-size: 1.4rem;
+  color: #ff1493;
+}
+
+.weekend-shipping-notice-banner .notice-text {
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+@media screen and (max-width: 768px) {
+  .weekend-shipping-notice-banner {
+    margin: 0.75rem 1rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.82rem;
+  }
+}
+

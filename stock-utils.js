@@ -121,6 +121,11 @@ export function combineProducts(firestoreProducts = [], productCostsMap = {}) {
     const fsCategory = typeof fsData.category === 'object' && fsData.category ? fsData.category.stringValue : fsData.category;
     const finalCategory = fsCategory || dp.category || deriveCategory(dp.image, dp.name);
 
+    const preorderEnabled = Boolean(fsData.preorderEnabled);
+    const preorderMessage = typeof fsData.preorderMessage === 'string' ? fsData.preorderMessage : '';
+    const preorderAvailabilityDate = typeof fsData.preorderAvailabilityDate === 'string' ? fsData.preorderAvailabilityDate : '';
+    const preorderShippingEstimate = typeof fsData.preorderShippingEstimate === 'string' ? fsData.preorderShippingEstimate : '';
+
     result.push({
       id: pId,
       name: fsName || dp.name,
@@ -129,6 +134,10 @@ export function combineProducts(firestoreProducts = [], productCostsMap = {}) {
       category: finalCategory,
       image: fsImage || dp.image,
       stock: finalStock,
+      preorderEnabled: preorderEnabled,
+      preorderMessage: preorderMessage,
+      preorderAvailabilityDate: preorderAvailabilityDate,
+      preorderShippingEstimate: preorderShippingEstimate,
       hasFsRecord: Boolean(fsData.id || fsData.productId)
     });
   });
@@ -144,6 +153,10 @@ export function combineProducts(firestoreProducts = [], productCostsMap = {}) {
       const fsName = typeof fsData.name === 'object' && fsData.name ? fsData.name.stringValue : fsData.name;
       const fsImage = typeof fsData.image === 'object' && fsData.image ? fsData.image.stringValue : fsData.image;
       const fsCategory = typeof fsData.category === 'object' && fsData.category ? fsData.category.stringValue : fsData.category;
+      const preorderEnabled = Boolean(fsData.preorderEnabled);
+      const preorderMessage = typeof fsData.preorderMessage === 'string' ? fsData.preorderMessage : '';
+      const preorderAvailabilityDate = typeof fsData.preorderAvailabilityDate === 'string' ? fsData.preorderAvailabilityDate : '';
+      const preorderShippingEstimate = typeof fsData.preorderShippingEstimate === 'string' ? fsData.preorderShippingEstimate : '';
 
       result.push({
         id: fsId,
@@ -153,6 +166,10 @@ export function combineProducts(firestoreProducts = [], productCostsMap = {}) {
         category: fsCategory || deriveCategory(fsImage, fsName),
         image: fsImage || '',
         stock: (rawStock !== null) ? rawStock : DEFAULT_INITIAL_STOCK,
+        preorderEnabled: preorderEnabled,
+        preorderMessage: preorderMessage,
+        preorderAvailabilityDate: preorderAvailabilityDate,
+        preorderShippingEstimate: preorderShippingEstimate,
         hasFsRecord: true
       });
       seenIds.add(fsId);
@@ -163,10 +180,20 @@ export function combineProducts(firestoreProducts = [], productCostsMap = {}) {
 }
 
 /**
- * Render HTML stock badges based on available inventory count.
+ * Render HTML stock badges based on available inventory count & preorder status.
+ * preorderParam can be boolean (isPreorder) or product object containing preorder fields.
  */
-export function renderStockBadge(stock) {
+export function renderStockBadge(stock, preorderParam = false) {
+  const isPreorder = typeof preorderParam === 'object' && preorderParam !== null
+    ? Boolean(preorderParam.preorderEnabled)
+    : Boolean(preorderParam);
+
   const count = Number(stock);
+
+  if (isPreorder) {
+    return `<span class="stock-badge preorder-badge">PRE-ORDER ✨</span>`;
+  }
+
   if (isNaN(count) || count <= 0) {
     return `<span class="stock-badge out-of-stock">Sold Out ❌</span>`;
   }

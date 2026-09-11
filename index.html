@@ -17,7 +17,9 @@
 
 <!-- TOP ANNOUNCEMENT BAR -->
 <div class="top-announcement">
-  ✨ Free Shipping on Orders Over ₹999 • Handcrafted with Love & Care 💖
+  <span>✨ Free Shipping on Orders Over ₹999 • Handcrafted with Love & Care 💖</span>
+  <span style="opacity:0.7; margin:0 0.4rem;">|</span>
+  <span>✦ <strong>WEEKEND SHIPPING NOTICE:</strong> No shipping on Saturdays & Sundays. Orders placed on weekends will be processed from Monday.</span>
 </div>
 
 <!-- MAIN HEADER & NAV -->
@@ -1360,17 +1362,23 @@ function openModal(title, price, images, options = null) {
   const firstImg = images && images[0] ? images[0] : '';
   const getPIdFn = (typeof window.getProductId === 'function') ? window.getProductId : (typeof getProductId === 'function' ? getProductId : null);
   const pId = getPIdFn ? getPIdFn(displayTitle, firstImg) : '';
+  const prod = (window.liveProductsMap && window.liveProductsMap[pId]) ? window.liveProductsMap[pId] : null;
   const stock = (window.liveStockMap && typeof window.liveStockMap[pId] === 'number') ? window.liveStockMap[pId] : 10;
+  const isPreorder = Boolean(prod && prod.preorderEnabled);
   
   const modalStockEl = document.getElementById('modalStockBadge');
   const renderBadgeFn = (typeof window.renderStockBadge === 'function') ? window.renderStockBadge : (typeof renderStockBadge === 'function' ? renderStockBadge : null);
   if (modalStockEl && renderBadgeFn) {
-    modalStockEl.innerHTML = renderBadgeFn(stock);
+    modalStockEl.innerHTML = renderBadgeFn(stock, prod);
   }
 
   const modalCartBtn = document.querySelector('.modal-add-cart-btn');
   if (modalCartBtn) {
-    if (stock <= 0) {
+    if (isPreorder) {
+      modalCartBtn.disabled = false;
+      modalCartBtn.innerHTML = 'Pre-Order Now 🛒';
+      modalCartBtn.classList.remove('sold-out-btn');
+    } else if (stock <= 0) {
       modalCartBtn.disabled = true;
       modalCartBtn.innerHTML = 'Sold Out';
       modalCartBtn.classList.add('sold-out-btn');
@@ -1379,6 +1387,27 @@ function openModal(title, price, images, options = null) {
       modalCartBtn.innerHTML = 'Add to Cart 🛒';
       modalCartBtn.classList.remove('sold-out-btn');
     }
+  }
+
+  let preorderBox = document.getElementById('modalPreorderBox');
+  if (isPreorder) {
+    if (!preorderBox) {
+      preorderBox = document.createElement('div');
+      preorderBox.id = 'modalPreorderBox';
+      preorderBox.className = 'preorder-info-box';
+      const modalRight = document.querySelector('.modal-right');
+      const modalPrice = document.querySelector('.modal-price');
+      if (modalRight && modalPrice && modalPrice.nextSibling) {
+        modalRight.insertBefore(preorderBox, modalPrice.nextSibling);
+      }
+    }
+    const msg = prod.preorderMessage ? `<div>${prod.preorderMessage}</div>` : '';
+    const date = prod.preorderAvailabilityDate ? `<div><strong>Expected Dispatch:</strong> ${prod.preorderAvailabilityDate}</div>` : '';
+    const ship = prod.preorderShippingEstimate ? `<div><strong>Shipping Estimate:</strong> ${prod.preorderShippingEstimate}</div>` : '';
+    preorderBox.innerHTML = `<div><strong>✨ PRE-ORDER ITEM</strong></div>${msg}${date}${ship}`;
+    preorderBox.style.display = 'block';
+  } else if (preorderBox) {
+    preorderBox.style.display = 'none';
   }
   
   // Create modal images
@@ -1392,7 +1421,7 @@ function openModal(title, price, images, options = null) {
     imageContainer.appendChild(imgEl);
   });
 
-  if (stock <= 0 && imageContainer) {
+  if (stock <= 0 && !isPreorder && imageContainer) {
     const modalSoldOutTag = document.createElement('div');
     modalSoldOutTag.className = 'product-sold-out-tag';
     modalSoldOutTag.textContent = 'Sold Out';
@@ -1541,6 +1570,7 @@ document.addEventListener('DOMContentLoaded', () => {
   import { getProductId, renderStockBadge, combineProducts, parseNumberValue } from './stock-utils.js';
 
   window.liveStockMap = window.liveStockMap || {};
+  window.liveProductsMap = window.liveProductsMap || {};
 
   function initStockSync() {
     // Auto-tag product cards with data-product-id
@@ -1553,20 +1583,33 @@ document.addEventListener('DOMContentLoaded', () => {
       card.setAttribute('data-product-id', pId);
     });
 
-    function updateCardUI(card, stock) {
+    function updateCardUI(card, prod) {
+      const stock = typeof prod === 'object' && prod !== null ? prod.stock : Number(prod);
+      const isPreorder = typeof prod === 'object' && prod !== null ? Boolean(prod.preorderEnabled) : false;
+
       const imgWrapper = card.querySelector('.product-img-wrapper');
       let soldOutTag = imgWrapper ? imgWrapper.querySelector('.product-sold-out-tag') : null;
+      let preorderTag = imgWrapper ? imgWrapper.querySelector('.product-preorder-tag') : null;
 
-      if (stock <= 0) {
-        if (!soldOutTag && imgWrapper) {
-          soldOutTag = document.createElement('div');
-          soldOutTag.className = 'product-sold-out-tag';
-          soldOutTag.textContent = 'Sold Out';
-          imgWrapper.appendChild(soldOutTag);
+      if (isPreorder) {
+        if (soldOutTag) soldOutTag.remove();
+        if (!preorderTag && imgWrapper) {
+          preorderTag = document.createElement('div');
+          preorderTag.className = 'product-preorder-tag';
+          preorderTag.textContent = 'PRE-ORDER';
+          imgWrapper.appendChild(preorderTag);
         }
       } else {
-        if (soldOutTag) {
-          soldOutTag.remove();
+        if (preorderTag) preorderTag.remove();
+        if (stock <= 0) {
+          if (!soldOutTag && imgWrapper) {
+            soldOutTag = document.createElement('div');
+            soldOutTag.className = 'product-sold-out-tag';
+            soldOutTag.textContent = 'Sold Out';
+            imgWrapper.appendChild(soldOutTag);
+          }
+        } else {
+          if (soldOutTag) soldOutTag.remove();
         }
       }
 
@@ -1584,11 +1627,15 @@ document.addEventListener('DOMContentLoaded', () => {
           productInfo.appendChild(badgeEl);
         }
       }
-      badgeEl.innerHTML = renderStockBadge(stock);
+      badgeEl.innerHTML = renderStockBadge(stock, prod);
 
       const btn = card.querySelector('.add-to-cart-quick');
       if (btn) {
-        if (stock <= 0) {
+        if (isPreorder) {
+          btn.disabled = false;
+          btn.innerHTML = 'Pre-Order Now 🛒';
+          btn.classList.remove('sold-out-btn');
+        } else if (stock <= 0) {
           btn.disabled = true;
           btn.innerHTML = 'Sold Out';
           btn.classList.add('sold-out-btn');
@@ -1604,8 +1651,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const allProds = combineProducts(docs);
       allProds.forEach(prod => {
         window.liveStockMap[prod.id] = prod.stock;
+        window.liveProductsMap[prod.id] = prod;
         const cards = document.querySelectorAll(`.product[data-product-id="${prod.id}"]`);
-        cards.forEach(card => updateCardUI(card, prod.stock));
+        cards.forEach(card => updateCardUI(card, prod));
       });
 
       // Update open modal real-time if visible
@@ -1616,16 +1664,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const activeImg = document.querySelector('#modalImageContainer img.active');
         const activeImgSrc = activeImg ? (activeImg.getAttribute('src') || activeImg.src) : '';
         const openPId = getProductId(modalTitleText, activeImgSrc);
+        const openProd = window.liveProductsMap[openPId] || null;
         const openStock = (typeof window.liveStockMap[openPId] === 'number') ? window.liveStockMap[openPId] : 10;
+        const isPreorder = Boolean(openProd && openProd.preorderEnabled);
         
         const modalStockEl = document.getElementById('modalStockBadge');
         if (modalStockEl && typeof renderStockBadge === 'function') {
-          modalStockEl.innerHTML = renderStockBadge(openStock);
+          modalStockEl.innerHTML = renderStockBadge(openStock, openProd);
         }
 
         const modalCartBtn = document.querySelector('.modal-add-cart-btn');
         if (modalCartBtn) {
-          if (openStock <= 0) {
+          if (isPreorder) {
+            modalCartBtn.disabled = false;
+            modalCartBtn.innerHTML = 'Pre-Order Now 🛒';
+            modalCartBtn.classList.remove('sold-out-btn');
+          } else if (openStock <= 0) {
             modalCartBtn.disabled = true;
             modalCartBtn.innerHTML = 'Sold Out';
             modalCartBtn.classList.add('sold-out-btn');
@@ -1639,7 +1693,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const modalImgContainer = document.getElementById('modalImageContainer');
         if (modalImgContainer) {
           let modalSoldOutTag = modalImgContainer.querySelector('.product-sold-out-tag');
-          if (openStock <= 0) {
+          if (openStock <= 0 && !isPreorder) {
             if (!modalSoldOutTag) {
               modalSoldOutTag = document.createElement('div');
               modalSoldOutTag.className = 'product-sold-out-tag';

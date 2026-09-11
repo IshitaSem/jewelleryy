@@ -256,6 +256,15 @@ async function initCheckout() {
     if (checkoutItemsDiv) {
         checkoutItemsDiv.innerHTML = '';
         const bundleRes = calculateRingBundleDiscount(cart, ringPricingRule);
+        const hasAnyPreorder = cart.some(item => Boolean(item.isPreorder));
+
+        if (hasAnyPreorder) {
+            checkoutItemsDiv.innerHTML += `
+                <div class="checkout-preorder-banner">
+                    ℹ️ <strong>PRE-ORDER ITEM(S) IN YOUR CART:</strong> This order contains item(s) available for pre-order. They will be shipped according to their estimated dispatch schedule.
+                </div>
+            `;
+        }
 
         cart.forEach(item => {
             const weight = getItemWeight(item);
@@ -267,6 +276,13 @@ async function initCheckout() {
             const itemTotal = appliedPrice * item.quantity;
             
             const displayName = getItemTitle(item);
+            const isPreorder = Boolean(item.isPreorder);
+            const preorderSubtext = isPreorder ? `
+                <div style="font-size:0.78rem; color:#ff1493; font-weight:bold; margin-top:0.25rem;">
+                    <span class="cart-preorder-tag">PRE-ORDER ITEM</span>
+                    ${item.preorderAvailabilityDate ? `· Dispatch: ${item.preorderAvailabilityDate}` : (item.preorderShippingEstimate ? `· ${item.preorderShippingEstimate}` : (item.preorderMessage ? `· ${item.preorderMessage}` : ''))}
+                </div>
+            ` : '';
             
             checkoutItemsDiv.innerHTML += `
                 <div class="order-summary-item">
@@ -274,6 +290,7 @@ async function initCheckout() {
                     <div class="order-summary-details">
                         <h4>${displayName}</h4>
                         <p>Qty: ${item.quantity} x ${hasBundleDiscount ? `<span style="text-decoration:line-through;">₹${item.price}</span> ₹${appliedPrice}` : `₹${item.price}`} • ${weight}g</p>
+                        ${preorderSubtext}
                     </div>
                     <div style="font-weight: bold; color: #ff1493;">₹${itemTotal}</div>
                 </div>
@@ -389,10 +406,12 @@ async function handleOrderSubmission(e) {
                 stockSnapshots.push({ ...pr, snap });
             }
 
-            // 2. Validate stock
+            // 2. Validate stock (except for preorder enabled items)
             for (const ss of stockSnapshots) {
-                const currentStock = ss.snap.exists() ? (typeof ss.snap.data().stock === 'number' ? ss.snap.data().stock : 10) : 10;
-                if (currentStock < ss.item.quantity) {
+                const fsData = ss.snap.exists() ? ss.snap.data() : {};
+                const currentStock = typeof fsData.stock === 'number' ? fsData.stock : 10;
+                const isPreorder = Boolean(ss.item.isPreorder || fsData.preorderEnabled);
+                if (!isPreorder && currentStock < ss.item.quantity) {
                     throw new Error(`Sorry, "${ss.title}" just went out of stock or does not have ${ss.item.quantity} unit(s) available.`);
                 }
             }
@@ -429,8 +448,16 @@ async function handleOrderSubmission(e) {
 
             // 4. Atomically decrement product stock
             for (const ss of stockSnapshots) {
-                const currentStock = ss.snap.exists() ? (typeof ss.snap.data().stock === 'number' ? ss.snap.data().stock : 10) : 10;
-                const newStock = currentStock - ss.item.quantity;
+                const fsData = ss.snap.exists() ? ss.snap.data() : {};
+                const currentStock = typeof fsData.stock === 'number' ? fsData.stock : 10;
+                const isPreorder = Boolean(ss.item.isPreorder || fsData.preorderEnabled);
+                
+                let newStock = currentStock - ss.item.quantity;
+                if (isPreorder && currentStock <= 0) {
+                    newStock = 0;
+                } else if (newStock < 0) {
+                    newStock = 0;
+                }
 
                 if (ss.snap.exists()) {
                     transaction.update(ss.pRef, {
@@ -444,6 +471,7 @@ async function handleOrderSubmission(e) {
                         price: ss.item.price,
                         stock: newStock,
                         image: ss.item.image,
+                        preorderEnabled: isPreorder,
                         updatedAt: serverTimestamp()
                     });
                 }
@@ -451,11 +479,13 @@ async function handleOrderSubmission(e) {
 
             const bundleRes = calculateRingBundleDiscount(cart, ringPricingRule);
 
-            // Create a costPrice lookup from transaction product snapshots
+            // Create a costPrice & preorder lookup from transaction product snapshots
             const costPriceMap = {};
+            const fsDataMap = {};
             for (const ss of stockSnapshots) {
                 if (ss.snap && ss.snap.exists()) {
                     const pData = ss.snap.data();
+                    fsDataMap[ss.pId] = pData;
                     if (typeof pData.costPrice === 'number' && !isNaN(pData.costPrice)) {
                         costPriceMap[ss.pId] = pData.costPrice;
                     }
@@ -481,6 +511,12 @@ async function handleOrderSubmission(e) {
                     hasMissingCostInOrder = true;
                 }
 
+                const pData = fsDataMap[pId] || {};
+                const isPreorder = Boolean(item.isPreorder || pData.preorderEnabled);
+                const preorderMsg = item.preorderMessage || pData.preorderMessage || null;
+                const preorderDate = item.preorderAvailabilityDate || pData.preorderAvailabilityDate || null;
+                const preorderShip = item.preorderShippingEstimate || pData.preorderShippingEstimate || null;
+
                 return {
                     ...item,
                     productId: pId,
@@ -494,7 +530,11 @@ async function handleOrderSubmission(e) {
                     total: appliedPrice * itemQty,
                     costTotal: costTotal,
                     bundleDiscount: hasBundle ? (item.price - appliedPrice) * itemQty : 0,
-                    weight: getItemWeight(item)
+                    weight: getItemWeight(item),
+                    isPreorder: isPreorder,
+                    preorderMessage: preorderMsg,
+                    preorderAvailabilityDate: preorderDate,
+                    preorderShippingEstimate: preorderShip
                 };
             });
 
@@ -503,6 +543,7 @@ async function handleOrderSubmission(e) {
                 orderNumber: orderNumber,
                 customer: customer,
                 items: processedItems,
+                hasPreorderItems: processedItems.some(i => i.isPreorder),
                 originalSubtotal: originalSubtotal,
                 ringBundleDiscount: ringBundleDiscount,
                 subtotal: subtotalAfterBundle,

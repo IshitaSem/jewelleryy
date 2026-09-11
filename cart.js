@@ -47,6 +47,20 @@ function getAvailableStock(title, image) {
     return 10; // Default fallback stock
 }
 
+function getPreorderInfo(title, image) {
+    const pId = getProductId(title, image);
+    if (window.liveProductsMap && window.liveProductsMap[pId]) {
+        const prod = window.liveProductsMap[pId];
+        return {
+            isPreorder: Boolean(prod.preorderEnabled),
+            preorderMessage: prod.preorderMessage || '',
+            preorderAvailabilityDate: prod.preorderAvailabilityDate || '',
+            preorderShippingEstimate: prod.preorderShippingEstimate || ''
+        };
+    }
+    return { isPreorder: false, preorderMessage: '', preorderAvailabilityDate: '', preorderShippingEstimate: '' };
+}
+
 function addToCartFromModal() {
     const activeImg = document.querySelector('#modalImageContainer img.active');
     const image = activeImg ? activeImg.src : '';
@@ -65,15 +79,18 @@ function addToCartFromModal() {
 
     const availableStock = getAvailableStock(title, image);
     const targetPid = getProductId(title, image);
+    const preorderInfo = getPreorderInfo(title, image);
+    const isPreorder = preorderInfo.isPreorder;
+
     const existingItem = cart.find(item => item.name === title || (getProductId(item.name, item.image) === targetPid && (!selectedOption || item.name.includes(selectedOption))));
     const currentQty = existingItem ? existingItem.quantity : 0;
 
-    if (availableStock <= 0) {
+    if (!isPreorder && availableStock <= 0) {
         alert("Sorry, this item is out of stock!");
         return;
     }
 
-    if (currentQty + 1 > availableStock) {
+    if (!isPreorder && currentQty + 1 > availableStock) {
         alert(`Sorry, only ${availableStock} unit(s) available in stock!`);
         return;
     }
@@ -82,13 +99,21 @@ function addToCartFromModal() {
         existingItem.quantity += 1;
         existingItem.name = title;
         existingItem.weight = itemWeight;
+        existingItem.isPreorder = isPreorder;
+        existingItem.preorderMessage = preorderInfo.preorderMessage;
+        existingItem.preorderAvailabilityDate = preorderInfo.preorderAvailabilityDate;
+        existingItem.preorderShippingEstimate = preorderInfo.preorderShippingEstimate;
     } else {
         cart.push({
             name: title,
             price: price,
             weight: itemWeight,
             quantity: 1,
-            image: image
+            image: image,
+            isPreorder: isPreorder,
+            preorderMessage: preorderInfo.preorderMessage,
+            preorderAvailabilityDate: preorderInfo.preorderAvailabilityDate,
+            preorderShippingEstimate: preorderInfo.preorderShippingEstimate
         });
     }
     
@@ -287,9 +312,21 @@ function updateCartUI() {
             const displayName = getItemTitle(item.image, item.name);
             const availableStock = getAvailableStock(displayName, item.image);
 
-            if (availableStock <= 0) {
+            const pId = getProductId(displayName, item.image);
+            if (window.liveProductsMap && window.liveProductsMap[pId]) {
+                const prod = window.liveProductsMap[pId];
+                item.isPreorder = Boolean(prod.preorderEnabled);
+                if (prod.preorderMessage) item.preorderMessage = prod.preorderMessage;
+                if (prod.preorderAvailabilityDate) item.preorderAvailabilityDate = prod.preorderAvailabilityDate;
+                if (prod.preorderShippingEstimate) item.preorderShippingEstimate = prod.preorderShippingEstimate;
+            }
+
+            const isPreorder = Boolean(item.isPreorder);
+            const isOutOfStock = !isPreorder && availableStock <= 0;
+
+            if (isOutOfStock) {
                 hasStockIssue = true;
-            } else if (item.quantity > availableStock) {
+            } else if (!isPreorder && item.quantity > availableStock) {
                 item.quantity = availableStock;
                 saveCart();
             }
@@ -298,13 +335,26 @@ function updateCartUI() {
             totalOriginalSubtotal += item.price * item.quantity;
             totalProdWeight += weight * item.quantity;
             
-            const isOutOfStock = availableStock <= 0;
             const isEligible = isEligibleRing(item, ringPricingRule || window.ring150PricingRule);
             const hasBundleDiscount = isEligible && bundleRes.bundleDiscount > 0;
 
             const priceDisplay = hasBundleDiscount 
                 ? `<span style="text-decoration:line-through; color:#aaa; margin-right:0.3rem;">₹${item.price}</span><strong style="color:#28a745;">₹${bundleRes.appliedTierPrice}</strong>`
                 : `₹${item.price}`;
+
+            let stockSubtext = '';
+            if (isPreorder) {
+                const estText = item.preorderAvailabilityDate
+                    ? `Expected dispatch: ${item.preorderAvailabilityDate}`
+                    : (item.preorderShippingEstimate || item.preorderMessage || 'Pre-order item');
+                stockSubtext = `<div style="font-size:0.75rem; margin-top:0.25rem; color:#ff1493; font-weight:bold;">
+                    <span class="cart-preorder-tag">PRE-ORDER</span> ${estText}
+                </div>`;
+            } else if (isOutOfStock) {
+                stockSubtext = `<div style="font-size:0.75rem; margin-top:0.2rem; color:#ff4d4f; font-weight:bold;">Out of Stock ❌</div>`;
+            } else {
+                stockSubtext = `<div style="font-size:0.75rem; margin-top:0.2rem; color:${availableStock <= 2 ? '#d46b08' : '#666'};">Stock: ${availableStock}</div>`;
+            }
 
             cartItemsDiv.innerHTML += `
                 <div class="cart-item" style="${isOutOfStock ? 'opacity:0.65; border:1px solid #ff4d4f; background:#fff2f0;' : ''}">
@@ -313,13 +363,11 @@ function updateCartUI() {
                         <h4>${displayName}</h4>
                         <p>${priceDisplay} • ${weight}g</p>
                         ${hasBundleDiscount ? `<div style="font-size:0.75rem; color:#28a745; font-weight:bold;">💍 Ring Offer (-₹${(item.price - bundleRes.appliedTierPrice)}/item)</div>` : ''}
-                        <div style="font-size:0.75rem; margin-top:0.2rem; color:${isOutOfStock ? '#ff4d4f' : (availableStock <= 2 ? '#d46b08' : '#666')}; font-weight:${isOutOfStock ? 'bold' : 'normal'};">
-                            ${isOutOfStock ? 'Out of Stock ❌' : `Stock: ${availableStock}`}
-                        </div>
-                        <div class="cart-quantity">
+                        ${stockSubtext}
+                        <div class="cart-quantity" style="margin-top:0.4rem;">
                             <button onclick="updateQuantity(${index}, -1)">-</button>
                             <span>${item.quantity}</span>
-                            <button onclick="updateQuantity(${index}, 1)" ${item.quantity >= availableStock || isOutOfStock ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>+</button>
+                            <button onclick="updateQuantity(${index}, 1)" ${(!isPreorder && item.quantity >= availableStock) || isOutOfStock ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>+</button>
                         </div>
                     </div>
                 </div>
@@ -463,15 +511,18 @@ document.addEventListener('click', (e) => {
             
             const availableStock = getAvailableStock(title, image);
             const targetPid = getProductId(title, image);
+            const preorderInfo = getPreorderInfo(title, image);
+            const isPreorder = preorderInfo.isPreorder;
+
             const existingItem = cart.find(item => item.name === title || (getProductId(item.name, item.image) === targetPid && (!cardOption || item.name.includes(cardOption))));
             const currentQty = existingItem ? existingItem.quantity : 0;
 
-            if (availableStock <= 0) {
+            if (!isPreorder && availableStock <= 0) {
                 alert("Sorry, this item is out of stock!");
                 return;
             }
 
-            if (currentQty + 1 > availableStock) {
+            if (!isPreorder && currentQty + 1 > availableStock) {
                 alert(`Sorry, only ${availableStock} unit(s) available in stock!`);
                 return;
             }
@@ -480,13 +531,21 @@ document.addEventListener('click', (e) => {
                 existingItem.quantity += 1;
                 existingItem.name = title;
                 existingItem.weight = itemWeight;
+                existingItem.isPreorder = isPreorder;
+                existingItem.preorderMessage = preorderInfo.preorderMessage;
+                existingItem.preorderAvailabilityDate = preorderInfo.preorderAvailabilityDate;
+                existingItem.preorderShippingEstimate = preorderInfo.preorderShippingEstimate;
             } else {
                 cart.push({
                     name: title,
                     price: price,
                     weight: itemWeight,
                     quantity: 1,
-                    image: image
+                    image: image,
+                    isPreorder: isPreorder,
+                    preorderMessage: preorderInfo.preorderMessage,
+                    preorderAvailabilityDate: preorderInfo.preorderAvailabilityDate,
+                    preorderShippingEstimate: preorderInfo.preorderShippingEstimate
                 });
             }
             saveCart();

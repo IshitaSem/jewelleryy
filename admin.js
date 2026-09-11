@@ -186,6 +186,7 @@ function renderSidebar() {
     allOrders.forEach(order => {
         const dateStr = order.createdAt ? new Date(order.createdAt.toMillis ? order.createdAt.toMillis() : order.createdAt).toLocaleDateString() : 'Unknown';
         const profit = calculateOrderProfit(order, productCostsMap);
+        const isPreorderOrder = Boolean(order.hasPreorderItems || (order.items && order.items.some(i => i.isPreorder)));
         
         let profitBadge = '';
         if (profit.costStatus === 'FROZEN') {
@@ -196,6 +197,10 @@ function renderSidebar() {
             profitBadge = `<span style="display:inline-block; margin-top:0.3rem; padding:0.2rem 0.5rem; background:#fff2f0; color:#ff4d4f; border-radius:10px;">⚠️ Missing Cost Data</span>`;
         }
 
+        const preorderBadge = isPreorderOrder 
+            ? `<span style="display:inline-block; margin-top:0.3rem; padding:0.2rem 0.5rem; background:#fff0f5; color:#ff1493; border:1px solid #ff69b4; border-radius:10px; font-weight:bold;">PRE-ORDER ✨</span>` 
+            : '';
+
         const card = document.createElement('div');
         card.className = 'admin-order-card';
         card.innerHTML = `
@@ -204,6 +209,7 @@ function renderSidebar() {
                 ${dateStr} | ₹${order.total}<br>
                 <span style="display:inline-block; margin-top:0.3rem; padding:0.2rem 0.5rem; background:#eee; border-radius:10px;">${order.paymentStatus || 'Pending'}</span>
                 <span style="display:inline-block; margin-top:0.3rem; padding:0.2rem 0.5rem; background:#ffc107; color:black; border-radius:10px;">${order.orderStatus || 'Received'}</span>
+                ${preorderBadge}
                 ${profitBadge}
                 ${order.stockRestored ? '<span style="display:inline-block; margin-top:0.3rem; padding:0.2rem 0.5rem; background:#17a2b8; color:white; border-radius:10px;">Stock Restored 🔄</span>' : ''}
             </div>
@@ -361,10 +367,18 @@ function openOrderDetails(order) {
             calculatedWeight += (itemWeight * item.quantity);
 
             const hasBundle = typeof item.appliedPrice === 'number' && item.appliedPrice < origPrice;
+            const isPreorder = Boolean(item.isPreorder);
+            const preorderTag = isPreorder ? `
+                <div style="font-size:0.78rem; color:#ff1493; font-weight:bold; margin-top:0.2rem;">
+                    <span style="background:#fff0f5; border:1px solid #ff69b4; padding:0.15rem 0.4rem; border-radius:4px;">PRE-ORDER ITEM ✨</span>
+                    ${item.preorderAvailabilityDate ? ` · Date: ${item.preorderAvailabilityDate}` : (item.preorderShippingEstimate ? ` · ${item.preorderShippingEstimate}` : (item.preorderMessage ? ` · ${item.preorderMessage}` : ''))}
+                </div>
+            ` : '';
 
             itemsEl.innerHTML += `<div style="padding:0.5rem 0; border-bottom:1px solid #ddd;">
                 ${item.quantity}x <strong>${displayName}</strong> (${itemWeight}g) - 
                 ${hasBundle ? `<span style="text-decoration:line-through; color:#aaa;">₹${origPrice * item.quantity}</span> <strong style="color:#28a745;">₹${item.appliedPrice * item.quantity}</strong>` : `₹${origPrice * item.quantity}`}
+                ${preorderTag}
             </div>`;
         });
     }
@@ -556,33 +570,39 @@ document.getElementById('btnSaveUpdate').addEventListener('click', async () => {
                     return;
                 }
 
+                // 1. READ ALL DOCUMENTS FIRST
+                const productReads = [];
                 if (orderData.items && Array.isArray(orderData.items)) {
                     for (const item of orderData.items) {
                         const displayName = (item.image && typeof window.getProductNameFromImage === 'function')
                             ? window.getProductNameFromImage(item.image)
                             : (item.name || '');
-                        const pId = getProductId(displayName, item.image);
+                        const pId = item.productId || getProductId(displayName, item.image);
                         const pRef = doc(db, "products", pId);
                         const pSnap = await transaction.get(pRef);
+                        productReads.push({ item, displayName, pId, pRef, pSnap });
+                    }
+                }
 
-                        const currentStock = pSnap.exists() ? (typeof pSnap.data().stock === 'number' ? pSnap.data().stock : 10) : 10;
-                        const restoredStock = currentStock + (item.quantity || 1);
+                // 2. EXECUTE ALL WRITES AFTER ALL READS ARE COMPLETE
+                for (const pr of productReads) {
+                    const currentStock = pr.pSnap.exists() ? (typeof pr.pSnap.data().stock === 'number' ? pr.pSnap.data().stock : 10) : 10;
+                    const restoredStock = currentStock + (pr.item.quantity || 1);
 
-                        if (pSnap.exists()) {
-                            transaction.update(pRef, {
-                                stock: restoredStock,
-                                updatedAt: serverTimestamp()
-                            });
-                        } else {
-                            transaction.set(pRef, {
-                                productId: pId,
-                                name: displayName,
-                                price: item.price || 0,
-                                stock: restoredStock,
-                                image: item.image || '',
-                                updatedAt: serverTimestamp()
-                            });
-                        }
+                    if (pr.pSnap.exists()) {
+                        transaction.update(pr.pRef, {
+                            stock: restoredStock,
+                            updatedAt: serverTimestamp()
+                        });
+                    } else {
+                        transaction.set(pr.pRef, {
+                            productId: pr.pId,
+                            name: pr.displayName,
+                            price: pr.item.price || 0,
+                            stock: restoredStock,
+                            image: pr.item.image || '',
+                            updatedAt: serverTimestamp()
+                        });
                     }
                 }
 
@@ -1244,10 +1264,14 @@ function renderStockGrid() {
         const stock = typeof product.stock === 'number' ? product.stock : 0;
         const costPrice = (product.costPrice !== null && product.costPrice !== undefined) ? product.costPrice : '';
         const pId = product.id;
+        const isPreorder = Boolean(product.preorderEnabled);
+        const preorderMsg = product.preorderMessage || '';
+        const preorderDate = product.preorderAvailabilityDate || '';
+        const preorderShip = product.preorderShippingEstimate || '';
 
         const card = document.createElement('div');
         card.style.background = '#f9f9f9';
-        card.style.border = stock === 0 ? '2px solid #ff4d4f' : (stock <= 5 ? '2px solid #ff9c6e' : '1px solid #ddd');
+        card.style.border = isPreorder ? '2px solid #ff1493' : (stock === 0 ? '2px solid #ff4d4f' : (stock <= 5 ? '2px solid #ff9c6e' : '1px solid #ddd'));
         card.style.borderRadius = '10px';
         card.style.padding = '1.2rem';
         card.style.display = 'flex';
@@ -1266,7 +1290,7 @@ function renderStockGrid() {
                 </div>
             </div>
             <div>
-                ${renderStockBadge(stock)}
+                ${renderStockBadge(stock, product)}
             </div>
             <div style="display:flex; gap:0.5rem; align-items:center; margin-top:0.3rem;">
                 <label style="font-weight:bold; font-size:0.85rem; min-width:70px;">Cost Price:</label>
@@ -1283,12 +1307,42 @@ function renderStockGrid() {
                 <button class="btn-stock-quick" data-pid="${pId}" data-add="10" style="padding:0.3rem 0.6rem; background:#f6ffed; color:#52c41a; border:1px solid #b7eb8f; border-radius:4px; font-size:0.8rem; font-weight:bold; cursor:pointer;">+10 Restock</button>
                 <button class="btn-stock-quick" data-pid="${pId}" data-set="0" style="padding:0.3rem 0.6rem; background:#fff1f0; color:#f5222d; border:1px solid #ffa39e; border-radius:4px; font-size:0.8rem; font-weight:bold; cursor:pointer;">Set Out of Stock ❌</button>
             </div>
+
+            <!-- PRE-ORDER CONTROLS -->
+            <div style="background:#fff0f5; border:1px solid #ffb6c1; border-radius:8px; padding:0.75rem; margin-top:0.4rem; display:flex; flex-direction:column; gap:0.4rem;">
+                <label style="font-weight:bold; font-size:0.85rem; color:#ff1493; display:flex; align-items:center; gap:0.4rem; cursor:pointer;">
+                    <input type="checkbox" id="chkPreorder_${pId}" ${isPreorder ? 'checked' : ''}> Enable Pre-Order ✨
+                </label>
+                <div style="display:flex; flex-direction:column; gap:0.3rem; margin-top:0.2rem;">
+                    <input type="text" id="inpPreorderMsg_${pId}" value="${preorderMsg}" placeholder="Pre-order message (e.g. Handmade on order...)" style="padding:0.35rem 0.5rem; border:1px solid #ccc; border-radius:4px; font-size:0.82rem;">
+                    <input type="text" id="inpPreorderDate_${pId}" value="${preorderDate}" placeholder="Expected availability / dispatch date (e.g. 15th Oct)" style="padding:0.35rem 0.5rem; border:1px solid #ccc; border-radius:4px; font-size:0.82rem;">
+                    <input type="text" id="inpPreorderShip_${pId}" value="${preorderShip}" placeholder="Shipping estimate (e.g. Ships in 5-7 days)" style="padding:0.35rem 0.5rem; border:1px solid #ccc; border-radius:4px; font-size:0.82rem;">
+                    <button class="btn-preorder-save" data-pid="${pId}" style="align-self:flex-start; margin-top:0.2rem; padding:0.35rem 0.75rem; background:#ff1493; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer; font-size:0.8rem;">Save Pre-Order Settings</button>
+                </div>
+            </div>
         `;
 
         stockGrid.appendChild(card);
     });
 
     // Attach Event Listeners
+    document.querySelectorAll('.btn-preorder-save').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const pId = e.target.getAttribute('data-pid');
+            const chk = document.getElementById(`chkPreorder_${pId}`);
+            const msgInp = document.getElementById(`inpPreorderMsg_${pId}`);
+            const dateInp = document.getElementById(`inpPreorderDate_${pId}`);
+            const shipInp = document.getElementById(`inpPreorderShip_${pId}`);
+
+            const preorderData = {
+                preorderEnabled: chk ? chk.checked : false,
+                preorderMessage: msgInp ? msgInp.value.trim() : '',
+                preorderAvailabilityDate: dateInp ? dateInp.value.trim() : '',
+                preorderShippingEstimate: shipInp ? shipInp.value.trim() : ''
+            };
+            await updatePreorderSettings(pId, preorderData);
+        });
+    });
     document.querySelectorAll('.btn-cost-save').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             const pId = e.target.getAttribute('data-pid');
@@ -1391,6 +1445,40 @@ async function updateStock(productId, newStock) {
         } else {
             alert("Failed to update stock: " + e.message);
         }
+    }
+}
+
+async function updatePreorderSettings(productId, preorderData) {
+    const product = allProducts.find(p => p.id === productId);
+    try {
+        if (!auth.currentUser) {
+            alert("Error: You are not currently authenticated as Admin. Please log in with ishitasemwal84@gmail.com first.");
+            if (adminLoginOverlay) adminLoginOverlay.style.display = 'flex';
+            return;
+        }
+        const pRef = doc(db, "products", productId);
+        await setDoc(pRef, {
+            productId: productId,
+            name: product ? product.name : productId,
+            price: product ? product.price : 0,
+            category: product ? product.category : deriveCategory(product ? product.image : '', product ? product.name : ''),
+            image: product ? product.image : '',
+            preorderEnabled: Boolean(preorderData.preorderEnabled),
+            preorderMessage: preorderData.preorderMessage || '',
+            preorderAvailabilityDate: preorderData.preorderAvailabilityDate || '',
+            preorderShippingEstimate: preorderData.preorderShippingEstimate || '',
+            updatedAt: serverTimestamp()
+        }, { merge: true });
+
+        const msg = document.getElementById('adminSaveMsg');
+        if (msg) {
+            msg.textContent = `Pre-order settings for "${product ? product.name : productId}" updated! ✨`;
+            msg.style.display = 'block';
+            setTimeout(() => msg.style.display = 'none', 2500);
+        }
+    } catch (e) {
+        console.error("Error updating pre-order settings in Firestore:", e);
+        alert("Failed to update pre-order settings: " + e.message);
     }
 }
 
