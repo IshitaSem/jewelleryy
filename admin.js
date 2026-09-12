@@ -1119,7 +1119,14 @@ const PRIVATE_COST_REGISTRY = {
   'starscar': 50,
   'venomfang': 50,
   'batman_ring': 30,
-  'dear_couple_ring': 85
+  'dear_couple_ring': 85,
+  'cromiccy_relic': 50,
+  'cyber_serpent': 50,
+  'nocturne_star_ring': 50,
+  'xenocrom': 50,
+  'cromancy': 50,
+  'levidcromi': 50,
+  'swirlycromacy': 50
 };
 
 let productCostsMap = {};
